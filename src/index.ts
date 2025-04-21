@@ -1,7 +1,6 @@
-import app from "./web/app";
+import app from "@/web/app";
 import OAuthProvider from "@cloudflare/workers-oauth-provider";
 import {MyMCP} from "@/mcp/server";
-
 
 export {MyMCP};
 

@@ -2,7 +2,7 @@ export const AppRoutes = {
     ALL: '*',
     ROOT: '/',
     AUTHORIZE: '/authorize',
-    APPROVE: '/approve',
+    AUTH_CONFIRM: '/auth/confirm',
     AUTH_CALLBACK: '/auth/callback',
     LOGIN: '/login',
     SSE: '/sse',

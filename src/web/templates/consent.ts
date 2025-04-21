@@ -11,13 +11,17 @@ type ConsentScreenProps = {
         clientName: string;
     };
     user: {
-        email: string;
+        id: string;
+        email?: string; // Make email optional to match Supabase user type
     };
 };
 
 export const renderConsentScreen = ({oauthReq, clientInfo, user}: ConsentScreenProps) => {
+    // Use email if available, otherwise fallback to 'User'
+    const userIdentifier = user.email || `User ${user.id.substring(0, 8)}`;
+
     return html`
-        <h2>Hi, ${user.email}</h2>
+        <h2>Hi, ${userIdentifier}</h2>
         <p><b>${clientInfo.clientName}</b> wants to access your account.</p>
 
         <form method="POST" action="/authorize">

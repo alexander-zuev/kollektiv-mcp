@@ -2,41 +2,34 @@ import type {Context} from "hono";
 import {getSupabase} from "@/web/middleware/supabase";
 
 export const authCallbackHandler = async (c: Context) => {
-    const supabase = getSupabase(c)
+    const supabase = getSupabase(c);
     const code = c.req.query('code');
+    const state = c.req.query('state');
     const originalUrl = c.req.url;
+
     console.log(`[GET /auth/callback] Handling request for URL: ${originalUrl}`);
-    console.log(`[GET /auth/callback] Code from query: ${code ? 'found' : 'missing'}`);
+    console.log(`[GET /auth/callback] Code: ${code ? 'present' : 'missing'}, State: ${state ? 'present' : 'missing'}`);
+    console.log(`[GET /auth/callback] Query params: ${new URL(originalUrl).searchParams}`);
 
     if (!code) {
-        // no code in the URL and we are in the auth callback - not good
-        console.error("[GET /auth/callback] No code found in the callback request from Supabase at", originalUrl)
-
+        console.error("[GET /auth/callback] No code found in the callback request from Supabase");
         return c.text("Authentication Error: Authorization code was missing.", 400);
     }
 
-    // code found
-    console.log("[GET /auth/callback] Code found. Exchanging code for session...");
-
     try {
-        // exchange code for a session
-        // 'setAll' will be automatically called by the supabase client because of createServerClient setup
-        const {error} = await supabase.auth.exchangeCodeForSession(code)
+        console.log("[GET /auth/callback] Exchanging code for session...");
+        const result = await supabase.auth.exchangeCodeForSession(code);
 
-        // Check if the exchange resulted in an error
-        if (error) {
-            console.error("[GET /auth/callback] Error exchanging code for session:", error.message, "at", originalUrl);
-            return c.text(`Authentication Error: ${error.message}`, 400); // Return error response
+        if (result.error) {
+            console.error(`[GET /auth/callback] Error: ${result.error.message}, Status: ${result.error.status}`);
+            return c.text(`Authentication Error: ${result.error.message}`, 400);
         }
 
-        // If successful (no error), redirect back to /authorize
-        // The cookies containing the session are automatically set by the middleware's setAll
-        console.log("[GET /auth/callback] Code exchange successful. Redirecting to /authorize...");
-        return c.redirect('/authorize'); // Perform the redirect
+        console.log("[GET /auth/callback] Code exchange successful.");
+        return c.redirect('/authorize');
 
     } catch (exchangeError) {
-        // Catch unexpected errors during the exchange process itself
-        console.error("[GET /auth/callback] Unexpected error during code exchange:", exchangeError);
+        console.error(`[GET /auth/callback] Unexpected error: ${exchangeError}`);
         return c.text("Internal Server Error: Failed to process authentication callback.", 500);
     }
 };

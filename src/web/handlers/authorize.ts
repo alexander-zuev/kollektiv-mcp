@@ -1,8 +1,10 @@
 import {getSupabase} from "@/web/middleware/supabase";
-import {layout, renderLoginScreen} from "@/web/utils";
+import {layout} from "@/web/utils";
+import {renderLoginScreen} from "@/web/templates/login";
 import {renderConsentScreen} from "@/web/templates/consent";
+import {Context} from "hono";
 
-export const getAuthorizeHandler = async (c) => {
+export const getAuthorizeHandler = async (c: Context) => {
     console.log("[GET /authorize] Handling request.");
     const supabase = getSupabase(c);
     console.log("[GET /authorize] Getting session...");
@@ -34,7 +36,7 @@ export const getAuthorizeHandler = async (c) => {
 };
 
 
-export const postAuthorizeHandler = async (c) => {
+export const postAuthorizeHandler = async (c: Context) => {
     console.log("[POST /authorize] Handling request.");
     const supabase = getSupabase(c);
     console.log("[POST /authorize] Getting session...");

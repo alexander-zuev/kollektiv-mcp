@@ -2,12 +2,12 @@ import {Hono} from "hono";
 import type {OAuthHelpers} from "@cloudflare/workers-oauth-provider";
 import {
     allRoutesHandler,
-    approveHandler,
     authCallbackHandler,
     getAuthorizeHandler,
     postAuthorizeHandler,
     rootHandler,
     loginHandler,
+    authConfirmHandler,
 } from "@/web/handlers";
 
 import {AppRoutes} from "@/web/routes";
@@ -17,7 +17,6 @@ export type Bindings = Env & {
     OAUTH_PROVIDER: OAuthHelpers;
 };
 
-
 const app = new Hono<{
     Bindings: Bindings;
 }>();
@@ -25,26 +24,22 @@ const app = new Hono<{
 // Apply middleware to all routes
 app.use(AppRoutes.ALL, allRoutesHandler)
 
-// Basic root page
+// Render a basic home page
 app.get(AppRoutes.ROOT, rootHandler)
 
-// Render an authorization page
-// If the user is logged in, we'll show a form to approve the appropriate scopes
-// If the user is not logged in, we'll show a form to both login and approve the scopes
+// Handle the OAuth authorization flow
 app.get(AppRoutes.AUTHORIZE, getAuthorizeHandler)
 
-
+// Validate the login information and complete the authorization request
 app.post(AppRoutes.AUTHORIZE, postAuthorizeHandler)
 
+// Validate OTP code and complete the authorization request
+app.post(AppRoutes.AUTH_CONFIRM, authConfirmHandler)
 
-// The /authorize page has a form that will POST to /approve
-// This endpoint is responsible for validating any login information and
-// then completing the authorization request with the OAUTH_PROVIDER
-app.post(AppRoutes.APPROVE, approveHandler)
-
+// Exchange PKCE code for access and session tokens from Supabase
 app.get(AppRoutes.AUTH_CALLBACK, authCallbackHandler)
 
-
+// Handle login request (Oauth vs email)
 app.post(AppRoutes.LOGIN, loginHandler)
 
 // Export app as the default handler
