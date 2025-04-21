@@ -153,7 +153,7 @@ export const layout = (content: HtmlEscapedString | string, title: string) => ht
                 class="container mx-auto px-4 py-4 flex justify-between items-center"
         >
             <a
-                    href="/"
+                    href="/static"
                     class="text-xl font-heading font-bold text-primary hover:text-primary/80 transition-colors"
             >MCP Remote Auth Demo</a
             >
@@ -425,7 +425,7 @@ export const renderApproveContent = async (
                 You will be redirected back to the application shortly.
             </p>
             <a
-                    href="/"
+                    href="/static"
                     class="inline-block py-2 px-4 bg-primary text-white rounded-md font-medium hover:bg-primary/90 transition-colors"
             >
                 Return to Home

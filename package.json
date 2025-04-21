@@ -8,12 +8,21 @@
     "format": "biome format --write",
     "lint:fix": "biome lint --fix",
     "start": "wrangler dev",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "vitest run tests/e2e"
   },
   "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.8.18",
     "@cloudflare/workers-types": "^4.20250420.0",
     "marked": "^15.0.7",
     "typescript": "^5.5.2",
+    "vitest": "~3.0.0",
     "workers-mcp": "^0.1.0-3",
     "wrangler": "^4.12.0"
   },

@@ -1,9 +1,9 @@
-import app from "./app";
-import {McpAgent} from "agents/mcp";
-import {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
-import {z} from "zod";
+import app from "./web/app";
 import OAuthProvider from "@cloudflare/workers-oauth-provider";
 import {MyMCP} from "@/mcp/server";
+
+
+export {MyMCP};
 
 
 // Export the OAuth handler as the default

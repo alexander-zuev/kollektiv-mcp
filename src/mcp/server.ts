@@ -6,7 +6,7 @@ import {allTools} from '@/mcp/tools'
 
 export class MyMCP extends McpAgent {
     server = new McpServer({
-        name: "Mindtrove MCP",
+        name: "Kollektiv MCP",
         version: "0.1.0",
     });
 

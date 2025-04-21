@@ -4,7 +4,7 @@
  */
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "mindtrove-mcp-worker",
+  "name": "kollketiv-mcp",
   "main": "src/index.ts",
   "compatibility_date": "2025-03-10",
   "compatibility_flags": [
@@ -40,6 +40,10 @@
   },
   "assets": {
     "directory": "./static/",
+    "binding": "ASSETS"
+  },
+  "assets": {
+    "directory": "./public/",
     "binding": "ASSETS"
   }
   /**
