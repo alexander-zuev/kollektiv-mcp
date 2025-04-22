@@ -1,7 +1,7 @@
+import { AppRoutes } from "@/web/routes";
 // Helper to generate the layout
-import {html} from "hono/html";
-import type {HtmlEscapedString} from "hono/utils/html";
-import {AppRoutes} from "@/web/routes";
+import { html } from "hono/html";
+import type { HtmlEscapedString } from "hono/utils/html";
 
 export const layout = (content: HtmlEscapedString | string, title: string) => html`
     <!DOCTYPE html>

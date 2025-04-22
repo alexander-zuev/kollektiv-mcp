@@ -1,28 +1,28 @@
-import {html} from "hono/html";
-import {AppRoutes} from "@/web/routes";
+import { AppRoutes } from "@/web/routes";
+import { html } from "hono/html";
 
 type ConsentScreenProps = {
-    oauthReq: {
-        clientId: string;
-        state: string;
-        codeChallenge: string;
-        codeChallengeMethod: string;
-        scope: string;
-        redirectUri?: string;
-    };
-    clientInfo: {
-        clientName: string;
-    };
-    user: {
-        id: string;
-        email?: string; // Make email optional to match Supabase user type
-    };
+	oauthReq: {
+		clientId: string;
+		state: string;
+		codeChallenge: string;
+		codeChallengeMethod: string;
+		scope: string;
+		redirectUri?: string;
+	};
+	clientInfo: {
+		clientName: string;
+	};
+	user: {
+		id: string;
+		email?: string; // Make email optional to match Supabase user type
+	};
 };
 
-export const renderConsentScreen = ({oauthReq, clientInfo, user}: ConsentScreenProps) => {
-    const userIdentifier = user.email || `User ${user.id.substring(0, 8)}`;
+export const renderConsentScreen = ({ oauthReq, clientInfo, user }: ConsentScreenProps) => {
+	const userIdentifier = user.email || `User ${user.id.substring(0, 8)}`;
 
-    return html`
+	return html`
         <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md text-center">
             <h2 class="text-2xl font-heading font-semibold mb-4 text-gray-900">
                 Hi, ${userIdentifier}!

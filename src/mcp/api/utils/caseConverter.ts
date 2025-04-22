@@ -1,5 +1,5 @@
-import snakecaseKeys from "snakecase-keys";
 import camelcaseKeys from "camelcase-keys";
+import snakecaseKeys from "snakecase-keys";
 
 /**
  * Converts a value to snake_case if it's a plain object.
@@ -7,11 +7,11 @@ import camelcaseKeys from "camelcase-keys";
  * Returns all other types unchanged.
  */
 export function convertToSnakeCase<T>(body: T): T {
-    if (body == null) return {} as T;
-    if (typeof body === "object" && !Array.isArray(body)) {
-        return snakecaseKeys(body as Record<string, unknown>, {deep: true}) as T;
-    }
-    return body;
+	if (body == null) return {} as T;
+	if (typeof body === "object" && !Array.isArray(body)) {
+		return snakecaseKeys(body as Record<string, unknown>, { deep: true }) as T;
+	}
+	return body;
 }
 
 /**
@@ -20,11 +20,11 @@ export function convertToSnakeCase<T>(body: T): T {
  * Returns all other types unchanged.
  */
 export function convertToCamelCase<T>(body: T): T {
-    if (body == null) return {} as T; // null or undefined → empty object
-    if (typeof body === "object" && !Array.isArray(body)) {
-        // Plain object: convert
-        return camelcaseKeys(body as Record<string, unknown>, {deep: true}) as T;
-    }
-    // Array, string, number, boolean, etc.: return as-is
-    return body;
+	if (body == null) return {} as T; // null or undefined → empty object
+	if (typeof body === "object" && !Array.isArray(body)) {
+		// Plain object: convert
+		return camelcaseKeys(body as Record<string, unknown>, { deep: true }) as T;
+	}
+	// Array, string, number, boolean, etc.: return as-is
+	return body;
 }

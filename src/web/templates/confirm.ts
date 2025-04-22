@@ -1,12 +1,12 @@
-import {html} from "hono/html";
-import {AppRoutes} from "@/web/routes";
+import { AppRoutes } from "@/web/routes";
+import { html } from "hono/html";
 
 type RenderConfirmScreenProps = {
-    email: string;
+	email: string;
 };
 
-export const renderConfirmScreen = ({email}: RenderConfirmScreenProps) => {
-    return html`
+export const renderConfirmScreen = ({ email }: RenderConfirmScreenProps) => {
+	return html`
         <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
             <h1 class="text-2xl font-heading font-bold mb-6 text-gray-900">
                 Enter verification code

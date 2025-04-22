@@ -1,7 +1,7 @@
 // noinspection ExceptionCaughtLocallyJS
 
-import {Context} from 'hono';
-import {z, ZodTypeAny} from 'zod';
+import type { Context } from "hono";
+import type { ZodTypeAny, z } from "zod";
 
 /**
  * Represents an error during form data validation.
@@ -9,16 +9,16 @@ import {z, ZodTypeAny} from 'zod';
  */
 
 export class FormValidationError extends Error {
-    public issues: z.ZodIssue[];
+	public issues: z.ZodIssue[];
 
-    constructor(issues: z.ZodIssue[]) {
-        // Provide a user-friendly summary message and store the details
-        super(`Form validation failed: ${issues[0]?.message || 'Invalid input'}`);
-        this.name = 'FormValidationError';
-        this.issues = issues;
-        // You might want to capture stack trace differently if needed
-        // Object.setPrototypeOf(this, FormValidationError.prototype);
-    }
+	constructor(issues: z.ZodIssue[]) {
+		// Provide a user-friendly summary message and store the details
+		super(`Form validation failed: ${issues[0]?.message || "Invalid input"}`);
+		this.name = "FormValidationError";
+		this.issues = issues;
+		// You might want to capture stack trace differently if needed
+		// Object.setPrototypeOf(this, FormValidationError.prototype);
+	}
 }
 
 /**
@@ -32,33 +32,39 @@ export class FormValidationError extends Error {
  */
 
 export async function parseFormData<T extends ZodTypeAny>(
-    c: Context,
-    schema: T
+	c: Context,
+	schema: T,
 ): Promise<z.infer<T>> {
-    console.log(`[parseAndValidateFormData] Attempting to parse and validate form data...`);
-    try {
-        const rawFormData: unknown = await c.req.parseBody();
-        console.log(`[parseAndValidateFormData] Raw form data parsed:`, JSON.stringify(rawFormData, null, 2));
+	console.log("[parseAndValidateFormData] Attempting to parse and validate form data...");
+	try {
+		const rawFormData: unknown = await c.req.parseBody();
+		console.log(
+			"[parseAndValidateFormData] Raw form data parsed:",
+			JSON.stringify(rawFormData, null, 2),
+		);
 
-        // Validate the data against the schema
-        const validationResult = schema.safeParse(rawFormData);
+		// Validate the data against the schema
+		const validationResult = schema.safeParse(rawFormData);
 
-        // Check validation errors
-        if (!validationResult.success) {
-            console.error('[parseAndValidateFormData] Zod validation failed:', validationResult.error.flatten());
-            throw new FormValidationError(validationResult.error.issues)
-        }
-        // return type safe validated data
-        console.log(`[parseAndValidateFormData] Validation successful.`);
-        return validationResult.data;
-    } catch (error) {
-        // Handle specific validation errors vs. other potential errors
-        if (error instanceof FormValidationError) {
-            // Just re-throw the validation error
-            throw error;
-        }
-        // Log and throw a generic error for other issues (e.g., network problems during parsing)
-        console.error('[parseAndValidateFormData] Error during form parsing/validation:', error);
-        throw new Error('Failed to parse or validate form data.');
-    }
+		// Check validation errors
+		if (!validationResult.success) {
+			console.error(
+				"[parseAndValidateFormData] Zod validation failed:",
+				validationResult.error.flatten(),
+			);
+			throw new FormValidationError(validationResult.error.issues);
+		}
+		// return type safe validated data
+		console.log("[parseAndValidateFormData] Validation successful.");
+		return validationResult.data;
+	} catch (error) {
+		// Handle specific validation errors vs. other potential errors
+		if (error instanceof FormValidationError) {
+			// Just re-throw the validation error
+			throw error;
+		}
+		// Log and throw a generic error for other issues (e.g., network problems during parsing)
+		console.error("[parseAndValidateFormData] Error during form parsing/validation:", error);
+		throw new Error("Failed to parse or validate form data.");
+	}
 }

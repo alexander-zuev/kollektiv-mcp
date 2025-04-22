@@ -1,10 +1,9 @@
+import type { ApiClientConfig } from "@/mcp/api/client/config";
 // api.ts
-import {createApiClient} from './base';
-import {ApiClientConfig} from "@/mcp/api/client/config";
+import { createApiClient } from "./base";
 
 const KollektivAPIConfig: ApiClientConfig = {
-    baseUrl: 'https://mcp.thekollektiv.ai'
+	baseUrl: "https://mcp.thekollektiv.ai",
 };
-
 
 export const api = createApiClient(KollektivAPIConfig);
