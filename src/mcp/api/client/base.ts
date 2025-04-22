@@ -85,7 +85,7 @@ export function createApiClient(options: ApiClientConfig) {
     async function request<T = any>(
         method: HttpMethod,
         path: ApiRoutePath,
-        options: ApiRequestOptions = {},
+        options: ApiRequestOptions,
         body?: any,
     ): Promise<ApiResponse<T>> {
         // Build url path with path and query params
@@ -218,7 +218,7 @@ export function createApiClient(options: ApiClientConfig) {
      * @param options - Request options (pathParams, queryParams, headers)
      * @returns Promise with the response wrapped in ApiResponse
      */
-    async function get<T>(path: ApiRoutePath, options: ApiRequestOptions): Promise<ApiResponse<T>> {
+    async function get<T>(path: ApiRoutePath, options: ApiRequestOptions = {}): Promise<ApiResponse<T>> {
         return request<T>('GET', path, options);
     }
 
@@ -231,8 +231,8 @@ export function createApiClient(options: ApiClientConfig) {
      */
     async function post<T>(
         path: ApiRoutePath,
-        options: ApiRequestOptions,
         body: unknown,
+        options: ApiRequestOptions = {},
     ): Promise<ApiResponse<T>> {
         return request<T>('POST', path, options, body);
     }
@@ -258,7 +258,7 @@ export function createApiClient(options: ApiClientConfig) {
      * @param options - Request options (pathParams, queryParams, headers)
      * @returns Promise with the response wrapped in ApiResponse
      */
-    async function del<T>(path: ApiRoutePath, options: ApiRequestOptions): Promise<ApiResponse<T>> {
+    async function del<T>(path: ApiRoutePath, options: ApiRequestOptions = {}): Promise<ApiResponse<T>> {
         return request<T>('DELETE', path, options);
     }
 

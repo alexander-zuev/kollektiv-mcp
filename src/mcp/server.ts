@@ -15,6 +15,7 @@ export class KollektivMCP extends McpAgent {
         console.log("Initializing MCP server...")
         for (const tool of allTools) {
             console.log("Registering tool: " + tool.name)
+            // @ts-ignore
             this.server.tool(tool.name, tool.schema, tool.handler)
         }
     }

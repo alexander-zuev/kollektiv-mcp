@@ -1,7 +1,7 @@
-import {queryDocsTool} from "@/mcp/tools/queryDocsTool";
+import {queryTool} from "@/mcp/tools/queryTool";
 import {MCPTool} from "@/mcp/tools/types";
 
 export const allTools: MCPTool<any>[] = [
-    queryDocsTool,
+    queryTool,
     // Add other imported tools here
 ];

@@ -1,0 +1,24 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "baseUrl": ".",
+    // <-- Add from parent tsconfig
+    "paths": {
+      // <-- Add from parent tsconfig
+      "@/*": [
+        "../src/*"
+        // <--- Change this line
+      ]
+    },
+    "types": [
+      "@cloudflare/vitest-pool-workers"
+      // provides `cloudflare:test` types
+    ],
+    "include": [
+      "./**/*.ts",
+      "../worker-configuration.d.ts"
+      // output of `wrangler types`
+    ]
+  }
+}

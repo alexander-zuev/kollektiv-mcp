@@ -11,7 +11,6 @@ import {
 } from "@/web/handlers";
 
 import {AppRoutes} from "@/web/routes";
-import {log} from "workers-mcp/dist/cli";
 import {logoutHandler} from "@/web/handlers/logout";
 
 
