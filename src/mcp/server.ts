@@ -2,15 +2,15 @@ import {McpAgent} from "agents/mcp"
 import {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js"
 import {allTools} from '@/mcp/tools'
 
-// need to import tools object
 
-export class MyMCP extends McpAgent {
+export class KollektivMCP extends McpAgent {
+    // Create a new MCP server instance
     server = new McpServer({
         name: "Kollektiv MCP",
         version: "0.1.0",
     });
 
-    // a stub for now - will be updated
+    // Register all tools
     async init(): Promise<void> {
         console.log("Initializing MCP server...")
         for (const tool of allTools) {

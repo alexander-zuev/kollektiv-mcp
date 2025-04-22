@@ -1,6 +1,7 @@
 import {Context} from "hono";
 import {getSupabase} from "@/web/middleware/supabase";
-import {User, AuthError} from "@supabase/supabase-js"; // Import AuthError if you want to check instanceof
+import {User, AuthError} from "@supabase/supabase-js";
+import {getCookie, setCookie} from "hono/cookie"; // Import AuthError if you want to check instanceof
 
 /**
  * Retrieves the current Supabase user.
@@ -58,4 +59,37 @@ export async function getCurrentUser(c: Context): Promise<User | null> {
 
 
     }
+}
+
+
+type OAuthRequest = {
+    clientId: string;
+    redirectUri: string;
+    state?: string;
+    [key: string]: any;
+};
+
+export function isValidOAuthRequest(oauthReq: any): oauthReq is OAuthRequest {
+    return !!(oauthReq && typeof oauthReq.clientId === 'string' && oauthReq.clientId.length > 0);
+}
+
+export function extractOAuthReqFromCookie(c: Context): OAuthRequest | null {
+    try {
+        const cookieVal = getCookie(c, 'oauthParams');
+        if (!cookieVal) return null;
+        const obj = JSON.parse(cookieVal);
+        return isValidOAuthRequest(obj) ? obj : null;
+    } catch {
+        return null;
+    }
+}
+
+export function persistOAuthReqToCookie(c: Context, oauthReq: OAuthRequest) {
+    if (!isValidOAuthRequest(oauthReq)) return;
+    setCookie(c, 'oauthParams', JSON.stringify(oauthReq), {
+        path: '/',
+        httpOnly: true,
+        maxAge: 60 * 5,
+    })
+
 }

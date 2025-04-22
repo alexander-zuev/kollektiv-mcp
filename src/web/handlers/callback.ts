@@ -1,5 +1,6 @@
 import type {Context} from "hono";
 import {getSupabase} from "@/web/middleware/supabase";
+import {AppRoutes} from "@/web/routes";
 
 export const authCallbackHandler = async (c: Context) => {
     const supabase = getSupabase(c);
@@ -27,7 +28,7 @@ export const authCallbackHandler = async (c: Context) => {
         }
 
         console.log("[GET /auth/callback] Code exchange successful.");
-        return c.redirect('/authorize');
+        return c.redirect(`${AppRoutes.AUTHORIZE}`);
 
     } catch (exchangeError) {
         console.error(`[GET /auth/callback] Unexpected error: ${exchangeError}`);

@@ -3,29 +3,61 @@ import {layout} from "@/web/templates/baseLayout";
 import {renderLoginScreen} from "@/web/templates/login";
 import {renderConsentScreen} from "@/web/templates/consent";
 import {Context} from "hono";
-import {getCurrentUser} from "@/web/utils/auth";
+import {
+    getCurrentUser,
+    isValidOAuthRequest,
+    persistOAuthReqToCookie,
+    extractOAuthReqFromCookie
+} from "@/web/utils/auth";
 import {parseFormData, FormValidationError} from "@/web/utils/formParser";
 import {ConsentFormSchema, ConsentFormData} from '@/web/schemas/consentForm'; // Adjust path
-
+import {setCookie, getCookie, deleteCookie} from "hono/cookie";
 
 export const getAuthorizeHandler = async (c: Context) => {
     console.log("[GET /authorize] Handling request.");
-    const supabase = getSupabase(c);
-    console.log("[GET /authorize] Getting session...");
     const user = await getCurrentUser(c);
 
 
     console.log("[GET /authorize] Parsing OAuth request...");
-    const oauthReq = await c.env.OAUTH_PROVIDER.parseAuthRequest(c.req.raw);
-    console.log('[GET /authorize] Parsed initial oauthReq:', JSON.stringify(oauthReq, null, 2));
-    console.log(`[GET /authorize] Looking up client: ${oauthReq.clientId}`);
+    let oauthReq = await c.env.OAUTH_PROVIDER.parseAuthRequest(c.req.raw);
+    if (isValidOAuthRequest(oauthReq)) {
+        // Only persist to cookie if valid
+        persistOAuthReqToCookie(c, oauthReq);
+    } else {
+        // Fallback to cookie only if empty/invalid
+        oauthReq = extractOAuthReqFromCookie(c);
+        if (!isValidOAuthRequest(oauthReq)) {
+            return c.text("Missing or invalid OAuth request", 400);
+        }
+    }
+
     const clientInfo = await c.env.OAUTH_PROVIDER.lookupClient(oauthReq.clientId);
 
     if (!user) {
         console.log("[GET /authorize] No session found. Rendering login screen.");
         // User not logged in → render login screen
+
+        // Store OAuth params in a cookie to persist for after login
+        setCookie(c, 'oauthParams', JSON.stringify(oauthReq), {
+            path: '/', // valid for the entire domain
+            httpOnly: true, // prevent client-side JS from accessing the cookie
+            // secure: true, // only send over HTTPS
+            // sameSite: 'strict', // prevent CSRF attacks
+            maxAge: 60 * 5, // 5 min
+        });
+
         const content = await renderLoginScreen({clientInfo});
         return c.html(layout(content, "Log in to authorize"));
+    }
+
+    if (!oauthReq) {
+        const cookieVal = getCookie(c, 'oauthParams');
+        console.log(`[GET /authorize] No OAuth request found in cookie. Trying to parse from cookie value: ${cookieVal}`);
+        if (cookieVal) oauthReq = JSON.parse(cookieVal);
+        // You may want to clear the cookie after use
+        // deleteCookie(c, 'oauthParams', { path: '/' });        // if (!oauthReq) throw new Error(
+        //     "No OAuth request found. This should never happen. Please report this issue to the site administrator."
+        // )
     }
 
     // User is logged in → show consent screen
