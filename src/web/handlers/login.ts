@@ -1,6 +1,7 @@
 import {Context} from "hono";
 import {getSupabase} from "@/web/middleware/supabase";
 import {AppRoutes} from "@/web/routes";
+import {layout} from "@/web/templates/baseLayout";
 
 enum LoginProviders {
     GITHUB = "github",
@@ -89,7 +90,6 @@ export const loginHandler = async (c: Context) => {
 
         // Import the confirmation screen template
         const {renderConfirmScreen} = await import("@/web/templates/confirm");
-        const {layout} = await import("@/web/utils");
 
         // Render the confirmation screen
         const content = await renderConfirmScreen({email});

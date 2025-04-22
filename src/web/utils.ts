@@ -174,18 +174,6 @@ export const layout = (content: HtmlEscapedString | string, title: string) => ht
     </html>
 `;
 
-export const homeContent = async (req: Request): Promise<HtmlEscapedString> => {
-    // We have the README symlinked into the static directory, so we can fetch it
-    // and render it into HTML
-    const origin = new URL(req.url).origin;
-    const res = await env.ASSETS.fetch(`${origin}/README.md`);
-    const markdown = await res.text();
-    const content = await marked(markdown);
-    return html`
-        <div class="max-w-4xl mx-auto markdown">${raw(content)}</div>
-    `;
-};
-
 
 export const renderLoggedInAuthorizeScreen = async (
     oauthScopes: { name: string; description: string }[],
@@ -387,20 +375,4 @@ export const renderAuthorizationApprovedContent = async (redirectUrl: string) =>
 
 export const renderAuthorizationRejectedContent = async (redirectUrl: string) => {
     return renderApproveContent("Authorization rejected.", "error", redirectUrl);
-};
-
-export const parseApproveFormBody = async (body: {
-    [x: string]: string | File;
-}) => {
-    const action = body.action as string;
-    const email = body.email as string;
-    const password = body.password as string;
-    let oauthReqInfo: AuthRequest | null = null;
-    try {
-        oauthReqInfo = JSON.parse(body.oauthReqInfo as string) as AuthRequest;
-    } catch (e) {
-        oauthReqInfo = null;
-    }
-
-    return {action, oauthReqInfo, email, password};
 };

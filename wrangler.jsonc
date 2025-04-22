@@ -39,10 +39,6 @@
     "enabled": true
   },
   "assets": {
-    "directory": "./static/",
-    "binding": "ASSETS"
-  },
-  "assets": {
     "directory": "./public/",
     "binding": "ASSETS"
   }

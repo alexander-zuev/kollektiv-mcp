@@ -11,6 +11,8 @@ import {
 } from "@/web/handlers";
 
 import {AppRoutes} from "@/web/routes";
+import {log} from "workers-mcp/dist/cli";
+import {logoutHandler} from "@/web/handlers/logout";
 
 
 export type Bindings = Env & {
@@ -41,6 +43,9 @@ app.get(AppRoutes.AUTH_CALLBACK, authCallbackHandler)
 
 // Handle login request (Oauth vs email)
 app.post(AppRoutes.LOGIN, loginHandler)
+
+// Handle logout request
+app.get(AppRoutes.LOGOUT, logoutHandler)
 
 // Export app as the default handler
 export default app;

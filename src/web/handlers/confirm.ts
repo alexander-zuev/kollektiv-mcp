@@ -38,8 +38,8 @@ export const authConfirmHandler = async (c: Context) => {
             return c.text("Authentication failed", 401);
         }
 
-        console.log(`[POST /auth/confirm] OTP verified successfully for user ${data.user.id} `);
-
+        console.log(`[POST /auth/confirm] OTP verified successfully for user ${data.user?.id}`);
+        
         // Redirect to authorize endpoint to complete the authorization flow
         return c.redirect(AppRoutes.AUTHORIZE, 302);
     } catch (error) {

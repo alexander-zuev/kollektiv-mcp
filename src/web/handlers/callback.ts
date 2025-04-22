@@ -7,6 +7,7 @@ export const authCallbackHandler = async (c: Context) => {
     const state = c.req.query('state');
     const originalUrl = c.req.url;
 
+    console.log(`[GET /auth/callback] All cookies:`, c.req.header('Cookie'));
     console.log(`[GET /auth/callback] Handling request for URL: ${originalUrl}`);
     console.log(`[GET /auth/callback] Code: ${code ? 'present' : 'missing'}, State: ${state ? 'present' : 'missing'}`);
     console.log(`[GET /auth/callback] Query params: ${new URL(originalUrl).searchParams}`);

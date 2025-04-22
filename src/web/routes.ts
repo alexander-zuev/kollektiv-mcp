@@ -5,5 +5,6 @@ export const AppRoutes = {
     AUTH_CONFIRM: '/auth/confirm',
     AUTH_CALLBACK: '/auth/callback',
     LOGIN: '/login',
+    LOGOUT: '/logout',
     SSE: '/sse',
 } as const;

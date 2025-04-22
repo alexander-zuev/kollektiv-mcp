@@ -1,8 +1,9 @@
-import {createServerClient, parseCookieHeader, type CookieOptions} from '@supabase/ssr';
+import {createServerClient, GetAllCookies, parseCookieHeader} from '@supabase/ssr';
+import {CookieMethodsServer} from "@supabase/ssr";
 import {SupabaseClient} from '@supabase/supabase-js'
 import type {Context, MiddlewareHandler} from 'hono'
 import {env} from 'hono/adapter'
-import {getCookie, setCookie} from 'hono/cookie';
+import {setCookie} from 'hono/cookie';
 
 declare module 'hono' {
     interface ContextVariableMap {
@@ -42,21 +43,25 @@ export const supabaseMiddleware = (): MiddlewareHandler => {
         }
 
         // Create server client
-
-
         const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
             cookies: {
                 getAll() {
                     console.log("[Middleware] getAll cookies invoked.");
+                    // return parseCookieHeader(c.req.header('Cookie') ?? '')
                     const cookies = parseCookieHeader(c.req.header('Cookie') ?? '');
-                    // Explicitly map to the expected { name: string, value: string } structure
-                    const cookieArray = Object.entries(cookies).map(([name, value]) => {
-                        // Ensure value is treated as a string
-                        return {name: name, value: String(value ?? '')};
-                    });
-                    console.log(`[Middleware] Found ${cookieArray.length} cookies.`);
-                    // Return the array (or null if empty, though an empty array is often fine)
-                    return cookieArray.length > 0 ? cookieArray : null;
+                    // Ensure each cookie value is a string (not undefined)
+                    return cookies.map(({name, value}) => ({
+                        name,
+                        value: value ?? '' // Convert undefined to empty string
+                    }));
+                    // // Explicitly map to the expected { name: string, value: string } structure
+                    // const cookieArray = Object.entries(cookies).map(([name, value]) => {
+                    //     // Ensure value is treated as a string
+                    //     return {name: name, value: String(value ?? '')};
+                    // });
+                    // console.log(`[Middleware] Found ${cookieArray.length} cookies.`);
+                    // // Return the array (or null if empty, though an empty array is often fine)
+                    // return cookieArray.length > 0 ? cookieArray : null;
                 },
                 setAll(cookiesToSet) {
                     console.log(`[Middleware] setAll cookies invoked with ${cookiesToSet.length} cookies.`);
