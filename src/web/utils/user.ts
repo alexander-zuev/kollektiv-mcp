@@ -1,8 +1,7 @@
 import { getSupabase } from "@/web/middleware/supabase";
-import { AuthFlowCookieData, ClientInfo, OAuthRequest, type User } from "@/web/types";
+import type { User } from "@/web/types";
 import { AuthError } from "@supabase/supabase-js";
 import type { Context } from "hono";
-import { getCookie, setCookie } from "hono/cookie"; // Import AuthError if you want to check instanceof
 
 /**
  * Retrieves the current Supabase user.

@@ -28,6 +28,7 @@ export const supabaseMiddleware = (): MiddlewareHandler => {
 		const supabaseEnv = env<SupabaseEnv>(c);
 		const supabaseUrl = supabaseEnv.SUPABASE_URL;
 		const supabaseAnonKey = supabaseEnv.SUPABASE_ANON_KEY;
+		console.debug("Connected to Supabase at:", supabaseUrl);
 
 		// Check each variable separately
 		if (!supabaseUrl) {

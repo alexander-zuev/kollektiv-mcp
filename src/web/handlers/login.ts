@@ -1,4 +1,3 @@
-import { env } from "cloudflare:workers";
 import { getSupabase } from "@/web/middleware/supabase";
 import { AppRoutes } from "@/web/routes";
 import { layout } from "@/web/templates/baseLayout";
@@ -24,11 +23,7 @@ export const loginHandler = async (c: Context) => {
 	console.log(`[POST /login] Redirect URL: ${redirectUrl}`);
 
 	// Determine which login method to use based on form data
-	if (
-		formData.provider === LoginProviders.GITHUB ||
-		formData.button === "github" ||
-		(!formData.email && formData.button !== "google")
-	) {
+	if (formData.provider === LoginProviders.GITHUB || formData.button === "github") {
 		console.log("[POST /login] Processing GitHub login");
 		const { data, error } = await supabase.auth.signInWithOAuth({
 			provider: "github",
@@ -43,7 +38,7 @@ export const loginHandler = async (c: Context) => {
 		}
 
 		if (data?.url) {
-			console.log("[POST /login] Redirecting to GitHub OAuth URL");
+			console.log("[POST /login] Redirecting to GitHub OAuth URL", data.url);
 			return c.redirect(data.url);
 		}
 		console.error("[POST /login] GitHub OAuth URL missing");

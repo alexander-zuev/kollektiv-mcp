@@ -3,13 +3,8 @@
 	"compilerOptions": {
 		"moduleResolution": "bundler",
 		"baseUrl": ".",
-		// <-- Add from parent tsconfig
 		"paths": {
-			// <-- Add from parent tsconfig
-			"@/*": [
-				"../src/*"
-				// <--- Change this line
-			]
+			"@/*": ["../src/*"]
 		},
 		"types": [
 			"@cloudflare/vitest-pool-workers"

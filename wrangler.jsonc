@@ -15,7 +15,8 @@
 		}
 	],
 	"vars": {
-		"SITE_URL": "https://mcp.thekollektiv.ai"
+		"API_BASE_URL": "http://localhost:8080",
+		"SITE_URL": "http://localhost:8787"
 	},
 	"durable_objects": {
 		"bindings": [
@@ -28,7 +29,7 @@
 	"kv_namespaces": [
 		{
 			"binding": "OAUTH_KV",
-			"id": "5697d17cdbe94ea4b97fd71e411ebb87"
+			"id": "dev-outh-id"
 		}
 	],
 	"observability": {
@@ -39,11 +40,18 @@
 		"binding": "ASSETS"
 	},
 	"env": {
-		"dev": {
-			"route": "localhost:8787",
+		"prod": {
+			"name": "kollektiv-mcp-prod",
 			"vars": {
-				"SITE_URL": "http://localhost:8787"
+				"API_BASE_URL": "https://api.thekollektiv.ai",
+				"SITE_URL": "https://mcp.thekollektiv.ai"
 			},
+			"routes": [
+				{
+					"pattern": "mcp.thekollektiv.ai",
+					"custom_domain": true
+				}
+			],
 			"durable_objects": {
 				"bindings": [
 					{
@@ -55,29 +63,17 @@
 			"kv_namespaces": [
 				{
 					"binding": "OAUTH_KV",
-					"id": "dev-oauth-kv"
+					"id": "5697d17cdbe94ea4b97fd71e411ebb87"
 				}
-				// dummy
 			],
 			"tail_consumers": [
 				{
-					"service": "dev-tail"
+					"service": "kollektiv-mcp-sentry-tail"
 				}
-				// dummy
-			]
+			],
+			"upload_source_maps": true
 		}
-	},
-	"routes": [
-		{
-			"pattern": "mcp.thekollektiv.ai",
-			"custom_domain": true
-		}
-	],
-	"tail_consumers": [
-		{
-			"service": "kollektiv-mcp-tail"
-		}
-	]
+	}
 }
 /**
  * Smart Placement

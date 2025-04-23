@@ -40,7 +40,6 @@ site/
 .rts2_cache_es/
 .rts2_cache_umd/
 .parcel-cache
-.cache
 .terraform
 .python-version
 
@@ -88,9 +87,8 @@ report.*.json
 # Test Coverage & Reports
 # ---------------------------
 htmlcov/
-.coverage
+coverage
 .pytest_cache/
-.coverage
 *.cover
 *.py,cover
 .hypothesis/
@@ -141,7 +139,6 @@ MANIFEST
 # ---------------------------
 .mypy_cache/
 .dmypy.json
-.dmypy.json
 .pyre/
 .pytype/
 .ruff_cache/
@@ -166,7 +163,6 @@ MANIFEST
 .supabase/.temp/
 .supabase/.volumes/
 .supabase/.env
-.supabase/.env.local
 .supabase/docker/
 .supabase/migrations/.shadow/
 
@@ -174,14 +170,12 @@ MANIFEST
 # Miscellaneous
 # ---------------------------
 .code/*
-__pycache__/
 pids/
 *.pid
 *.seed
 *.pid.lock
 *.tgz
 *.egg
-*.spec
 
 # ---------------------------
 # Cloud & Serverless

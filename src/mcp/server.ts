@@ -10,11 +10,10 @@ export class KollektivMCP extends McpAgent {
 	});
 
 	// Register all tools
-	async init(): Promise<void> {
+	async init() {
 		console.log("Initializing MCP server...");
 		for (const tool of allTools) {
 			console.log(`Registering tool: ${tool.name}`);
-			// @ts-ignore
 			this.server.tool(tool.name, tool.schema, tool.handler);
 		}
 	}

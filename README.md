@@ -1,50 +1,79 @@
-# Remote MCP Server on Cloudflare
+# Kollektiv MCP
 
-Let's get a remote MCP server up-and-running on Cloudflare Workers complete with OAuth login!
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue.svg)](https://www.typescriptlang.org/)
+[![Cloudflare Workers](https://img.shields.io/badge/Cloudflare_Workers-4.12-orange.svg)](https://workers.cloudflare.com/)
+[![Hono](https://img.shields.io/badge/Hono-4.7-brightgreen.svg)](https://hono.dev/)
+[![Supabase](https://img.shields.io/badge/Supabase-2.49-blueviolet.svg)](https://supabase.io/)
+[![MCP SDK](https://img.shields.io/badge/MCP_SDK-1.10-yellow.svg)](https://modelcontextprotocol.io/)
+[![Zod](https://img.shields.io/badge/Zod-3.24-red.svg)](https://zod.dev/)
+[![Vitest](https://img.shields.io/badge/Vitest-3.1-green.svg)](https://vitest.dev/)
 
-## Develop locally
+## Overview
+
+Kollektiv MCP is a remote Model Context Protocol (MCP) server running on Cloudflare Workers. It provides a platform for AI models like Claude to access tools and services through a standardized protocol.
+
+## Features
+
+- **OAuth Authentication**: Secure authentication flow with Supabase integration
+- **MCP Server Implementation**: Full implementation of the Model Context Protocol
+- **Tool Registry**: Register and manage tools for AI models to use
+- **Cloudflare Workers Deployment**: Global distribution with low latency
+- **TypeScript & Zod**: Type-safe code and schema validation
+
+## Architecture
+
+Kollektiv MCP consists of several key components:
+
+- **OAuth Provider**: Handles authentication flow and token management
+- **Web Application**: Built with Hono framework for routes and API endpoints
+- **MCP Server**: Implements the Model Context Protocol for tool execution
+- **MCP Tools**: Implementations of functionality that AI models can use
+- **Storage**: Uses Cloudflare KV and Supabase for data persistence
+
+## Getting Started
+
+### Local Development
 
 ```bash
-# clone the repository
-git clone git@github.com:cloudflare/ai.git
+# Clone the repository
+git clone https://github.com/your-org/kollektiv-mcp.git
 
-# install dependencies
-cd ai
+# Install dependencies
+cd kollektiv-mcp
 npm install
 
-# run locally
-npx nx dev remote-mcp-server
+# Run locally
+npm run dev
 ```
 
-You should be able to open [`http://localhost:8787/`](http://localhost:8787/) in your browser
+### Deployment
 
-## Connect the MCP inspector to your server
+```bash
+# Create KV namespace for OAuth
+npx wrangler kv namespace create OAUTH_KV
 
-To explore your new MCP api, you can use the [MCP Inspector](https://modelcontextprotocol.io/docs/tools/inspector).
+# Deploy to Cloudflare
+npm run deploy
+```
 
-- Start it with `npx @modelcontextprotocol/inspector`
-- [Within the inspector](http://localhost:5173), switch the Transport Type to `SSE` and enter `http://localhost:8787/sse` as the URL of the MCP server to connect to, and click "Connect"
-- You will navigate to a (mock) user/password login screen. Input any email and pass to login.
-- You should be redirected back to the MCP Inspector and you can now list and call any defined tools!
+## Connecting to the MCP Server
 
-<div align="center">
-  <img src="img/mcp-inspector-sse-config.png" alt="MCP Inspector with the above config" width="600"/>
-</div>
+### Using the MCP Inspector
 
-<div align="center">
-  <img src="img/mcp-inspector-successful-tool-call.png" alt="MCP Inspector with after a tool call" width="600"/>
-</div>
+```bash
+npx @modelcontextprotocol/inspector
+```
 
-## Connect Claude Desktop to your local MCP server
+Then connect to your server at `http://localhost:8787/sse` (local) or your deployed URL.
 
-The MCP inspector is great, but we really want to connect this to Claude! Follow [Anthropic's Quickstart](https://modelcontextprotocol.io/quickstart/user) and within Claude Desktop go to Settings > Developer > Edit Config to find your configuration file.
+### Connecting Claude Desktop
 
-Open the file in your text editor and replace it with this configuration:
+Update your Claude Desktop configuration:
 
 ```json
 {
   "mcpServers": {
-    "math": {
+    "kollektiv": {
       "command": "npx",
       "args": [
         "mcp-remote",
@@ -55,63 +84,19 @@ Open the file in your text editor and replace it with this configuration:
 }
 ```
 
-This will run a local proxy and let Claude talk to your MCP server over HTTP
+## Security
 
-When you open Claude a browser window should open and allow you to login. You should see the tools available in the bottom right. Given the right prompt Claude should ask to call the tool.
+Kollektiv MCP implements several security measures:
 
-<div align="center">
-  <img src="img/available-tools.png" alt="Clicking on the hammer icon shows a list of available tools" width="600"/>
-</div>
+- OAuth 2.0 for secure authentication
+- Token-based authorization for API access
+- Strict schema validation for all tool inputs
+- HTTPS for all communications
 
-<div align="center">
-  <img src="img/claude-does-math-the-fancy-way.png" alt="Claude answers the prompt 'I seem to have lost my calculator and have run out of fingers. Could you use the math tool to add 23 and 19?' by invoking the MCP add tool" width="600"/>
-</div>
+## License
 
-## Deploy to Cloudflare
+[Your License Here]
 
-1. `npx wrangler kv namespace create OAUTH_KV`
-2. Follow the guidance to add the kv namespace ID to `wrangler.jsonc`
-3. `npm run deploy`
+## Contributing
 
-## Call your newly deployed remote MCP server from a remote MCP client
-
-Just like you did above in "Develop locally", run the MCP inspector:
-
-`npx @modelcontextprotocol/inspector@latest`
-
-Then enter the `workers.dev` URL (ex: `worker-name.account-name.workers.dev/sse`) of your Worker in the inspector as the URL of the MCP server to connect to, and click "Connect".
-
-You've now connected to your MCP server from a remote MCP client.
-
-## Connect Claude Desktop to your remote MCP server
-
-Update the Claude configuration file to point to your `workers.dev` URL (ex: `worker-name.account-name.workers.dev/sse`) and restart Claude 
-
-```json
-{
-  "mcpServers": {
-    "math": {
-      "command": "npx",
-      "args": [
-        "mcp-remote",
-        "https://worker-name.account-name.workers.dev/sse"
-      ]
-    }
-  }
-}
-```
-
-## Debugging
-
-Should anything go wrong it can be helpful to restart Claude, or to try connecting directly to your
-MCP server on the command line with the following command.
-
-```bash
-npx mcp-remote http://localhost:8787/sse
-```
-
-In some rare cases it may help to clear the files added to `~/.mcp-auth`
-
-```bash
-rm -rf ~/.mcp-auth
-```
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to this project.

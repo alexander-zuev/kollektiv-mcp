@@ -1,5 +1,4 @@
 import { SELF } from "cloudflare:test";
-import { AppRoutes } from "@/web/routes";
 import { describe, expect, it } from "vitest";
 
 describe("Worker Entry Point Tests (index.ts)", () => {

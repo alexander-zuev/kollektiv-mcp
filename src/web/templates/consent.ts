@@ -32,12 +32,26 @@ export const renderConsentScreen = ({ oauthReq, clientInfo, user }: ConsentScree
                        value="${oauthReq.codeChallengeMethod}"/>
                 <input type="hidden" name="scope" value="${oauthReq.scope}"/>
                 <input type="hidden" name="redirect_uri" value="${oauthReq.redirectUri}"/>
-                <button
-                        type="submit"
-                        class="w-full py-3 px-4 bg-primary text-white rounded-md font-medium hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2"
-                >
-                    Authorize ${clientInfo.clientName}
-                </button>
+
+                <!-- Add Approve and Deny buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 mt-6">
+                    <button
+                            type="submit"
+                            name="action"
+                            value="allow"
+                            class="w-full sm:w-1/2 py-3 px-4 bg-primary text-white rounded-md font-medium hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2"
+                    >
+                        Allow
+                    </button>
+                    <button
+                            type="submit"
+                            name="action"
+                            value="deny"
+                            class="w-full sm:w-1/2 py-3 px-4 bg-gray-300 text-gray-800 rounded-md font-medium hover:bg-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400/50 focus:ring-offset-2"
+                    >
+                        Deny
+                    </button>
+                </div>
             </form>
         </div>
     `;

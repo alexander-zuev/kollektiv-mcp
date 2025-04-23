@@ -8,7 +8,6 @@ export const authCallbackHandler = async (c: Context) => {
 	const state = c.req.query("state");
 	const originalUrl = c.req.url;
 
-	console.log("[GET /auth/callback] All cookies:", c.req.header("Cookie"));
 	console.log(`[GET /auth/callback] Handling request for URL: ${originalUrl}`);
 	console.log(
 		`[GET /auth/callback] Code: ${code ? "present" : "missing"}, State: ${state ? "present" : "missing"}`,
@@ -17,7 +16,7 @@ export const authCallbackHandler = async (c: Context) => {
 
 	if (!code) {
 		console.error("[GET /auth/callback] No code found in the callback request from Supabase");
-		return c.text("Authentication Error: Authorization code was missing.", 400);
+		return c.text("Authentication Error: Authorization code was missing.", 500);
 	}
 
 	try {
