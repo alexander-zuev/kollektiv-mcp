@@ -12,12 +12,9 @@ export class FormValidationError extends Error {
 	public issues: z.ZodIssue[];
 
 	constructor(issues: z.ZodIssue[]) {
-		// Provide a user-friendly summary message and store the details
 		super(`Form validation failed: ${issues[0]?.message || "Invalid input"}`);
 		this.name = "FormValidationError";
 		this.issues = issues;
-		// You might want to capture stack trace differently if needed
-		// Object.setPrototypeOf(this, FormValidationError.prototype);
 	}
 }
 

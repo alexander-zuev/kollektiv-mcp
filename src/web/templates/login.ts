@@ -1,12 +1,18 @@
-import {AppRoutes} from "@/web/routes";
-import {html} from "hono/html";
+import { AppRoutes } from "@/web/routes";
+import type { ClientInfo } from "@/web/types";
+import { html } from "hono/html";
 
+type RenderLoginScreenProps = {
+	clientInfo: {
+		clientName: string;
+	};
+};
 
-export const renderLoginScreen = (clientName: string) => {
-    return html`
+export const renderLoginScreen = (clientInfo: ClientInfo) => {
+	return html`
         <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
             <h1 class="text-2xl font-heading font-bold mb-6 text-gray-900">
-                Login to authorize <b>${clientName}</b>
+                Login to authorize <b>${clientInfo.clientName}</b>
             </h1>
 
             <div class="space-y-4 mb-8">

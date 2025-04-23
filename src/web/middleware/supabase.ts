@@ -1,5 +1,4 @@
-import { GetAllCookies, createServerClient, parseCookieHeader } from "@supabase/ssr";
-import { CookieMethodsServer } from "@supabase/ssr";
+import { createServerClient, parseCookieHeader } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Context, MiddlewareHandler } from "hono";
 import { env } from "hono/adapter";
@@ -52,24 +51,16 @@ export const supabaseMiddleware = (): MiddlewareHandler => {
 						name,
 						value: value ?? "", // Convert undefined to empty string
 					}));
-					// // Explicitly map to the expected { name: string, value: string } structure
-					// const cookieArray = Object.entries(cookies).map(([name, value]) => {
-					//     // Ensure value is treated as a string
-					//     return {name: name, value: String(value ?? '')};
-					// });
-					// console.log(`[Middleware] Found ${cookieArray.length} cookies.`);
-					// // Return the array (or null if empty, though an empty array is often fine)
-					// return cookieArray.length > 0 ? cookieArray : null;
 				},
 				setAll(cookiesToSet) {
 					console.log(`[Middleware] setAll cookies invoked with ${cookiesToSet.length} cookies.`);
 					try {
-						// Hono's setCookie is synchronous and expects compatible options
-						cookiesToSet.forEach(({ name, value, options }) => {
+						for (const { name, value, options } of cookiesToSet) {
 							console.log(`[Middleware] Setting cookie: ${name}`);
 							// Ensure options match Hono's expected type (it should, as both derive from cookie.SerializeOptions)
+							// Pass the destructured name, value, and options to setCookie
 							setCookie(c, name, value, options as HonoCookieOptions);
-						});
+						}
 					} catch (error) {
 						console.error("[Middleware] Error setting cookies:", error);
 					}

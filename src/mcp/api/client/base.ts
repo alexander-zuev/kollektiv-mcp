@@ -52,20 +52,20 @@ export function createApiClient(options: ApiClientConfig) {
 
 		// Build in path params
 		if (pathParams) {
-			Object.entries(pathParams).forEach(([key, value]) => {
+			for (const [key, value] of Object.entries(pathParams)) {
 				normalizedPath = normalizedPath.replace(`:${key}`, encodeURIComponent(value));
-			});
+			}
 		}
 
 		const url = new URL(`${baseUrl}${normalizedPath}`);
 
 		// Build in query params if provided
 		if (queryParams) {
-			Object.entries(queryParams).forEach(([key, value]) => {
+			for (const [key, value] of Object.entries(queryParams)) {
 				if (value !== undefined && value !== null) {
 					url.searchParams.append(key, String(value));
 				}
-			});
+			}
 		}
 
 		return url;

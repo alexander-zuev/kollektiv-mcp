@@ -1,20 +1,20 @@
-import {AppRoutes} from "@/web/routes";
-import {html} from "hono/html";
-import type {OAuthRequest, ClientInfo, User} from "@/web/types";
+import { AppRoutes } from "@/web/routes";
+import type { ClientInfo, OAuthRequest, User } from "@/web/types";
+import { html } from "hono/html";
 
 /**
  * Props needed for rendering the consent screen template.
  */
 export type ConsentScreenProps = {
-    oauthReq: OAuthRequest; // Use the central type
-    clientInfo: ClientInfo; // Use the central type
-    user: User; // Use the Supabase User type
+	oauthReq: OAuthRequest; // Use the central type
+	clientInfo: ClientInfo; // Use the central type
+	user: User; // Use the Supabase User type
 };
 
-export const renderConsentScreen = ({oauthReq, clientInfo, user}: ConsentScreenProps) => {
-    const userIdentifier = user.email || `User ${user.id.substring(0, 8)}`;
+export const renderConsentScreen = ({ oauthReq, clientInfo, user }: ConsentScreenProps) => {
+	const userIdentifier = user.email || `User ${user.id.substring(0, 8)}`;
 
-    return html`
+	return html`
         <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md text-center">
             <h2 class="text-2xl font-heading font-semibold mb-4 text-gray-900">
                 Hi, ${userIdentifier}!

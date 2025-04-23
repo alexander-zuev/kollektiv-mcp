@@ -1,3 +1,4 @@
+import { env } from "cloudflare:workers";
 import { getSupabase } from "@/web/middleware/supabase";
 import { AppRoutes } from "@/web/routes";
 import { layout } from "@/web/templates/baseLayout";
@@ -17,8 +18,8 @@ export const loginHandler = async (c: Context) => {
 	console.log("[POST /login] Form data received:", formData);
 
 	// Get the site URL to use for redirects
-	const url = new URL(c.req.url);
-	const siteUrl = `${url.protocol}//${url.host}`;
+	const siteUrl = c.env.SITE_URL;
+	console.log(`[POST /login] Site URL: ${siteUrl}`);
 	const redirectUrl = `${siteUrl}${AppRoutes.AUTH_CALLBACK}`;
 	console.log(`[POST /login] Redirect URL: ${redirectUrl}`);
 
