@@ -62,9 +62,7 @@ export const supabaseMiddleware = (): MiddlewareHandler => {
 					// return cookieArray.length > 0 ? cookieArray : null;
 				},
 				setAll(cookiesToSet) {
-					console.log(
-						`[Middleware] setAll cookies invoked with ${cookiesToSet.length} cookies.`,
-					);
+					console.log(`[Middleware] setAll cookies invoked with ${cookiesToSet.length} cookies.`);
 					try {
 						// Hono's setCookie is synchronous and expects compatible options
 						cookiesToSet.forEach(({ name, value, options }) => {

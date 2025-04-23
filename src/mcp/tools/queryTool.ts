@@ -38,9 +38,7 @@ const queryToolHandler: ToolHandler<typeof queryToolSchema> = async (query) => {
 		// This check is crucial because ApiResponse<T> allows data to be null on error
 		// And even on success, hypothetically, a 204 No Content could result in non-error but null/empty data depending on client logic
 		if (apiResponse.data === null || apiResponse.data === undefined) {
-			console.error(
-				`[queryDocsTool] API call succeeded for user ${userId} but returned no data.`,
-			);
+			console.error(`[queryDocsTool] API call succeeded for user ${userId} but returned no data.`);
 			return {
 				isError: true,
 				content: [
