@@ -2,6 +2,9 @@
 	"name": "kollektiv-mcp",
 	"version": "0.1.0",
 	"private": true,
+	"engines": {
+		"node": ">=22.0.0"
+	},
 	"scripts": {
 		"deploy": "wrangler types && wrangler deploy --env prod",
 		"deploy:dry": "wrangler deploy --dry-run --outdir dist",

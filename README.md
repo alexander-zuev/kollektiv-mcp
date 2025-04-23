@@ -5,12 +5,18 @@
 [![Hono](https://img.shields.io/badge/Hono-4.7-brightgreen.svg)](https://hono.dev/)
 [![Supabase](https://img.shields.io/badge/Supabase-2.49-blueviolet.svg)](https://supabase.io/)
 [![MCP SDK](https://img.shields.io/badge/MCP_SDK-1.10-yellow.svg)](https://modelcontextprotocol.io/)
+[![MCP Server](https://img.shields.io/badge/MCP_Server-1.0-purple.svg)](https://modelcontextprotocol.io/)
 [![Zod](https://img.shields.io/badge/Zod-3.24-red.svg)](https://zod.dev/)
 [![Vitest](https://img.shields.io/badge/Vitest-3.1-green.svg)](https://vitest.dev/)
+[![codecov](https://codecov.io/gh/your-org/kollektiv-mcp/branch/main/graph/badge.svg)](https://codecov.io/gh/your-org/kollektiv-mcp)
 
 ## Overview
 
 Kollektiv MCP is a remote Model Context Protocol (MCP) server running on Cloudflare Workers. It provides a platform for AI models like Claude to access tools and services through a standardized protocol.
+
+> **Note on Badges:**
+> - **MCP Server 1.0**: This badge indicates compliance with version 1.0 of the Model Context Protocol specification.
+> - **Coverage**: We use Codecov for dynamic coverage reporting instead of hardcoded values. The badge above shows the current test coverage from the main branch.
 
 ## Features
 
@@ -31,6 +37,13 @@ Kollektiv MCP consists of several key components:
 - **Storage**: Uses Cloudflare KV and Supabase for data persistence
 
 ## Getting Started
+
+### Requirements
+
+- **Node.js**: Version 22 or higher (required for compatibility with Cloudflare Workers)
+- **npm**: Latest version recommended
+
+> **Note on Node.js Version**: This project requires Node.js 22+ to align with the latest Cloudflare Workers runtime environment. Node.js 20 is considered outdated for this project as it lacks some of the modern JavaScript features utilized by the codebase and the Cloudflare Workers platform.
 
 ### Local Development
 
@@ -96,6 +109,44 @@ Kollektiv MCP implements several security measures:
 ## License
 
 [Your License Here]
+
+## CI/CD
+
+This project uses GitHub Actions for continuous integration:
+
+- **Linting & Formatting**: Uses Biome to ensure code quality
+- **Type Checking**: Generates TypeScript types with Wrangler
+- **Testing**: Runs all tests with Vitest
+- **Coverage Reporting**: Uploads coverage reports to Codecov
+- **Deployment Validation**: Performs a dry run deployment to catch issues early
+
+The workflow runs on all pull requests and pushes to the main branch.
+
+## Technical Details
+
+### Technology Stack Explained
+
+- **TypeScript 5.5**: Latest version with improved type checking and performance
+- **Cloudflare Workers 4.12**: Serverless platform with global distribution and low latency
+- **Hono 4.7**: Lightweight, fast web framework optimized for edge computing
+- **Supabase 2.49**: Open-source Firebase alternative for authentication and data storage
+- **MCP SDK 1.10**: Official Model Context Protocol SDK for standardized AI tool interactions
+- **Zod 3.24**: TypeScript-first schema validation with runtime type checking
+- **Vitest 3.1**: Fast, modern testing framework compatible with Cloudflare Workers
+
+### Development Environment
+
+- **Wrangler**: Cloudflare's CLI tool for Workers development and deployment
+- **Biome**: Fast linter and formatter replacing ESLint and Prettier
+- **Husky**: Git hooks for code quality checks before commits
+- **Codecov**: Automated code coverage reporting and visualization
+
+### Project Structure
+
+- **/src**: Source code for the MCP server implementation
+- **/tests**: Unit, integration, and end-to-end tests
+- **/public**: Static assets served by the Workers
+- **/docs**: Project documentation including architecture overview
 
 ## Contributing
 
