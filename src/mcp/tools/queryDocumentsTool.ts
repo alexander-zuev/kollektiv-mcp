@@ -2,12 +2,13 @@ import { api } from "@/mcp/api/client";
 import { ApiRoutes } from "@/mcp/api/routes";
 import type { QueryResponse } from "@/mcp/api/types/query"; // Adjust path as needed
 import {
+	type AuthContext,
 	type ToolDefinitionSchema,
 	createErrorResponse,
 	createSuccessTextResponse,
 } from "@/mcp/tools/types"; // Ensure
 import type { ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { z } from "zod";
+import { type ZodRawShape, z } from "zod";
 
 // Define tool parameters schema
 const queryToolParamSchema = {
@@ -15,18 +16,34 @@ const queryToolParamSchema = {
 };
 
 // Define handler function
-const queryToolHandler: ToolCallback<typeof queryToolParamSchema> = async ({ query }) => {
-	const userId = "hardcoded";
+
+const queryToolHandler: ToolCallback<typeof queryToolParamSchema> = async (
+	{ query }: ZodRawShape,
+	extra: any,
+	authContext: AuthContext,
+) => {
+	const userId = authContext.userId;
 
 	console.log(`[queryDocsTool] User ${userId} querying with: "${query}"`);
 
 	try {
-		const response = await api.post<QueryResponse>(ApiRoutes.QUERY, { query: query });
+		const response = await api.post<QueryResponse>(
+			ApiRoutes.QUERY,
+			{ query: query },
+			{ headers: { "x-user-id": userId } },
+		);
 		console.log(`[queryDocsTool] Received response from backend for user ${userId}`);
+		if (!response.success) {
+			return createErrorResponse(
+				"There was a server error making this tool call, please" + " try" + " again.",
+			);
+		}
 		return createSuccessTextResponse(response.response);
 	} catch (error) {
 		console.error(`[queryDocsTool] Error querying backend for user ${userId}:`, error);
-		return createErrorResponse("There was a server making this tool call, please try again.");
+		return createErrorResponse(
+			"There was a server error making this tool call, please try" + " again.",
+		);
 	}
 };
 

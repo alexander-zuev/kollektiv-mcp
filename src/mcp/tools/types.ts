@@ -1,29 +1,38 @@
 import type { ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ZodRawShape } from "zod";
+import { z } from "zod";
+
+export interface AuthContext {
+	userId: string;
+	email?: string;
+
+	[key: string]: unknown; // ← this is required!
+}
 
 /**
  * Standard MCP tool response format as per SDK spec
  * - isError: Optional flag indicating if the tool execution had an error
  * - content: Array of content items representing the tool's output
  */
-export type CallToolResult = {
-	/** Whether the tool execution resulted in an error */
-	isError?: boolean;
+export const CallToolResultSchema = z.object({
+	isError: z.boolean().optional(),
+	content: z.array(
+		z.discriminatedUnion("type", [
+			z.object({ type: z.literal("text"), text: z.string() }),
+			z.object({ type: z.literal("image"), data: z.string(), mimeType: z.string() }),
+			z.object({ type: z.literal("audio"), data: z.string(), mimeType: z.string() }),
+			z.object({
+				type: z.literal("resource"),
+				resource: z.union([
+					z.object({ uri: z.string(), text: z.string(), mimeType: z.string().optional() }),
+					z.object({ uri: z.string(), blob: z.string(), mimeType: z.string().optional() }),
+				]),
+			}),
+		]),
+	),
+});
 
-	/** The content returned by the tool */
-	content: Array<
-		| { [x: string]: unknown; type: "text"; text: string }
-		| { [x: string]: unknown; type: "image"; data: string; mimeType: string }
-		| { [x: string]: unknown; type: "audio"; data: string; mimeType: string }
-		| {
-				[x: string]: unknown;
-				type: "resource";
-				resource:
-					| { uri: string; text: string; mimeType?: string }
-					| { uri: string; blob: string; mimeType?: string };
-		  }
-	>;
-};
+export type CallToolResult = z.infer<typeof CallToolResultSchema>;
 
 /**
  * Creates a standard MCP error response object.
