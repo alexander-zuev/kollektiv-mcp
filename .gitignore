@@ -19,6 +19,7 @@ out
 .next
 .nuxt
 .dist
+dist/
 .vuepress/dist
 .temp
 .cache

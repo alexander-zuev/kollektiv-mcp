@@ -1,1 +1,0 @@
-This folder contains the built output assets for the worker "kollektiv-mcp" generated at 2025-04-22T14:40:33.450Z.
