@@ -1,4 +1,5 @@
-import type { ZodRawShape, z } from "zod";
+import type { ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ZodRawShape } from "zod";
 
 /**
  * Standard MCP tool response format as per SDK spec
@@ -60,26 +61,18 @@ export function createSuccessTextResponse(text: string): CallToolResult {
 }
 
 /**
- * Define signature of tool handler
- * Tool handlers must return the standard MCP response format
- */
-export type ToolHandler<S extends ZodRawShape> = (
-	input: z.infer<z.ZodObject<S>>,
-) => Promise<CallToolResult>;
-
-/**
  * Define structure for a complete tool
  */
-export interface MCPTool<S extends ZodRawShape = ZodRawShape> {
+export interface ToolDefinitionSchema<S extends ZodRawShape = ZodRawShape> {
 	/** The name of the tool */
-	name: string;
+	name: string; // snake case
 
 	/** A short description of the tool for documentation purposes*/
 	description: string;
 
 	/** Zod schema for the tool input */
-	schema: S;
+	paramsSchema: S;
 
 	/** Async function that executes the tool's logic*/
-	handler: ToolHandler<S>;
+	handler: ToolCallback<S>;
 }

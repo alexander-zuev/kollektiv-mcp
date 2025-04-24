@@ -1,81 +1,42 @@
 import { api } from "@/mcp/api/client";
 import { ApiRoutes } from "@/mcp/api/routes";
-import type { QueryToolResponse } from "@/mcp/api/types/query"; // Adjust path as needed
+import type { QueryResponse } from "@/mcp/api/types/query"; // Adjust path as needed
 import {
-	type MCPTool,
-	type ToolHandler,
+	type ToolDefinitionSchema,
 	createErrorResponse,
 	createSuccessTextResponse,
 } from "@/mcp/tools/types"; // Ensure
+import type { ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
-// Define tool input schema
-const shape = { query: z.string().min(1) } as const;
+// Define tool parameters schema
+const queryToolParamSchema = {
+	query: z.string().min(1, "Query can not be empty"),
+};
 
 // Define handler function
-const queryToolHandler: ToolHandler<typeof shape> = async ({ query }) => {
+const queryToolHandler: ToolCallback<typeof queryToolParamSchema> = async ({ query }) => {
 	const userId = "hardcoded";
 
 	console.log(`[queryDocsTool] User ${userId} querying with: "${query}"`);
 
 	try {
-		const apiResponse = await api.post<QueryToolResponse>(ApiRoutes.QUERY, { query: query });
+		const response = await api.post<QueryResponse>(ApiRoutes.QUERY, { query: query });
 		console.log(`[queryDocsTool] Received response from backend for user ${userId}`);
-
-		// --- Handle API-Level Errors ---
-		if (apiResponse.error) {
-			console.error(`[queryDocsTool] API Error for user ${userId}.`, apiResponse.error);
-			// Return MCP formatted error
-			return createErrorResponse(
-				`API Error: ${apiResponse.error.message} (Status: ${apiResponse.error.status})`,
-			);
-		}
-
-		// --- Handle Case Where API Succeeded but Data is Null/Missing ---
-		// This check is crucial because ApiResponse<T> allows data to be null on error
-		// And even on success, hypothetically, a 204 No Content could result in non-error but null/empty data depending on client logic
-		if (apiResponse.data === null || apiResponse.data === undefined) {
-			console.error(`[queryDocsTool] API call succeeded for user ${userId} but returned no data.`);
-			return createErrorResponse("No data returned");
-		}
-
-		// --- Process Successful API Response with Data ---
-		const toolResponse: QueryToolResponse = apiResponse.data; // Type assertion is safe here due to the checks above
-
-		if (toolResponse.success) {
-			// Backend reported success
-			const resultText =
-				toolResponse.response ?? "Query successful, but no specific response content.";
-			console.log(`[queryDocsTool] Success for user ${userId}. Returning result.`);
-			// Return MCP formatted success response
-			return createSuccessTextResponse(resultText);
-		}
-		// Backend reported logical failure (e.g., query failed, document not found)
-		const failureText =
-			toolResponse.response ?? "Tool execution failed (backend reported success: false).";
-		console.warn(
-			`[queryDocsTool] Logical failure reported by backend for user ${userId}. Message: ${failureText}`,
-		);
-		return createErrorResponse(failureText);
-	} catch (error: any) {
-		// --- Handle Network/Fetch Errors or Unexpected Exceptions ---
-		console.error(`[queryDocsTool] Caught unexpected exception for user ${userId}.`, error);
-		// Return MCP formatted error for unexpected issues
-		return createErrorResponse(
-			`Tool execution failed unexpectedly: ${error.message || "Unknown error"}`,
-		);
-		// Alternatively, you could re-throw if you want higher-level MCP error handling to take over completely:
-		// throw error;
+		return createSuccessTextResponse(response.response);
+	} catch (error) {
+		console.error(`[queryDocsTool] Error querying backend for user ${userId}:`, error);
+		return createErrorResponse("There was a server making this tool call, please try again.");
 	}
 };
 
 // Create and export tool
-export const queryDocumentsTool: MCPTool<typeof shape> = {
+export const queryDocumentsTool: ToolDefinitionSchema<typeof queryToolParamSchema> = {
 	name: "queryDocumentsTool",
 	description:
 		"Query the documents uploaded by the user and return a response from LLM based" +
 		" on retrieved documents. The response will be LLM summary based on retrieved documents" +
 		" (if any). ",
-	schema: shape,
+	paramsSchema: queryToolParamSchema,
 	handler: queryToolHandler,
 };
