@@ -1,6 +1,6 @@
 # Kollektiv MCP
 
-[![TypeScript](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fgithub.com%2Falexander-zuev%2Fkollektiv-mcp%2Fraw%2Fmain%2Fpackage.json&search=%22typescript%22%3A%5Cs*%22%5C%5E%3F(%5B0-9%5D%2B%5C.%5B0-9%5D%2B)&replace=%241&logo=typescript&label=TypeScript)](https://typescript.com)
+[![TypeScript](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fgithub.com%2Falexander-zuev%2Fkollektiv-mcp%2Fraw%2Fmain%2Fpackage.json&search=%22typescript%22%3A%5Cs*%22%5C%5E%3F(%5B0-9%5D%2B%5C.%5B0-9%5D%2B)&replace=%241&logo=typescript&label=TypeScript)](https://www.typescriptlang.org)
 [![Runtime](https://img.shields.io/badge/Runtime-Cloudflare%20Workers-orange?logo=cloudflare)](https://workers.cloudflare.com/)
 [![Auth Supabase](https://img.shields.io/badge/Auth-Supabase-3ecf8e?logo=supabase)](https://supabase.io/)
 [![Build](https://github.com/alexander-zuev/kollektiv-mcp/actions/workflows/ci.yaml/badge.svg)](https://github.com/alexander-zuev/kollektiv-mcp/actions)

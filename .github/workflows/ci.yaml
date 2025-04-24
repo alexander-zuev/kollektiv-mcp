@@ -1,8 +1,5 @@
 name: CI
 
-  # Temporarily disable workflow by removing triggers
-#on: { }
-# Original triggers (commented out for easy restoration):
 on:
   push:
     branches: [ main ]
@@ -31,6 +28,12 @@ jobs:
 
       - name: Generate types
         run: npx wrangler types
+
+      - name: Create .dev.vars for testing
+        run: |
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .dev.vars
+          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .dev.vars
+
 
       - name: Run tests with coverage
         env:
