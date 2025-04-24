@@ -1,153 +1,110 @@
 # Kollektiv MCP
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue.svg)](https://www.typescriptlang.org/)
-[![Cloudflare Workers](https://img.shields.io/badge/Cloudflare_Workers-4.12-orange.svg)](https://workers.cloudflare.com/)
-[![Hono](https://img.shields.io/badge/Hono-4.7-brightgreen.svg)](https://hono.dev/)
-[![Supabase](https://img.shields.io/badge/Supabase-2.49-blueviolet.svg)](https://supabase.io/)
-[![MCP SDK](https://img.shields.io/badge/MCP_SDK-1.10-yellow.svg)](https://modelcontextprotocol.io/)
-[![MCP Server](https://img.shields.io/badge/MCP_Server-1.0-purple.svg)](https://modelcontextprotocol.io/)
-[![Zod](https://img.shields.io/badge/Zod-3.24-red.svg)](https://zod.dev/)
-[![Vitest](https://img.shields.io/badge/Vitest-3.1-green.svg)](https://vitest.dev/)
-[![codecov](https://codecov.io/gh/your-org/kollektiv-mcp/branch/main/graph/badge.svg)](https://codecov.io/gh/your-org/kollektiv-mcp)
+[![TypeScript](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Falexander-zuev%2Fkollektiv-mcp%2Fmain%2Fpackage.json&query=$.devDependencies.typescript&label=TypeScript&prefix=v&color=3178c6)](https://www.typescriptlang.org/)
+[![Cloudflare Workers](https://img.shields.io/badge/Cloudflare%20Workers-%F0%9F%92%A0-orange)](https://workers.cloudflare.com/)
+[![Auth](https://img.shields.io/badge/Auth:Supabase-neongreen.svg)](https://supabase.io/)
+[![Build](https://github.com/alexander-zuev/kollektiv-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/alexander-zuev/kollektiv-mcp/actions)
+[![codecov](https://codecov.io/gh/alexander-zuev/kollektiv-mcp/graph/badge.svg)](https://codecov.io/gh/alexander-zuev/kollektiv-mcp)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
+> 🧪Pre-release version:
+> This MCP server is still under development and is not ready for production use yet.
 
 ## Overview
 
-Kollektiv MCP is a remote Model Context Protocol (MCP) server running on Cloudflare Workers. It provides a platform for AI models like Claude to access tools and services through a standardized protocol.
-
-> **Note on Badges:**
-> - **MCP Server 1.0**: This badge indicates compliance with version 1.0 of the Model Context Protocol specification.
-> - **Coverage**: We use Codecov for dynamic coverage reporting instead of hardcoded values. The badge above shows the current test coverage from the main branch.
-
-## Features
-
-- **OAuth Authentication**: Secure authentication flow with Supabase integration
-- **MCP Server Implementation**: Full implementation of the Model Context Protocol
-- **Tool Registry**: Register and manage tools for AI models to use
-- **Cloudflare Workers Deployment**: Global distribution with low latency
-- **TypeScript & Zod**: Type-safe code and schema validation
+Kollektiv MCP is a remote Model Context Protocol (MCP) server running on Cloudflare Workers. It
+enables users to use RAG over their own documents from IDEs such as Cursor, Windsurf,
+Claude Desktop, or other MCP-compatible clients.
 
 ## Architecture
 
-Kollektiv MCP consists of several key components:
+Kollektiv MCP Server consists of several key components:
 
-- **OAuth Provider**: Handles authentication flow and token management
-- **Web Application**: Built with Hono framework for routes and API endpoints
-- **MCP Server**: Implements the Model Context Protocol for tool execution
-- **MCP Tools**: Implementations of functionality that AI models can use
-- **Storage**: Uses Cloudflare KV and Supabase for data persistence
+- Oauth provider (`workers-oauth-provider` & `Supabase Auth`): MCP server implements the provider
+  side of Oauth 2.0 to enable users to
+  authenticate with the MCP server easily (Oauth + Email).
+- MCP server (`Cloudflare Agent SDK`): Exposes various tools following MCP protocol.
+- Web server (`Hono`): Wraps all non-mcp related functionality (e.g. authentication, static files,
+  etc.)
+
+And is part of the Kollektiv application which consists of:
+
+- MCP server (Cloudflare worker) -> acts as the main interface for users to interact with their
+  documents
+- Backend server (FastAPI server) -> handles all processing, retrieval, and storage of users'
+  documents
+- Frontend server (React/Vite server) -> serves as the interface for users to upload their
+  documents and onboard to the
+  MCP server
 
 ## Getting Started
 
-### Requirements
-
-- **Node.js**: Version 22 or higher (required for compatibility with Cloudflare Workers)
-- **npm**: Latest version recommended
-
-> **Note on Node.js Version**: This project requires Node.js 22+ to align with the latest Cloudflare Workers runtime environment. Node.js 20 is considered outdated for this project as it lacks some of the modern JavaScript features utilized by the codebase and the Cloudflare Workers platform.
-
 ### Local Development
-
-```bash
-# Clone the repository
-git clone https://github.com/your-org/kollektiv-mcp.git
-
-# Install dependencies
-cd kollektiv-mcp
-npm install
-
-# Run locally
-npm run dev
-```
 
 ### Deployment
 
-```bash
-# Create KV namespace for OAuth
-npx wrangler kv namespace create OAUTH_KV
-
-# Deploy to Cloudflare
-npm run deploy
-```
-
 ## Connecting to the MCP Server
 
-### Using the MCP Inspector
-
-```bash
-npx @modelcontextprotocol/inspector
-```
-
-Then connect to your server at `http://localhost:8787/sse` (local) or your deployed URL.
-
-### Connecting Claude Desktop
-
-Update your Claude Desktop configuration:
+You can connect to the MCP server using any MCP-compatible client such as Cursor, Windsurf, or
+Claude Desktop by configuring connection details as follows:
 
 ```json
 {
   "mcpServers": {
-    "kollektiv": {
+    "kollektiv-mcp": {
       "command": "npx",
       "args": [
         "mcp-remote",
-        "http://localhost:8787/sse"
+        "https://mcp.thekollektiv.ai"
       ]
     }
   }
 }
 ```
 
-## Security
+- `kollektiv-mcp` -> you can use any name you want
+- `command` -> `npx`
+- `args` -> `mcp-remote` and the URL of the MCP server. Use `http://localhost:8787/sse` for local
+  development.
+
+Connecting clients (Cursor, Windsurf, etc.) is done in much the same way as above. You can find
+documentation on how to your particular client on their respective websites.
+
+### Using the MCP Inspector
+
+For debugging purposes, you can use the MCP Inspector to connect to your MCP server.
+
+```bash
+npx @modelcontextprotocol/inspector
+```
+
+Then connect to the server at `http://localhost:8787/sse` (local) or `https://mcp.thekollektiv.ai`
+(production).
+
+## Security (to be enhanced)
 
 Kollektiv MCP implements several security measures:
 
 - OAuth 2.0 for secure authentication
-- Token-based authorization for API access
-- Strict schema validation for all tool inputs
 - HTTPS for all communications
-
-## License
-
-[Your License Here]
-
-## CI/CD
-
-This project uses GitHub Actions for continuous integration:
-
-- **Linting & Formatting**: Uses Biome to ensure code quality
-- **Type Checking**: Generates TypeScript types with Wrangler
-- **Testing**: Runs all tests with Vitest
-- **Coverage Reporting**: Uploads coverage reports to Codecov
-- **Deployment Validation**: Performs a dry run deployment to catch issues early
-
-The workflow runs on all pull requests and pushes to the main branch.
+- Cookies? Signed?
 
 ## Technical Details
 
 ### Technology Stack Explained
 
-- **TypeScript 5.5**: Latest version with improved type checking and performance
-- **Cloudflare Workers 4.12**: Serverless platform with global distribution and low latency
-- **Hono 4.7**: Lightweight, fast web framework optimized for edge computing
-- **Supabase 2.49**: Open-source Firebase alternative for authentication and data storage
-- **MCP SDK 1.10**: Official Model Context Protocol SDK for standardized AI tool interactions
-- **Zod 3.24**: TypeScript-first schema validation with runtime type checking
-- **Vitest 3.1**: Fast, modern testing framework compatible with Cloudflare Workers
-
-### Development Environment
-
-- **Wrangler**: Cloudflare's CLI tool for Workers development and deployment
-- **Biome**: Fast linter and formatter replacing ESLint and Prettier
-- **Husky**: Git hooks for code quality checks before commits
-- **Codecov**: Automated code coverage reporting and visualization
+- MCP Server
+- Backend server
+- Frontend server
 
 ### Project Structure
 
 - **/src**: Source code for the MCP server implementation
 - **/tests**: Unit, integration, and end-to-end tests
-- **/public**: Static assets served by the Workers
-- **/docs**: Project documentation including architecture overview
+- **/public**: Static assets served by Worker
+- **/docs**: Internal project documentation
 
-## Contributing
+## License
 
-Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to this project.
+Released under the Apache License 2.0 — commercial support or alternative licensing:
+azuev@outlook.com

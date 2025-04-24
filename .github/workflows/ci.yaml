@@ -1,7 +1,7 @@
 name: CI
 
   # Temporarily disable workflow by removing triggers
-  #on: { }
+#on: { }
 # Original triggers (commented out for easy restoration):
 on:
   push:
@@ -33,6 +33,9 @@ jobs:
         run: npx wrangler types
 
       - name: Run tests with coverage
+        env:
+          SUPABASE_URL: ${{secrets.SUPABASE_URL}}
+          SUPABASE_ANON_KEY: ${{secrets.SUPABASE_ANON_KEY}}
         run: npm run test:coverage
 
       - name: Upload coverage to Codecov
