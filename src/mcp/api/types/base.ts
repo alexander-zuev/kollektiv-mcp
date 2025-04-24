@@ -13,28 +13,13 @@ export interface ApiRequestOptions {
 	timeoutMs?: number;
 }
 
-/**
- * API Error structure
- * Provides a consistent format for API errors
- */
-export interface ApiError {
-	message: string;
-	status: number;
-	statusText: string;
-	name: string; // Error name for categorization and analysis
-	code?: string; // Optional: Some APIs provide specific error codes
+export class ApiError extends Error {
+	constructor(
+		message: string,
+		public status: number,
+		public statusText: string,
+	) {
+		super(message);
+		this.name = "ApiError";
+	}
 }
-
-/**
- * Standard API response wrapper
- * Provides a consistent format for all API responses
- */
-export type ApiResponse<T> =
-	| {
-			data: T;
-			error: null;
-	  }
-	| {
-			data: null;
-			error: ApiError;
-	  };

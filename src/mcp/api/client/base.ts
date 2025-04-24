@@ -5,14 +5,8 @@
 
 import type { ApiClientConfig } from "@/mcp/api/client/config";
 import type { ApiRoutePath } from "@/mcp/api/routes";
-import type {
-	ApiError,
-	ApiRequestOptions,
-	ApiResponse,
-	HttpMethod,
-	PathParams,
-	QueryParams,
-} from "@/mcp/api/types/base";
+import type { ApiRequestOptions, HttpMethod, PathParams, QueryParams } from "@/mcp/api/types/base";
+import { ApiError } from "@/mcp/api/types/base";
 import { convertToCamelCase, convertToSnakeCase } from "@/mcp/api/utils/caseConverter";
 
 /**
@@ -84,7 +78,7 @@ export function createApiClient(options: ApiClientConfig) {
 		path: ApiRoutePath,
 		options: ApiRequestOptions,
 		body?: any,
-	): Promise<ApiResponse<T>> {
+	): Promise<T> {
 		// Build url path with path and query params
 		const url = buildApiUrl(path, options.pathParams, options.queryParams);
 
@@ -102,108 +96,107 @@ export function createApiClient(options: ApiClientConfig) {
 			// signal: (for abort/timeout, add if needed)
 		};
 
-		// Timeout logic (optional)
 		let timeoutId: NodeJS.Timeout | undefined;
 		const abortController = new AbortController();
-		if (options.timeoutMs) {
-			timeoutId = setTimeout(() => abortController.abort(), options.timeoutMs);
+		// Use request-specific timeout OR the client's default timeout
+		const effectiveTimeout = options.timeoutMs ?? timeout;
+
+		// Only set up AbortController if there's a valid timeout value
+		if (effectiveTimeout && effectiveTimeout > 0) {
+			timeoutId = setTimeout(() => {
+				console.log(`[API Client] Request timed out after ${effectiveTimeout}ms. Aborting...`);
+				abortController.abort();
+			}, effectiveTimeout);
 			fetchOptions.signal = abortController.signal;
 		}
 
-		// Send the request
+		// Get the response
 		try {
-			const response = await fetch(url.toString(), fetchOptions);
-			return processResponse<T>(response);
-		} catch (rawError) {
-			let error: ApiError;
-
-			if (rawError instanceof DOMException && rawError.name === "AbortError") {
-				// Request was cancelled by abort (timeout/user intervention)
-				error = {
-					message: "Request was cancelled",
-					status: 0,
-					statusText: "Request Cancelled",
-					name: "AbortError",
-				};
-			} else if (rawError instanceof Error) {
-				// Other fetch/network error
-				error = {
-					message: rawError.message,
-					status: 0,
-					statusText: "Network Error",
-					name: rawError.name || "NetworkError",
-				};
-			} else {
-				// Unexpected, non-error thrown
-				error = {
-					message: String(rawError) || "Unknown error occured when making request.",
-					status: 0,
-					statusText: "Unknown Error",
-					name: "UnknownError",
-				};
-			}
-
-			return { data: null, error };
+			return getProcessedResponse(url, fetchOptions);
 		} finally {
 			if (timeoutId) clearTimeout(timeoutId);
 		}
 	}
 
 	/**
-	 * Process API response, handling errors consistently.
-	 * Converts snake_case keys to camelCase, produces ApiResponse<T>.
-	 * @param response - Fetch response
-	 * @returns Promise with the response wrapped in ApiResponse
+	 * Sends a request, processes the Response, and handles network/parsing errors.
+	 * Converts successful JSON responses to camelCase.
+	 * Throws specific ApiError instances for various failure conditions.
+	 *
+	 * @param url - The URL object for the request.
+	 * @param fetchOptions - The options for the fetch call.
+	 * @returns Promise resolving to the processed response data of type T.
 	 */
-	async function processResponse<T>(response: Response): Promise<ApiResponse<T>> {
-		// Handle API-level errors first
-		if (!response.ok) {
-			let errorMsg = response.statusText;
-			try {
-				// Try to parse text or JSON, but don't assume shape
-				const text = await response.text();
-				// Try to parse JSON if possible
+	async function getProcessedResponse<T>(url: URL, fetchOptions: RequestInit): Promise<T> {
+		let response: Response;
+
+		try {
+			console.log("Sending request to:", url.toString());
+			response = await fetch(url.toString(), fetchOptions);
+
+			// --- Handle API Server Errors (Received a response, but it's not OK) ---
+			if (!response.ok) {
+				// This means we received an error response from the API server (e.g., 4xx, 5xx)
+				let errorMsg = response.statusText;
 				try {
-					const body = JSON.parse(text);
-					// message: (try known, or fallback to whole object)
-					if (typeof body === "string") {
-						errorMsg = body;
-					} else if (body && typeof body === "object") {
-						// Use a common field, else dump whole object for debugging
-						errorMsg = body.message || body.error || JSON.stringify(body);
+					// Try to get more specific error details from the response body
+					const text = await response.text();
+					try {
+						const body = JSON.parse(text);
+						errorMsg =
+							typeof body === "string"
+								? body
+								: body?.message || body?.error || JSON.stringify(body);
+					} catch {
+						// JSON parsing failed, maybe it's plain text?
+						if (text.trim()) errorMsg = text;
 					}
 				} catch {
-					// Not JSON, use as-is if non-empty
-					if (text.trim()) errorMsg = text;
+					// Ignore errors reading the body, fallback to statusText
 				}
-			} catch {
-				/* ignore parsing errors, fall back to statusText */
+				// Throw a specific error indicating an API-level failure
+				throw new ApiError(errorMsg, response.status, response.statusText);
 			}
 
-			return {
-				data: null,
-				error: {
-					message: errorMsg,
-					status: response.status,
-					statusText: response.statusText,
-					name: "ApiError",
-				},
-			};
-		}
+			// --- Handle Successful Responses ---
 
-		// For NO CONTENT
-		if (response.status === 204) {
-			return { data: {} as T, error: null };
-		}
+			// Handle NO CONTENT specifically
+			if (response.status === 204) {
+				return {} as T;
+			}
 
-		// Parse JSON response
-		try {
-			const jsonResponse = await response.json();
-			const processedResponse = convertToCamelCase(jsonResponse);
-			return { data: processedResponse as T, error: null };
+			// Handle successful responses with JSON bodies
+			try {
+				const jsonResponse = await response.json();
+				const processedResponse = convertToCamelCase(jsonResponse);
+				return processedResponse as T;
+			} catch (parseError) {
+				// The server likely sent a non-JSON response despite a 2xx status (other than 204)
+				// Or the JSON was malformed.
+				throw new ApiError(
+					`Failed to parse JSON response: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+					response.status, // Keep original status
+					"JSON Parsing Error", // Custom status text
+				);
+			}
 		} catch (error) {
-			throw new Error(
-				`Failed to parse JSON response: ${error instanceof Error ? error.message : String(error)}`,
+			// If it's already an ApiError we threw, just re-throw it
+			if (error instanceof ApiError) {
+				throw error;
+			}
+
+			// Handle AbortError (likely from timeout)
+			if (error instanceof DOMException && error.name === "AbortError") {
+				throw new ApiError("Request timed out or was cancelled", 0, "Request Cancelled");
+			}
+
+			// Handle other generic fetch/network errors
+			const message = error instanceof Error ? error.message : String(error);
+			// Use status 0 for network-level errors where no HTTP status was received
+			throw new ApiError(
+				`Network or request setup error: ${message}`,
+				0, // Or maybe check response?.status if available, but likely not for these errors
+				"Network Error",
 			);
 		}
 	}
@@ -214,10 +207,7 @@ export function createApiClient(options: ApiClientConfig) {
 	 * @param options - Request options (pathParams, queryParams, headers)
 	 * @returns Promise with the response wrapped in ApiResponse
 	 */
-	async function get<T>(
-		path: ApiRoutePath,
-		options: ApiRequestOptions = {},
-	): Promise<ApiResponse<T>> {
+	async function get<T>(path: ApiRoutePath, options: ApiRequestOptions = {}): Promise<T> {
 		return request<T>("GET", path, options);
 	}
 
@@ -232,7 +222,7 @@ export function createApiClient(options: ApiClientConfig) {
 		path: ApiRoutePath,
 		body: unknown,
 		options: ApiRequestOptions = {},
-	): Promise<ApiResponse<T>> {
+	): Promise<T> {
 		return request<T>("POST", path, options, body);
 	}
 
@@ -247,7 +237,7 @@ export function createApiClient(options: ApiClientConfig) {
 		path: ApiRoutePath,
 		body: unknown,
 		options: ApiRequestOptions = {},
-	): Promise<ApiResponse<T>> {
+	): Promise<T> {
 		return request<T>("PUT", path, options, body);
 	}
 
@@ -257,10 +247,7 @@ export function createApiClient(options: ApiClientConfig) {
 	 * @param options - Request options (pathParams, queryParams, headers)
 	 * @returns Promise with the response wrapped in ApiResponse
 	 */
-	async function del<T>(
-		path: ApiRoutePath,
-		options: ApiRequestOptions = {},
-	): Promise<ApiResponse<T>> {
+	async function del<T>(path: ApiRoutePath, options: ApiRequestOptions = {}): Promise<T> {
 		return request<T>("DELETE", path, options);
 	}
 
