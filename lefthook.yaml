@@ -1,0 +1,28 @@
+pre-commit:
+  parallel: true
+  commands:
+    start:
+      run: |
+        echo "🥊 Running pre-commit hooks..."
+
+    gen-types:
+      run: |
+        echo "🤓 Generating types..."
+        npx wrangler types
+      stage-fixed: true
+
+    lint-and-format:
+      run: |
+        echo "👸 Linting and formatting staged files..."
+        npx lint-staged
+
+    dry-deploy:
+      run: |
+        echo "🏗️ Deploying (kidding, it's a dry run)..."
+        npx wrangler deploy --dry-run
+      skip-output: true
+
+    tests:
+      run: |
+        echo "🧪 Running tests..."
+        npm run test:hooks

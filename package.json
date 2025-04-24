@@ -17,14 +17,13 @@
 		"start": "wrangler types && wrangler dev",
 		"cf-typegen": "wrangler types",
 		"test": "vitest run",
-		"test:husky": "vitest run --silent --reporter=dot",
+		"test:hooks": "vitest run --silent --reporter=dot --coverage",
 		"test:watch": "vitest",
 		"test:coverage": "vitest run --coverage",
 		"test:ui": "vitest --ui",
 		"test:unit": "vitest run tests/unit",
 		"test:integration": "vitest run tests/integration",
-		"test:e2e": "vitest run tests/e2e",
-		"prepare": "husky"
+		"test:e2e": "vitest run tests/e2e"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
@@ -32,7 +31,6 @@
 		"@cloudflare/workers-types": "^4.20250420.0",
 		"@types/node": "^22.14.1",
 		"@vitest/coverage-istanbul": "^3.1.2",
-		"husky": "^9.1.7",
 		"lint-staged": "^15.5.1",
 		"marked": "^15.0.7",
 		"typescript": "^5.5.2",
