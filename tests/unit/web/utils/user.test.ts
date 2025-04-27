@@ -1,6 +1,6 @@
 import { getSupabase } from "@/web/middleware/supabase";
 import { getCurrentUser } from "@/web/utils/user";
-import { AuthError } from "@supabase/supabase-js";
+import { AuthApiError, AuthError } from "@supabase/supabase-js";
 import type { Context } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mockGetUserNoSession, mockGetUserSuccess, testUser } from "../../../mocks";
@@ -51,7 +51,7 @@ describe("User Utilities", () => {
 			expect(mockSupabaseClient.auth.getUser).toHaveBeenCalled();
 		});
 
-		it("should return null when no session exists", async () => {
+		it("should return null when AuthSessionMissingError occurs", async () => {
 			// Arrange
 			const mockContext = createMockContext();
 			const mockSupabaseClient = createMockSupabaseClient();
@@ -64,6 +64,106 @@ describe("User Utilities", () => {
 			mockSupabaseClient.auth.getUser.mockResolvedValue({
 				data: { user: null },
 				error: authSessionError,
+			});
+
+			(getSupabase as vi.Mock).mockReturnValue(mockSupabaseClient);
+
+			// Act
+			const result = await getCurrentUser(mockContext);
+
+			// Assert
+			expect(result).toBeNull();
+			expect(getSupabase).toHaveBeenCalledWith(mockContext);
+			expect(mockSupabaseClient.auth.getUser).toHaveBeenCalled();
+		});
+
+		it("should return null when user_not_found error occurs", async () => {
+			// Arrange
+			const mockContext = createMockContext();
+			const mockSupabaseClient = createMockSupabaseClient();
+
+			// Create an AuthApiError with the specific error code
+			const userNotFoundError = new AuthApiError("User not found", 400, "user_not_found");
+
+			mockSupabaseClient.auth.getUser.mockResolvedValue({
+				data: { user: null },
+				error: userNotFoundError,
+			});
+
+			(getSupabase as vi.Mock).mockReturnValue(mockSupabaseClient);
+
+			// Act
+			const result = await getCurrentUser(mockContext);
+
+			// Assert
+			expect(result).toBeNull();
+			expect(getSupabase).toHaveBeenCalledWith(mockContext);
+			expect(mockSupabaseClient.auth.getUser).toHaveBeenCalled();
+		});
+
+		it("should return null when refresh_token_not_found error occurs", async () => {
+			// Arrange
+			const mockContext = createMockContext();
+			const mockSupabaseClient = createMockSupabaseClient();
+
+			// Create an AuthApiError with the specific error code
+			const refreshTokenNotFoundError = new AuthApiError(
+				"Refresh token not found",
+				400,
+				"refresh_token_not_found",
+			);
+
+			mockSupabaseClient.auth.getUser.mockResolvedValue({
+				data: { user: null },
+				error: refreshTokenNotFoundError,
+			});
+
+			(getSupabase as vi.Mock).mockReturnValue(mockSupabaseClient);
+
+			// Act
+			const result = await getCurrentUser(mockContext);
+
+			// Assert
+			expect(result).toBeNull();
+			expect(getSupabase).toHaveBeenCalledWith(mockContext);
+			expect(mockSupabaseClient.auth.getUser).toHaveBeenCalled();
+		});
+
+		it("should return null when session_not_found error occurs", async () => {
+			// Arrange
+			const mockContext = createMockContext();
+			const mockSupabaseClient = createMockSupabaseClient();
+
+			// Create an AuthApiError with the specific error code
+			const sessionNotFoundError = new AuthApiError("Session not found", 400, "session_not_found");
+
+			mockSupabaseClient.auth.getUser.mockResolvedValue({
+				data: { user: null },
+				error: sessionNotFoundError,
+			});
+
+			(getSupabase as vi.Mock).mockReturnValue(mockSupabaseClient);
+
+			// Act
+			const result = await getCurrentUser(mockContext);
+
+			// Assert
+			expect(result).toBeNull();
+			expect(getSupabase).toHaveBeenCalledWith(mockContext);
+			expect(mockSupabaseClient.auth.getUser).toHaveBeenCalled();
+		});
+
+		it("should return null when session_expired error occurs", async () => {
+			// Arrange
+			const mockContext = createMockContext();
+			const mockSupabaseClient = createMockSupabaseClient();
+
+			// Create an AuthApiError with the specific error code
+			const sessionExpiredError = new AuthApiError("Session expired", 400, "session_expired");
+
+			mockSupabaseClient.auth.getUser.mockResolvedValue({
+				data: { user: null },
+				error: sessionExpiredError,
 			});
 
 			(getSupabase as vi.Mock).mockReturnValue(mockSupabaseClient);
@@ -94,7 +194,7 @@ describe("User Utilities", () => {
 			expect(mockSupabaseClient.auth.getUser).toHaveBeenCalled();
 		});
 
-		it("should wrap and throw non-AuthError exceptions", async () => {
+		it("should re-throw Error exceptions", async () => {
 			// Arrange
 			const mockContext = createMockContext();
 			const mockSupabaseClient = createMockSupabaseClient();
@@ -103,7 +203,7 @@ describe("User Utilities", () => {
 			(getSupabase as vi.Mock).mockReturnValue(mockSupabaseClient);
 
 			// Act & Assert
-			await expect(getCurrentUser(mockContext)).rejects.toThrow(/Unexpected runtime error/);
+			await expect(getCurrentUser(mockContext)).rejects.toThrow("Network error");
 			expect(getSupabase).toHaveBeenCalledWith(mockContext);
 			expect(mockSupabaseClient.auth.getUser).toHaveBeenCalled();
 		});

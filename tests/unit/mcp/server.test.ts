@@ -5,114 +5,117 @@ import { describe, expect, it, vi } from "vitest";
 
 // Mock the McpAgent class
 vi.mock("agents/mcp", () => ({
-  McpAgent: class MockMcpAgent {
-    props: any;
-    constructor() {
-      this.props = {};
-    }
-  },
+	McpAgent: class MockMcpAgent {
+		props: any;
+
+		constructor() {
+			this.props = {};
+		}
+	},
 }));
 
 // Mock the McpServer class
 vi.mock("@modelcontextprotocol/sdk/server/mcp.js", () => ({
-  McpServer: vi.fn().mockImplementation(() => ({
-    tool: vi.fn(),
-  })),
+	McpServer: vi.fn().mockImplementation(() => ({
+		tool: vi.fn(),
+	})),
 }));
 
 // Mock the allTools array
 vi.mock("@/mcp/tools", () => ({
-  allTools: [
-    {
-      name: "mockTool1",
-      description: "Mock tool 1 description",
-      paramsSchema: { param1: "string" },
-      handler: vi.fn(),
-    },
-    {
-      name: "mockTool2",
-      description: "Mock tool 2 description",
-      paramsSchema: { param2: "number" },
-      handler: vi.fn(),
-    },
-  ],
+	allTools: [
+		{
+			name: "mockTool1",
+			description: "Mock tool 1 description",
+			paramsSchema: { param1: "string" },
+			handler: vi.fn(),
+		},
+		{
+			name: "mockTool2",
+			description: "Mock tool 2 description",
+			paramsSchema: { param2: "number" },
+			handler: vi.fn(),
+		},
+	],
 }));
 
 describe("KollektivMCP", () => {
-  it("should create a new MCP server instance", () => {
-    // Arrange & Act
-    const mcp = new KollektivMCP();
+	it("should create a new MCP server instance", () => {
+		// Arrange & Act
+		// @ts-ignore
+		const mcp = new KollektivMCP();
 
-    // Assert
-    expect(McpServer).toHaveBeenCalledWith({
-      name: "Kollektiv MCP",
-      version: "0.1.0",
-    });
-    expect(mcp.server).toBeDefined();
-  });
+		// Assert
+		expect(McpServer).toHaveBeenCalledWith({
+			name: "Kollektiv MCP",
+			version: "0.1.0",
+		});
+		expect(mcp.server).toBeDefined();
+	});
 
-  it("should register all tools during initialization", async () => {
-    // Arrange
-    const mcp = new KollektivMCP();
-    const toolSpy = vi.spyOn(mcp.server, "tool");
+	it("should register all tools during initialization", async () => {
+		// Arrange
+		// @ts-ignore
+		const mcp = new KollektivMCP();
+		const toolSpy = vi.spyOn(mcp.server, "tool");
 
-    // Act
-    await mcp.init();
+		// Act
+		await mcp.init();
 
-    // Assert
-    // Check that tool() was called for each tool in allTools
-    expect(toolSpy).toHaveBeenCalledTimes(allTools.length + 1); // +1 for test_tool
+		// Assert
+		// Check that tool() was called for each tool in allTools
+		expect(toolSpy).toHaveBeenCalledTimes(allTools.length);
 
-    // Check that tool() was called with the correct arguments for each tool
-    allTools.forEach((tool) => {
-      expect(toolSpy).toHaveBeenCalledWith(
-        tool.name,
-        tool.description,
-        tool.paramsSchema,
-        expect.any(Function)
-      );
-    });
+		// Check that tool() was called with the correct arguments for each tool
+		for (const tool of allTools) {
+			expect(toolSpy).toHaveBeenCalledWith(
+				tool.name,
+				tool.description,
+				tool.paramsSchema,
+				expect.any(Function),
+			);
+		}
+	});
 
-    // Check that tool() was called for test_tool
-    expect(toolSpy).toHaveBeenCalledWith(
-      "test_tool",
-      "testing_extra",
-      {},
-      expect.any(Function)
-    );
-  });
+	it("should pass authContext to tool handlers", async () => {
+		// Arrange
+		// @ts-ignore
+		const mcp = new KollektivMCP();
+		const authContext = { userId: "test-user-id" };
+		mcp.props = authContext;
 
-  it("should pass authContext to tool handlers", async () => {
-    // Arrange
-    const mcp = new KollektivMCP();
-    const authContext = { userId: "test-user-id" };
-    mcp.props = authContext;
+		// Define a more specific type for the handler function
+		type ToolHandler = (params: Record<string, unknown>, extra: Record<string, unknown>) => unknown;
 
-    // Capture the handler function when tool() is called
-    let capturedHandler: Function | null = null;
-    vi.spyOn(mcp.server, "tool").mockImplementation((name, description, schema, handler) => {
-      if (name === "test_tool") {
-        capturedHandler = handler;
-      }
-      return mcp.server;
-    });
+		// Mock the first tool's handler to verify it receives the authContext
+		const mockToolHandler = vi.fn().mockReturnValue({
+			content: [{ type: "text", text: "Mock response" }],
+		});
 
-    // Act
-    await mcp.init();
+		// Replace the first tool's handler with our mock
+		const originalHandler = allTools[0].handler;
+		allTools[0].handler = mockToolHandler;
 
-    // Assert
-    expect(capturedHandler).not.toBeNull();
+		// Act
+		await mcp.init();
 
-    // Call the captured handler and check that it uses authContext
-    const extra = {};
-    const result = capturedHandler!({}, extra);
+		// Assert
+		// Verify the tool was registered
+		expect(mockToolHandler).not.toHaveBeenCalled(); // Handler isn't called during registration
 
-    // Check that authContext was added to extra
-    expect((extra as any).authContext).toBe(authContext);
+		// Simulate calling the handler through the server
+		// Get the handler function that was registered
+		const registeredHandler = vi.mocked(mcp.server.tool).mock.calls[0][3] as ToolHandler;
 
-    // Check the result
-    expect(result).toEqual({
-      content: [{ type: "text", text: "Check console!" }],
-    });
-  });
+		// Call the handler with test parameters
+		const params = { test: "params" };
+		const extra = {};
+		registeredHandler(params, extra);
+
+		// Verify our mock handler was called with the correct arguments
+		expect(mockToolHandler).toHaveBeenCalledWith(params, extra, authContext);
+
+		// Restore the original handler
+		allTools[0].handler = originalHandler;
+	});
 });
