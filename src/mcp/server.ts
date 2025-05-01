@@ -16,6 +16,7 @@ export class KollektivMCP extends McpAgent<Env, unknown, AuthContext> {
 
 		for (const tool of allTools) {
 			console.log(`Registering tool: ${tool.name}`);
+
 			this.server.tool(tool.name, tool.description, tool.paramsSchema, (params, extra) => {
 				// @ts-ignore because I couldn't find a better way to pass props
 				return tool.handler(params, extra, this.props);

@@ -49,7 +49,7 @@ const queryToolHandler: ToolCallback<typeof queryToolParamSchema> = async (
 
 // Create and export tool
 export const queryDocumentsTool: ToolDefinitionSchema<typeof queryToolParamSchema> = {
-	name: "queryDocumentsTool",
+	name: "query_documents",
 	description:
 		"Query the documents uploaded by the user and return a response from LLM based" +
 		" on retrieved documents. The response will be LLM summary based on retrieved documents" +

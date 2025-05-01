@@ -1,6 +1,13 @@
 import camelcaseKeys from "camelcase-keys";
 import snakecaseKeys from "snakecase-keys";
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+	return (
+		Object.prototype.toString.call(value) === "[object Object]" &&
+		(value?.constructor === Object || value?.constructor == null)
+	);
+}
+
 /**
  * Converts a value to snake_case if it's a plain object.
  * Returns {} for null/undefined.
@@ -8,7 +15,11 @@ import snakecaseKeys from "snakecase-keys";
  */
 export function convertToSnakeCase<T>(body: T): T {
 	if (body == null) return {} as T;
-	if (typeof body === "object" && !Array.isArray(body)) {
+
+	if (Array.isArray(body)) {
+		return body.map((item) => convertToSnakeCase(item)) as T;
+	}
+	if (isPlainObject(body)) {
 		return snakecaseKeys(body as Record<string, unknown>, { deep: true }) as T;
 	}
 	return body;
@@ -21,7 +32,12 @@ export function convertToSnakeCase<T>(body: T): T {
  */
 export function convertToCamelCase<T>(body: T): T {
 	if (body == null) return {} as T; // null or undefined → empty object
-	if (typeof body === "object" && !Array.isArray(body)) {
+	// NEW: handle arrays first
+	if (Array.isArray(body)) {
+		return body.map((item) => convertToCamelCase(item)) as T;
+	}
+
+	if (isPlainObject(body)) {
 		// Plain object: convert
 		return camelcaseKeys(body as Record<string, unknown>, { deep: true }) as T;
 	}

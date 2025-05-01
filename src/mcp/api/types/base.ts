@@ -15,9 +15,11 @@ export interface ApiRequestOptions {
 
 export class ApiError extends Error {
 	constructor(
-		message: string,
+		public message: string,
 		public status: number,
 		public statusText: string,
+		/** Parsed JSON body when Content-Type is application/json, otherwise undefined */
+		public payload?: unknown,
 	) {
 		super(message);
 		this.name = "ApiError";
