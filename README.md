@@ -7,14 +7,24 @@
 [![codecov](https://codecov.io/gh/alexander-zuev/kollektiv-mcp/graph/badge.svg)](https://codecov.io/gh/alexander-zuev/kollektiv-mcp)
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue?logo=apache&logoColor=white)](LICENSE)
 
-> 🧪Pre-release version:
-> This MCP server is still under development and is not ready for production use yet.
+> 🧪 Kollektiv is in Beta:
+> There are still some rough edges - if you spot one,
+> please [open an issue](https://github.com/alexander-zuev/kollektiv-mcp/issues/new)!
 
 ## Overview
 
-Kollektiv MCP is a remote Model Context Protocol (MCP) server running on Cloudflare Workers. It
-enables users to use RAG over their own documents from IDEs such as Cursor, Windsurf,
-Claude Desktop, or other MCP-compatible clients.
+Kollektiv MCP enables you to setup RAG over your data in seconds. No more infrastructure setup,
+chunking, syncing -> just upload your data and start chatting. Supports all major MCP clients
+out of the box - Cursor, Windsurf, Claude Desktop, etc.
+
+## Installation
+
+## Troubleshooting
+
+## Implementation details (for the 🤓):
+
+- Built on top of Cloudflare Workers which allows to implement authentication flows so that
+  users don't
 
 ## Architecture
 

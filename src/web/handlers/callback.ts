@@ -16,7 +16,7 @@ export const authCallbackHandler = async (c: Context) => {
 
 	if (!code) {
 		console.error("[GET /auth/callback] No code found in the callback request from Supabase");
-		return c.text("Authentication Error: Authorization code was missing.", 500);
+		return c.text("Authentication Error: Authorization code was missing.", 400);
 	}
 
 	try {

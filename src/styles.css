@@ -1,0 +1,107 @@
+@import "tailwindcss";
+@import "tailwindcss/theme";
+@import "tailwindcss/utilities";
+@import "./styles/typography.css";
+@import "./styles/colors.css";
+@import "./styles/cursors.css";
+@import "./styles/shadows.css";
+@import "./styles/radius.css";
+@import "./styles/borders.css";
+@import "./styles/utilities.css";
+@import "./styles/animations.css";
+
+@plugin 'tailwindcss-animate';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+	/* === Animation === */
+	--animation-duration-fast: 150ms;
+	--animation-duration-normal: 250ms;
+	--animation-duration-slow: 400ms;
+	--animation-easing-standard: cubic-bezier(0.16, 1, 0.3, 1);
+	--animation-easing-linear: linear;
+	--animation-easing-ease: ease;
+	--animation-easing-ease-in: ease-in;
+	--animation-easing-ease-out: ease-out;
+	--animation-easing-ease-in-out: ease-in-out;
+
+	/* ======= SPACING ======= */
+	/* We rely on Tailwind's default spacing scale */
+	/* ======= BREAKPOINTS ======= */
+	/* Use desktop: to style desktop variants of properties */
+	/* ======= Z-INDEX SCALE ======= */
+	/*
+     * Z-index scale uses semantic naming with base-10 values for clarity and maintainability
+     * Each level has a specific purpose and a 10-point gap to allow for intermediate values when needed
+     */
+	--z-negative: -10; /* For elements that should be visually behind the page */
+	--z-base: 0; /* Default z-index for most elements */
+	--z-content: 10; /* Regular page content that needs to be above the base */
+	--z-dropdown: 20; /* Dropdown menus and similar components */
+	--z-sticky: 30; /* Sticky elements like table headers */
+	--z-fixed: 40; /* Fixed position elements like headers/footers */
+	--z-overlay: 50; /* Overlay backgrounds for modals/drawers */
+	--z-modal: 60; /* Modal dialogs and drawers */
+	--z-popover: 70; /* Tooltips, popovers, and similar floating elements */
+	--z-toast: 80; /* Toast notifications */
+	--z-spotlight: 90; /* Spotlight elements that should appear above everything else */
+	--z-max: 100; /* Absolute maximum z-index for critical UI elements */
+}
+
+/**
+ * Default base styles
+ * This sets sane defaults for the most basic elements
+ */
+@layer base {
+	:root {
+		/* === System Defaults === */
+		font-synthesis: none;
+		text-rendering: optimizeLegibility;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
+
+	html {
+		@apply scroll-smooth;
+
+		/* Tailwind Typography Defaults */
+		font-size: 16px;
+
+		/* border-box: border-box; */
+		box-sizing: border-box;
+	}
+
+	*,
+	*:before,
+	*:after {
+		box-sizing: inherit; /* All elements inherit box-sizing */
+	}
+
+	body {
+		background-color: var(--color-background);
+		color: var(--color-foreground);
+	}
+
+	a {
+		@apply text-primary hover:underline;
+	}
+
+	.border {
+		border-color: var(--color-border);
+	}
+
+	table {
+		border-color: var(--color-border);
+	}
+
+	th,
+	td {
+		border-color: var(--color-border);
+	}
+
+	.divide-x > *,
+	.divide-y > * {
+		border-color: var(--color-border);
+	}
+}

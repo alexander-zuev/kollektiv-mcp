@@ -193,3 +193,4 @@ pids/
 
 # Local docs
 docs
+*storybook.log

@@ -7,7 +7,7 @@ import {
 import { persistCookie, retrieveCookie } from "@/web/utils/cookies";
 import type { Context } from "hono";
 import { deleteCookie } from "hono/cookie";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the cookies module
 vi.mock("@/web/utils/cookies", () => ({
@@ -135,7 +135,7 @@ describe("Auth Context Utilities", () => {
 			mockContext.env.OAUTH_PROVIDER.lookupClient.mockResolvedValue(validClientInfo);
 
 			const cookieData = { oauthReq: validOAuthReq, clientInfo: validClientInfo };
-			(retrieveCookie as vi.Mock).mockReturnValue(cookieData);
+			(retrieveCookie as Mock).mockReturnValue(cookieData);
 
 			// Act
 			const result = await getValidAuthContext(mockContext);
@@ -155,7 +155,7 @@ describe("Auth Context Utilities", () => {
 			);
 
 			const cookieData = { oauthReq: validOAuthReq, clientInfo: validClientInfo };
-			(retrieveCookie as vi.Mock).mockReturnValue(cookieData);
+			(retrieveCookie as Mock).mockReturnValue(cookieData);
 
 			// Act
 			const result = await getValidAuthContext(mockContext);
@@ -170,7 +170,7 @@ describe("Auth Context Utilities", () => {
 			// Arrange
 			const mockContext = createMockContext();
 			mockContext.env.OAUTH_PROVIDER.parseAuthRequest.mockResolvedValue(null);
-			(retrieveCookie as vi.Mock).mockReturnValue(null);
+			(retrieveCookie as Mock).mockReturnValue(null);
 
 			// Act & Assert
 			await expect(getValidAuthContext(mockContext)).rejects.toThrow(AuthFlowError);
@@ -183,7 +183,7 @@ describe("Auth Context Utilities", () => {
 			mockContext.env.OAUTH_PROVIDER.parseAuthRequest.mockRejectedValue(new Error("Parse error"));
 
 			const cookieData = { oauthReq: validOAuthReq, clientInfo: validClientInfo };
-			(retrieveCookie as vi.Mock).mockReturnValue(cookieData);
+			(retrieveCookie as Mock).mockReturnValue(cookieData);
 
 			// Act
 			const result = await getValidAuthContext(mockContext);

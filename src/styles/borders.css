@@ -1,0 +1,34 @@
+/**
+ * BORDER VARIABLES
+ * Defines border styles for different UI elements
+ */
+
+/* Base border variables */
+:root {
+	/* Border widths with semantic names */
+	--border-fine: 0.5px;
+	--border-thin: 1px;
+	--border-medium: 2px;
+	--border-thick: 4px;
+}
+
+/**
+ * TAILWIND MAPPING
+ * This maps our border variables to Tailwind CSS utility classes
+ */
+@theme inline {
+	/* Border width mappings */
+	--default-border-width: var(--border-fine); /* 0.5px */
+	--border-width-0_5: var(--border-fine); /* 0.5px */
+	--border-width-1: var(--border-thin); /* 1px */
+	--border-width-2: var(--border-medium); /* 2px */
+	--border-width-4: var(--border-thick); /* 4px */
+
+	--border-fine: var(--border-fine);
+	--border-thin: var(--border-thin);
+	--border-medium: var(--border-medium);
+	--border-thick: var(--border-thick);
+
+	/* Colors */
+	/* --default-border-color: var(--color-border); */
+}

@@ -1,17 +1,31 @@
 import { loginHandler } from "@/web/handlers/login";
-import { AppRoutes } from "@/web/routes";
-import type { Context } from "hono";
-import { describe, expect, it, vi } from "vitest";
-
 import * as SupabaseModule from "@/web/middleware/supabase";
+import { AppRoutes } from "@/web/routes";
+import { LoginProvider } from "@/web/templates";
+import * as magicLinkTemplates from "@/web/templates/magic-link";
+import type { Context } from "hono";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // Import the mock data directly
-import { mockSignInWithOAuthSuccess } from "../../../mocks";
+import { mockSignInWithOAuthSuccess, mockSignInWithOtpSuccess } from "../../../mocks";
 
-// Mock the confirm screen render function (needed for magic link path)
-vi.mock("@/web/templates/confirm", () => ({
-	// Adjust path if needed
-	renderConfirmScreen: vi.fn().mockResolvedValue("<html>Mock Confirm Screen</html>"),
+// Mock the magic link sent screen render function (needed for magic link path)
+vi.mock("@/web/templates/magicLinkSent", () => ({
+	renderMagicLinkSentScreen: vi.fn().mockResolvedValue("<html>Mock Magic Link Sent Screen</html>"),
 }));
+
+let renderMagicLinkSentScreenSpy: vi.SpyInstance;
+
+beforeEach(() => {
+	// mock the template so the handler does not attempt to render real HTML
+	renderMagicLinkSentScreenSpy = vi
+		.spyOn(magicLinkTemplates, "renderMagicLinkSentScreen")
+		.mockReturnValue("<p>magic link sent</p>"); // or html`` if you use `hono/html`
+});
+
+// reset between tests
+afterEach(() => {
+	vi.restoreAllMocks();
+});
 
 describe("loginHandler tests", () => {
 	// --- Test Setup ---
@@ -76,10 +90,54 @@ describe("loginHandler tests", () => {
 		expect(mockContext.text).not.toHaveBeenCalled();
 	});
 
+	it("should correctly handle magic link login when email is provided", async () => {
+		// 1. Arrange: Set up the mock context with email form data
+		const formData = {
+			provider: LoginProvider.MAGIC_LINK, // ← add this line
+			email: "test@example.com",
+		};
+		const mockContext = createMockContext(formData) as Context;
+
+		// Mock the Supabase client's signInWithOtp method
+		const mockSupabaseClient = {
+			auth: {
+				signInWithOtp: vi.fn().mockResolvedValue(mockSignInWithOtpSuccess),
+			},
+		};
+		(SupabaseModule.getSupabase as vi.Mock).mockReturnValue(mockSupabaseClient);
+
+		// Import the renderMagicLinkSentScreen function
+		const { renderMagicLinkSentScreen } = await import("@/web/templates/magic-link");
+
+		// 2. Act: Call the handler
+		await loginHandler(mockContext);
+
+		// 3. Assert: Verify the correct actions were taken
+		// Check if parseBody was called
+		expect(mockContext.req.parseBody).toHaveBeenCalled();
+
+		// Check if signInWithOtp was called with the correct parameters
+		expect(mockSupabaseClient.auth.signInWithOtp).toHaveBeenCalledWith({
+			email: "test@example.com",
+			options: expect.objectContaining({
+				shouldCreateUser: true,
+				emailRedirectTo: `http://localhost:8787${AppRoutes.AUTH_CALLBACK}`,
+			}),
+		});
+
+		// Check if renderMagicLinkSentScreen was called with the correct email
+		expect(renderMagicLinkSentScreen).toHaveBeenCalledWith({ email: "test@example.com" });
+
+		// Check if html was called with the rendered content
+		expect(mockContext.html).toHaveBeenCalled();
+
+		// Ensure other response methods weren't called
+		expect(mockContext.redirect).not.toHaveBeenCalled();
+		expect(mockContext.text).not.toHaveBeenCalled();
+	});
+
 	// TODO: Add tests for other scenarios:
 	// Google
-	// Magic link
-	// Form parsing
 	// Error handling
 	// - Invalid/missing data
 });

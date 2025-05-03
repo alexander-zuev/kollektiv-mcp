@@ -3,7 +3,6 @@ import * as SupabaseModule from "@/web/middleware/supabase";
 import { AppRoutes } from "@/web/routes";
 import type { Context } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 // Import the mock data directly
 import { testSession, testUser } from "../../../mocks";
 
@@ -89,7 +88,7 @@ describe("authCallbackHandler", () => {
 		expect(mockContext.req.query).toHaveBeenCalledWith("code");
 		expect(mockContext.text).toHaveBeenCalledWith(
 			"Authentication Error: Authorization code was missing.",
-			500,
+			400,
 		);
 		expect(mockContext.redirect).not.toHaveBeenCalled();
 	});

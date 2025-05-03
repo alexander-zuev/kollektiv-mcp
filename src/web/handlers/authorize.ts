@@ -1,6 +1,7 @@
 import { type ConsentFormData, ConsentFormSchema } from "@/web/schemas/consentForm"; // Adjust path
-import { layout } from "@/web/templates/baseLayout";
+import { base } from "@/web/templates/base";
 import { renderConsentScreen } from "@/web/templates/consent";
+import { renderErrorScreen } from "@/web/templates/error";
 import { renderLoginScreen } from "@/web/templates/login";
 import type { ClientInfo, OAuthRequest, User } from "@/web/types";
 import { AuthFlowError, getValidAuthContext } from "@/web/utils/authContext";
@@ -13,7 +14,6 @@ import { deleteCookie } from "hono/cookie";
 export const getAuthorizeHandler = async (c: Context) => {
 	let oauthReq: OAuthRequest | null = null;
 	let clientInfo: ClientInfo | null = null;
-	const source: "params" | "cookie" | "none" = "params"; // assume params first
 
 	// 1. Get oauth req
 	console.log("[GET /authorize] Handling request.");
@@ -21,30 +21,31 @@ export const getAuthorizeHandler = async (c: Context) => {
 		({ oauthReq, clientInfo } = await getValidAuthContext(c));
 		console.log("[GET /authorize] Successfully obtained valid auth context.");
 	} catch (error) {
-		console.error("[GET /authorize] Failed to get valid auth context:", error);
+		console.warn("[GET /authorize] No valid auth context:", error);
 		// Ensure stale cookie is cleaned up if context fetching fails
-		deleteCookie(c, "authFlow", { path: "/" });
+		deleteCookie(c, AUTH_FLOW_COOKIE_NAME, { path: "/" });
 
 		if (error instanceof AuthFlowError) {
 			// Specific, expected error from our logic (e.g., missing params and cookie)
-			// Return 400 Bad Request
-			return c.html(
-				layout(
-					`<h1>Error</h1><p>${error.message || "Invalid or missing authorization request."}</p>`,
-					"Authorization Error",
-				),
-				400,
-			);
+			// Return 401
+			const content = await renderErrorScreen({
+				title: "Invalid Authorisation Request",
+				message: error.message,
+				hint:
+					"Please ensure you are logging in from an MCP client (Cursor / Windsurf /" +
+					" Claude Desktop / others)",
+			});
+			return c.html(base(content, "Authorization Error"), 401);
 		}
 		// Unexpected error during context fetching (e.g., provider internal error)
 		// Return 500 Internal Server Error
-		return c.html(
-			layout(
-				"<h1>Server Error</h1><p>An internal error occurred while processing the authorization request.</p>",
-				"Server Error",
-			),
-			500,
-		);
+		const content = await renderErrorScreen({
+			title: "Internal Server Error",
+			message: "An unexpected error occurred while authorizing your session.",
+			hint: "Please try again later.",
+			details: error instanceof Error ? { stack: error.stack, name: error.name } : undefined,
+		});
+		return c.html(base(content, "Internal Server Error"), 500);
 	}
 
 	// If we reach here, oauthReq and clientInfo are guaranteed to be valid
@@ -58,7 +59,7 @@ export const getAuthorizeHandler = async (c: Context) => {
 		// Pass the validated clientInfo
 		const content = await renderLoginScreen(clientInfo); // Pass the whole object
 		const pageTitle = `Log in to authorize ${clientInfo.clientName || "Application"}`;
-		return c.html(layout(content, pageTitle));
+		return c.html(base(content, pageTitle));
 	}
 
 	// 4. If user -> render consent screen
@@ -66,7 +67,7 @@ export const getAuthorizeHandler = async (c: Context) => {
 	// Pass validated objects
 	const content = await renderConsentScreen({ oauthReq, clientInfo, user });
 	const pageTitle = `Authorize ${clientInfo.clientName || "Application"}`;
-	return c.html(layout(content, pageTitle));
+	return c.html(base(content, pageTitle));
 };
 
 export const postAuthorizeHandler = async (c: Context) => {
@@ -90,9 +91,6 @@ export const postAuthorizeHandler = async (c: Context) => {
 	}
 	// Store the validated OAuth Request (ignore clientInfo if not needed)
 	const oauthReq: OAuthRequest = cookieData.oauthReq;
-	console.log(
-		`[POST /authorize] Successfully retrieved OAuth request from cookie for client: ${oauthReq.clientId}`,
-	);
 
 	// Parse consent form
 	let validatedFormData: ConsentFormData; // Use the type inferred from the schema

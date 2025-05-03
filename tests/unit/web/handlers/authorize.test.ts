@@ -1,11 +1,7 @@
-import { getAuthorizeHandler, postAuthorizeHandler } from "@/web/handlers/authorize";
-import * as SupabaseModule from "@/web/middleware/supabase";
-import { layout } from "@/web/templates/baseLayout";
+import { getAuthorizeHandler } from "@/web/handlers/authorize";
 import { renderConsentScreen } from "@/web/templates/consent";
 import { renderLoginScreen } from "@/web/templates/login";
 import { AuthFlowError, getValidAuthContext } from "@/web/utils/authContext";
-import { retrieveCookie } from "@/web/utils/cookies";
-import { parseFormData } from "@/web/utils/form";
 import { getCurrentUser } from "@/web/utils/user";
 import type { Context } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -25,10 +21,13 @@ vi.mock("@/web/utils/user", () => ({
 	getCurrentUser: vi.fn(),
 }));
 
-vi.mock("@/web/utils/cookies", () => ({
-	retrieveCookie: vi.fn(),
-	deleteAuthFlowCookie: vi.fn(),
-}));
+vi.mock("@/web/utils/cookies", () => {
+	return {
+		retrieveCookie: vi.fn(),
+
+		AUTH_FLOW_COOKIE_NAME: "authFlow",
+	};
+});
 
 // Mock the hono/cookie module
 vi.mock("hono/cookie", () => ({
@@ -45,8 +44,8 @@ vi.mock("@/web/templates/consent", () => ({
 	renderConsentScreen: vi.fn().mockResolvedValue("<consent-screen-html>"),
 }));
 
-vi.mock("@/web/templates/baseLayout", () => ({
-	layout: vi.fn((content) => `<layout>${content}</layout>`),
+vi.mock("@/web/templates/base", () => ({
+	base: vi.fn((content) => `<base>${content}</base>`),
 }));
 
 vi.mock("@/web/utils/form", () => ({
@@ -121,7 +120,7 @@ describe("Authorize Handlers", () => {
 			expect(getCurrentUser).toHaveBeenCalledWith(mockContext);
 			expect(renderLoginScreen).toHaveBeenCalledWith(validClientInfo);
 			expect(mockContext.html).toHaveBeenCalled();
-			expect(mockContext.html.mock.calls[0][0]).toContain("<layout>");
+			expect(mockContext.html.mock.calls[0][0]).toContain("<base>");
 			expect(mockContext.html.mock.calls[0][1]).toBeUndefined();
 		});
 
@@ -150,7 +149,7 @@ describe("Authorize Handlers", () => {
 				user: testUser,
 			});
 			expect(mockContext.html).toHaveBeenCalled();
-			expect(mockContext.html.mock.calls[0][0]).toContain("<layout>");
+			expect(mockContext.html.mock.calls[0][0]).toContain("<base>");
 			expect(mockContext.html.mock.calls[0][1]).toBeUndefined();
 		});
 
@@ -168,8 +167,8 @@ describe("Authorize Handlers", () => {
 			// Assert
 			expect(getValidAuthContext).toHaveBeenCalledWith(mockContext);
 			expect(mockContext.html).toHaveBeenCalled();
-			expect(mockContext.html.mock.calls[0][0]).toContain("<layout>");
-			expect(mockContext.html.mock.calls[0][1]).toBe(400);
+			expect(mockContext.html.mock.calls[0][0]).toContain("<base>");
+			expect(mockContext.html.mock.calls[0][1]).toBe(401);
 		});
 
 		it("should handle unexpected errors and return 500 Internal Server Error", async () => {
@@ -185,7 +184,7 @@ describe("Authorize Handlers", () => {
 			// Assert
 			expect(getValidAuthContext).toHaveBeenCalledWith(mockContext);
 			expect(mockContext.html).toHaveBeenCalled();
-			expect(mockContext.html.mock.calls[0][0]).toContain("<layout>");
+			expect(mockContext.html.mock.calls[0][0]).toContain("<base>");
 			expect(mockContext.html.mock.calls[0][1]).toBe(500);
 		});
 	});

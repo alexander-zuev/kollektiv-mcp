@@ -1,4 +1,8 @@
+// Now we can import the actual module and the mocked dependencies
+import { createServerClient, parseCookieHeader } from "@supabase/ssr";
 import type { Context } from "hono";
+import { env } from "hono/adapter";
+import { setCookie } from "hono/cookie";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // We need to mock these dependencies before importing the module
@@ -14,11 +18,6 @@ vi.mock("hono/adapter", () => ({
 vi.mock("hono/cookie", () => ({
 	setCookie: vi.fn(),
 }));
-
-// Now we can import the actual module and the mocked dependencies
-import { createServerClient, parseCookieHeader } from "@supabase/ssr";
-import { env } from "hono/adapter";
-import { setCookie } from "hono/cookie";
 
 // Import the module directly - we're testing the actual implementation
 // We need to use vi.importActual to bypass the global mock in setup.ts
@@ -58,6 +57,7 @@ describe("Supabase Middleware Implementation", () => {
 		beforeEach(() => {
 			// Mock context
 			mockContext = {
+				// @ts-ignore
 				req: {
 					path: "/test-path",
 					header: vi.fn().mockReturnValue("cookie1=value1; cookie2=value2"),
@@ -150,6 +150,7 @@ describe("Supabase Middleware Implementation", () => {
 				]);
 
 				// Call the setAll function to test it
+				// @ts-ignore
 				options.cookies.setAll([
 					{ name: "test-cookie", value: "test-value", options: { path: "/" } },
 				]);

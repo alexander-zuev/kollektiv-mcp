@@ -1,0 +1,33 @@
+/**
+ * RADIUS VARIABLES
+ * Defines border radius styles for different UI elements
+ */
+
+/* Base radius variables */
+:root {
+	--radius-1: 3px;
+	--radius-2: 4px;
+	--radius-3: 6px;
+	--radius-4: 8px;
+	--radius-5: 12px;
+	--radius-6: 16px;
+}
+
+/**
+ * TAILWIND MAPPING
+ * This maps our radius variables to Tailwind CSS utility classes
+ */
+@theme inline {
+	/* Border radius mappings */
+	--radius-none: 0px;
+	--radius-xs: var(--radius-1); /* 3px */
+	--radius-sm: var(--radius-2); /* 4px */
+	--radius-md: var(--radius-3); /* 6px */
+	--radius-lg: var(--radius-4); /* 8px */
+	--radius-xl: var(--radius-5); /* 12px */
+	--radius-2xl: var(--radius-6); /* 16px */
+	--radius-full: 9999px;
+
+	/* Default radius for components */
+	--radius: var(--radius-lg); /* 8px - standard border radius */
+}

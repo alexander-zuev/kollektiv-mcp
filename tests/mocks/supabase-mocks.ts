@@ -79,3 +79,15 @@ export const mockGetUserNoSession = {
 	// using a generic AuthError with a specific message might be more practical for mocks.
 	error: new AuthError("Auth session missing", 401, "AuthSessionMissingError"), // Mock the typical "no session" error
 };
+
+// Example successful return value for signInWithOtp (magic link)
+export const mockSignInWithOtpSuccess = {
+	data: {},
+	error: null,
+};
+
+// Example error return value for signInWithOtp (magic link)
+export const mockSignInWithOtpError = {
+	data: {},
+	error: new AuthError("Failed to send magic link", 400),
+};
