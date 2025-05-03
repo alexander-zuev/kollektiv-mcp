@@ -1,13 +1,8 @@
 import { getSupabase } from "@/web/middleware/supabase";
 import { AppRoutes } from "@/web/routes";
-import { layout } from "@/web/templates/baseLayout";
+import { LoginProvider } from "@/web/templates";
+import { base } from "@/web/templates/base";
 import type { Context } from "hono";
-
-enum LoginProviders {
-	GITHUB = "github",
-	GOOGLE = "google",
-	MAGIC_LINK = "magic-link",
-}
 
 export const loginHandler = async (c: Context) => {
 	const supabase = getSupabase(c);
@@ -23,7 +18,7 @@ export const loginHandler = async (c: Context) => {
 	console.log(`[POST /login] Redirect URL: ${redirectUrl}`);
 
 	// Determine which login method to use based on form data
-	if (formData.provider === LoginProviders.GITHUB || formData.button === "github") {
+	if (formData.provider === LoginProvider.GITHUB) {
 		console.log("[POST /login] Processing GitHub login");
 		const { data, error } = await supabase.auth.signInWithOAuth({
 			provider: "github",
@@ -45,7 +40,7 @@ export const loginHandler = async (c: Context) => {
 		return c.text("Error initiating GitHub login", 500);
 	}
 
-	if (formData.provider === LoginProviders.GOOGLE || formData.button === "google") {
+	if (formData.provider === LoginProvider.GOOGLE) {
 		console.log("[POST /login] Processing Google login");
 		const { data, error } = await supabase.auth.signInWithOAuth({
 			provider: "google",
@@ -68,10 +63,12 @@ export const loginHandler = async (c: Context) => {
 	}
 
 	// If we have an email, assume magic link login
-	if (formData.email) {
+	if (formData.provider === LoginProvider.MAGIC_LINK) {
 		const email = formData.email.toString();
 		console.log(`[POST /login] Processing Magic Link login for email: ${email}`);
 
+		// Use signInWithOtp for magic link login
+		// This sends an email with a link that the user can click to authenticate
 		const { error } = await supabase.auth.signInWithOtp({
 			email,
 			options: {
@@ -81,16 +78,16 @@ export const loginHandler = async (c: Context) => {
 		});
 
 		if (error) {
-			console.error("[POST /login] Magic Link error:", error.message);
+			console.error("[POST /login] Magic Link error:", JSON.stringify(error, null, 2));
 			return c.text(`Error sending magic link: ${error.message}`, 500);
 		}
 
-		// Import the confirmation screen template
-		const { renderConfirmScreen } = await import("@/web/templates/confirm");
+		// Import the magic link sent screen template
+		const { renderMagicLinkSentScreen } = await import("@/web/templates/magic-link");
 
-		// Render the confirmation screen
-		const content = await renderConfirmScreen({ email });
-		return c.html(layout(content, "Verify your email"));
+		// Render the magic link sent screen
+		const content = await renderMagicLinkSentScreen({ email });
+		return c.html(base(content, "Check your email"));
 	}
 
 	console.error("[POST /login] No valid login method identified");

@@ -1,15 +1,11 @@
 {
 	"extends": "../tsconfig.json",
 	"compilerOptions": {
-		"moduleResolution": "bundler",
-		"baseUrl": ".",
-		"paths": {
-			"@/*": ["../src/*"]
-		},
-		"types": [
-			"@cloudflare/vitest-pool-workers"
-			// provides `cloudflare:test` types
-		],
+		//    "types": [
+		//      "vitest",
+		//      "@cloudflare/vitest-pool-workers"
+		//      // provides `cloudflare:test` types
+		//    ],
 		"include": [
 			"./**/*.ts",
 			"../worker-configuration.d.ts"

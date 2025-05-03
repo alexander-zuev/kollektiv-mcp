@@ -35,6 +35,8 @@ app.post(AppRoutes.AUTHORIZE, postAuthorizeHandler);
 
 // Validate OTP code and complete the authorization request
 app.post(AppRoutes.AUTH_CONFIRM, authConfirmHandler);
+// Validate OTP code and complete the authorization request
+app.get(AppRoutes.AUTH_CONFIRM, authConfirmHandler);
 
 // Exchange PKCE code for access and session tokens from Supabase
 app.get(AppRoutes.AUTH_CALLBACK, authCallbackHandler);

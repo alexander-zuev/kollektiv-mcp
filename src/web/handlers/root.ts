@@ -1,9 +1,9 @@
-import { layout } from "@/web/templates/baseLayout";
-import { homeContent } from "@/web/templates/root";
+import { base } from "@/web/templates/base";
+import { renderHomePage } from "@/web/templates/root";
 import type { Context } from "hono";
 
 export const rootHandler = async (c: Context) => {
 	console.log("[GET /] Handling request.");
-	const content = await homeContent(c.req.raw);
-	return c.html(layout(content, "MCP Remote Auth Demo - Home"));
+	const content = await renderHomePage();
+	return c.html(base(content, "MCP Remote Auth Demo - Home"));
 };

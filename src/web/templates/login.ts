@@ -2,70 +2,108 @@ import { AppRoutes } from "@/web/routes";
 import type { ClientInfo } from "@/web/types";
 import { html } from "hono/html";
 
-type RenderLoginScreenProps = {
-	clientInfo: {
-		clientName: string;
-	};
-};
+/** Authorised login providers */
+export enum LoginProvider {
+	GITHUB = "github",
+	GOOGLE = "google",
+	MAGIC_LINK = "magic-link",
+}
+
+/** Common outline-variant classes */
+const outlineBtn =
+	"w-full py-3 px-4 cursor-pointer bg-muted text-muted-foreground hover:text-foreground " +
+	"border border-border rounded-md font-medium hover:bg-muted/90 transition-colors " +
+	"flex items-center justify-center gap-2 " +
+	"disabled:hover:text-muted-foreground disabled:bg-muted disabled:cursor-not-allowed ";
+
+/** Provider metadata used to build the buttons */
+const OAUTH_PROVIDERS: { id: LoginProvider; label: string; icon: string }[] = [
+	{ id: LoginProvider.GITHUB, label: "Login with GitHub", icon: "ph-github-logo" },
+	{ id: LoginProvider.GOOGLE, label: "Login with Google", icon: "ph-google-logo" },
+];
 
 export const renderLoginScreen = (clientInfo: ClientInfo) => {
+	/* Helper for OAuth buttons */
+	const renderOAuthButton = ({ id, label, icon }: (typeof OAUTH_PROVIDERS)[number]) => html`
+        <form method="POST" action="${AppRoutes.LOGIN}" onsubmit="
+        this.querySelectorAll('button[type=submit]')
+            .forEach(btn => {
+              btn.disabled = true;
+              btn.classList.add('bg-muted/90' 'cursor-not-allowed' 'hover:text-muted-foreground/90');
+            });
+      ">
+            <input type="hidden" name="provider" value="${id}"/>
+            <button type="submit" name="button" value="${id}" class="${outlineBtn}">
+                <i class="ph ${icon} text-lg"></i>
+                ${label}
+            </button>
+        </form>
+    `;
+
 	return html`
-        <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
-            <h1 class="text-2xl font-heading font-bold mb-6 text-gray-900">
-                Login to authorize <b>${clientInfo.clientName}</b>
-            </h1>
+        <div class="flex w-full justify-center p-8">
+            <div
+                    class="max-w-lg w-full rounded-lg border border-border bg-card p-6 text-center flex flex-col gap-4 items-center"
+            >
+                <i class="ph ph-sign-in text-5xl text-primary mt-4"></i>
+                <h1 class="text-2xl text-center text-foreground">
+                    Login to authorize <strong>${clientInfo.clientName}</strong>
+                </h1>
 
-            <div class="space-y-4 mb-8">
-                <form method="POST" action='${AppRoutes.LOGIN}'>
-                    <input type="hidden" name="provider" value="github">
+                <p class="text-base text-center text-foreground/80 mb-2">
+                    You’re connecting your Kollektiv account so that
+                    <strong>${clientInfo.clientName}</strong> can securely use Kollektiv MCP on your
+                    behalf.
+                    Choose any sign-in method below.
+                </p>
+
+                <!-- OAuth providers -->
+                <div class="w-full space-y-4">
+                    ${OAUTH_PROVIDERS.map(renderOAuthButton)}
+                </div>
+
+                <!-- divider -->
+                <div class="flex items-center w-full my-4">
+                    <div class="flex-grow border-t border-border"></div>
+                    <span class="px-3 text-sm text-muted-foreground">OR CONTINUE WITH</span>
+                    <div class="flex-grow border-t border-border"></div>
+                </div>
+
+                <!-- Magic-link form -->
+                <form method="POST" action="${AppRoutes.LOGIN}" onsubmit="
+        this.querySelectorAll('button[type=submit]')
+            .forEach(btn => {
+              btn.disabled = true;
+              btn.classList.add('bg-muted/90' 'cursor-not-allowed' 'hover:text-muted-foreground/90');
+
+            });
+      " class="w-full space-y-4">
+                    <input type="hidden" name="provider" value="${LoginProvider.MAGIC_LINK}"/>
+                    <div>
+                        <label
+                                for="email"
+                                class="block text-sm font-medium text-foreground mb-1 text-left"
+                        >Email</label
+                        >
+                        <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                required
+                                class="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary bg-card text-foreground"
+                        />
+                    </div>
                     <button
                             type="submit"
                             name="button"
-                            value="github"
-                            class="w-full py-3 px-4 bg-gray-900 text-white rounded-md font-medium hover:bg-gray-800 transition-colors"
+                            value="${LoginProvider.MAGIC_LINK}"
+                            class="${outlineBtn}"
                     >
-                        Login with GitHub
-                    </button>
-                </form>
-
-                <form method="POST" action='${AppRoutes.LOGIN}'>
-                    <input type="hidden" name="provider" value="google">
-                    <button
-                            type="submit"
-                            name="button"
-                            value="google"
-                            class="w-full py-3 px-4 bg-red-600 text-white rounded-md font-medium hover:bg-red-500 transition-colors"
-                    >
-                        Login with Google
+                        <i class="ph ph-paper-plane text-lg"></i>
+                        Send Magic Link
                     </button>
                 </form>
             </div>
-
-            <form method="POST" action='${AppRoutes.LOGIN}' class="space-y-4">
-                <input type="hidden" name="provider" value="magic-link">
-                <div>
-                    <label
-                            for="email"
-                            class="block text-sm font-medium text-gray-700 mb-1"
-                    >Email</label
-                    >
-                    <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                    />
-                </div>
-                <button
-                        type="submit"
-                        name="button"
-                        value="magic-link"
-                        class="w-full py-3 px-4 bg-primary text-white rounded-md font-medium hover:bg-primary/90 transition-colors"
-                >
-                    Send Magic Link
-                </button>
-            </form>
         </div>
     `;
 };

@@ -1,0 +1,18 @@
+@import "@radix-ui/colors/green.css";
+@import "@radix-ui/colors/green-alpha.css";
+@import "@radix-ui/colors/green-dark.css";
+@import "@radix-ui/colors/green-dark-alpha.css";
+
+:root,
+.dark,
+.dark-theme {
+	--green-contrast: white;
+	--green-surface: #15251d80;
+	--green-indicator: var(--green-9);
+	--green-track: var(--green-9);
+	@supports (color: color(display-p3 1 1 1)) {
+		@media (color-gamut: p3) {
+			--green-surface: color(display-p3 0.0941 0.1412 0.1098 / 0.5);
+		}
+	}
+}

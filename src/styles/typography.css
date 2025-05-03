@@ -1,0 +1,343 @@
+/**
+ * Typography system
+ * 
+ * This file defines our typography system in four main sections:
+ * 
+ * 1. :root - Base variables that don't directly map to Tailwind utilities.
+ *    Used as references and accessed globally in CSS.
+ *
+ * 2. @theme inline - Variables that generate standard Tailwind utility classes
+ *    (e.g., font-bold, text-lg, text-primary).
+ *
+ * 3. @layer base - Default styles for basic HTML elements (h1, p, etc.).
+ *    Provides a sensible fallback but might be overridden by component-specific styles.
+ *
+ * 4. @layer utilities - Custom typography utility classes (`.app-typography-*`).
+ *    These are the PREFERRED way to apply consistent typography across the application,
+ *    ensuring styles apply predictably, even within components.
+ *
+
+
+@plugin '@tailwindcss/typography';
+
+/* === BASE TYPOGRAPHY VARIABLES === */
+/* These variables don't generate utility classes but serve as the foundation */
+:root {
+	/* Font sizes */
+	--font-size-1: 0.75rem; /* 12px */
+	--font-size-2: 0.875rem; /* 14px */
+	--font-size-3: 1rem; /* 16px */
+	--font-size-4: 1.125rem; /* 18px */
+	--font-size-5: 1.25rem; /* 20px */
+	--font-size-6: 1.5rem; /* 24px */
+	--font-size-7: 1.75rem; /* 28px */
+	--font-size-8: 2.1875rem; /* 35px */
+	--font-size-9: 3.75rem; /* 60px */
+
+	/* Add fluid typography scale (preserves desktop sizes) */
+	--font-size-fluid-1: clamp(0.8125rem, calc(0.76rem + 0.2vw), 0.75rem); /* 13px → 12px */
+	--font-size-fluid-2: clamp(0.875rem, calc(0.83rem + 0.2vw), 0.875rem); /* 14px → 14px */
+	--font-size-fluid-3: clamp(1rem, calc(0.95rem + 0.25vw), 1rem); /* 16px → 16px */
+	--font-size-fluid-4: clamp(1.0625rem, calc(1rem + 0.25vw), 1.125rem); /* 17px → 18px */
+	--font-size-fluid-5: clamp(1.125rem, calc(1.05rem + 0.5vw), 1.25rem); /* 18px → 20px */
+	--font-size-fluid-6: clamp(1.25rem, calc(1.15rem + 0.5vw), 1.5rem); /* 20px → 24px */
+	--font-size-fluid-7: clamp(1.5rem, calc(1.35rem + 0.75vw), 1.75rem); /* 24px → 28px */
+	--font-size-fluid-8: clamp(1.75rem, calc(1.5rem + 1.25vw), 2.1875rem); /* 28px → 35px */
+	--font-size-fluid-9: clamp(2.5rem, calc(2rem + 1.75vw), 3.75rem); /* 40px → 60px */
+
+	/* Letter spacing */
+	--letter-spacing-1: 0.0025em;
+	--letter-spacing-2: 0em;
+	--letter-spacing-3: 0em;
+	--letter-spacing-4: -0.0025em;
+	--letter-spacing-5: -0.005em;
+	--letter-spacing-6: -0.00625em;
+	--letter-spacing-7: -0.0075em;
+	--letter-spacing-8: -0.01em;
+	--letter-spacing-9: -0.025em;
+
+	/* Line heights */
+	--line-height-1: 1.333; /* 16px for 12px text (Size 1) */
+	--line-height-2: 1.428; /* 20px for 14px text (Size 2) */
+	--line-height-3: 1.5; /* 24px for 16px text (Size 3) */
+	--line-height-4: 1.444; /* 26px for 18px text (Size 4) */
+	--line-height-5: 1.4; /* 28px for 20px text (Size 5) */
+	--line-height-6: 1.25; /* 30px for 24px text (Size 6) */
+	--line-height-7: 1.285; /* 36px for 28px text (Size 7) */
+	--line-height-8: 1.142; /* 40px for 35px text (Size 8) */
+	--line-height-9: 1; /* 60px for 60px text (Size 9) */
+
+	/* Heading line heights */
+	--heading-line-height-1: 1.333; /* Same as --line-height-1 */
+	--heading-line-height-2: 1.428; /* Same as --line-height-2 */
+	--heading-line-height-3: 1.5; /* Same as --line-height-3 */
+	--heading-line-height-4: 1.444; /* Same as --line-height-4 */
+	--heading-line-height-5: 1.4; /* Same as --line-height-5 */
+	--heading-line-height-6: 1.25; /* Same as --line-height-6 */
+	--heading-line-height-7: 1.285; /* Same as --line-height-7 */
+	--heading-line-height-8: 1.142; /* Same as --line-height-8 */
+	--heading-line-height-9: 1; /* Same as --line-height-9 */
+}
+
+/* Scaled down shell for AppLayout*/
+
+[data-app-shell] {
+	/* knock every step down by 1 step */
+	--font-size-fluid-3: clamp(0.875rem, calc(0.83rem + 0.2vw), 0.875rem); /* 14px → 14px */
+	--font-size-fluid-4: clamp(1rem, calc(0.95rem + 0.25vw), 1rem); /* 16px → 16px */
+	--font-size-fluid-5: clamp(1.0625rem, calc(1rem + 0.25vw), 1.125rem); /* 17px → 18px */
+	--font-size-fluid-6: clamp(1.125rem, calc(1.05rem + 0.5vw), 1.25rem); /* 18px → 20px */
+	--font-size-fluid-7: clamp(1.25rem, calc(1.15rem + 0.5vw), 1.5rem); /* 20px → 24px */
+	--font-size-fluid-8: clamp(1.5rem, calc(1.35rem + 0.75vw), 1.75rem); /* 24px → 28px */
+	--font-size-fluid-9: clamp(1.75rem, calc(1.5rem + 1.25vw), 2.1875rem); /* 28px → 35px */
+	/* OPTIONAL — if you see vertical crowding, uncomment these
+    --heading-line-height-7: 1.35;
+    --heading-line-height-8: 1.25;
+    --heading-line-height-9: 1.15;
+    */
+}
+
+[data-app-shell] h2,
+[data-app-shell] h3 {
+	/* medium (e.g. 500) instead of bold */
+	font-weight: var(--font-weight-medium);
+}
+
+[data-app-shell] ol,
+[data-app-shell] ul,
+[data-app-shell] li {
+	font-size: var(--font-size-fluid-3);
+	line-height: var(--line-height-3);
+}
+
+[data-app-shell] h4,
+[data-app-shell] h5,
+[data-app-shell] h6 {
+	/* regular (e.g. 400) instead of medium/bold */
+	font-weight: var(--font-weight-regular);
+}
+
+/* === TAILWIND UTILITY GENERATORS === */
+/* These variables generate Tailwind utility classes */
+@theme inline {
+	/* Font families */
+	--font-sans: Inter, sans-serif;
+	--font-serif: Inter, serif;
+	--font-mono: "Space Mono", monospace, "Apple Color Emoji", "Segoe UI Emoji";
+	--font-brand: "Space Grotesk", sans-serif;
+	--font-heading: var(--heading-font-family);
+	--font-body: var(--default-font-family);
+
+	/* Font weights - these generate utility classes like font-bold */
+	--font-weight-light: 300;
+	--font-weight-regular: 400;
+	--font-weight-medium: 500;
+	--font-weight-bold: 900;
+
+	/* Default typography values */
+	--default-font-family: "Inter", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+	--default-font-size: var(--font-size-3); /* Same size used for `<Text size="3">` */
+	--default-font-style: normal;
+	--default-font-weight: var(--font-weight-regular);
+	--default-line-height: 1.5;
+	--default-letter-spacing: 0em;
+	--default-leading-trim-start: 0.42em;
+	--default-leading-trim-end: 0.36em;
+
+	/* Heading typography */
+	--heading-font-family: var(--default-font-family);
+	--heading-font-size-adjust: 1;
+	--heading-font-style: normal;
+	--heading-leading-trim-start: var(--default-leading-trim-start);
+	--heading-leading-trim-end: var(--default-leading-trim-end);
+	--heading-letter-spacing: 0em;
+
+	/* Code typography */
+	--code-font-family: var(--font-mono);
+	--code-font-size-adjust: 0.95;
+	--code-font-style: normal;
+	--code-font-weight: inherit;
+	--code-letter-spacing: -0.007em;
+	--code-padding-top: 0.1em;
+	--code-padding-bottom: 0.1em;
+	--code-padding-left: 0.25em;
+	--code-padding-right: 0.25em;
+
+	/* Strong typography */
+	--strong-font-family: var(--default-font-family);
+	--strong-font-size-adjust: 1;
+	--strong-font-style: inherit;
+	--strong-font-weight: var(--font-weight-bold);
+	--strong-letter-spacing: 0em;
+
+	/* Em typography */
+	--em-font-family: "Georgia", "Georgia Pro", serif;
+	--em-font-size-adjust: 1.18;
+	--em-font-style: italic;
+	--em-font-weight: inherit;
+	--em-letter-spacing: -0.025em;
+
+	/* Quote typography */
+	--quote-font-family: "Georgia", "Georgia Pro", serif;
+	--quote-font-size-adjust: 1.18;
+	--quote-font-style: italic;
+	--quote-font-weight: inherit;
+	--quote-letter-spacing: -0.025em;
+
+	/* Tab typography */
+	--tab-active-letter-spacing: -0.01em;
+	--tab-active-word-spacing: 0em;
+	--tab-inactive-letter-spacing: 0em;
+	--tab-inactive-word-spacing: 0em;
+
+	/* Tailwind mapping - these create utility classes */
+	/* Update Tailwind font size mapping */
+	--text-xs: var(--font-size-fluid-1);
+	--text-sm: var(--font-size-fluid-2);
+	--text-base: var(--font-size-fluid-3);
+	--text-lg: var(--font-size-fluid-4);
+	--text-xl: var(--font-size-fluid-5);
+	--text-2xl: var(--font-size-fluid-6);
+	--text-3xl: var(--font-size-fluid-7);
+	--text-4xl: var(--font-size-fluid-8);
+
+	/* Line heights for Tailwind utilities */
+	--leading-none: var(--line-height-9); /* 1 */
+	--leading-tight: var(--line-height-6); /* 1.25 */
+	--leading-normal: var(--line-height-3); /* 1.5 */
+	--leading-relaxed: var(--line-height-2); /* 1.428 */
+	/* Letter spacing for Tailwind utilities */
+	--tracking-tight: var(--letter-spacing-9);
+	--tracking-normal: var(--letter-spacing-6);
+	--tracking-wide: var(--letter-spacing-3);
+	--tracking-widest: var(--letter-spacing-1);
+}
+
+/* === BASE HTML ELEMENT STYLING === */
+/* 
+ * @layer base is used to apply our typography system to HTML elements.
+ * We use this instead of @theme inline for element styling because:
+ * 1. It follows the proper cascade order in CSS
+ * 2. It allows us to style HTML elements directly without classes
+ * 3. It provides default styling that can be overridden with utility classes
+ */
+@layer base {
+	body {
+		font-family: var(--font-sans);
+		font-size: var(--font-size-fluid-3); /* Your body text size */
+		line-height: var(--line-height-3);
+		font-weight: var(--font-weight-regular);
+	}
+
+	/* Headings */
+	h1 {
+		font-size: var(--font-size-fluid-9);
+		letter-spacing: var(--letter-spacing-9);
+		line-height: var(--heading-line-height-9);
+		font-weight: var(--font-weight-bold);
+	}
+
+	h2 {
+		font-size: var(--font-size-fluid-8);
+		letter-spacing: var(--letter-spacing-8);
+		line-height: var(--heading-line-height-8);
+		font-weight: var(--font-weight-bold);
+	}
+
+	h3 {
+		font-size: var(--font-size-fluid-7);
+		letter-spacing: var(--letter-spacing-7);
+		line-height: var(--heading-line-height-7);
+		font-weight: var(--font-weight-bold);
+	}
+
+	h4 {
+		font-size: var(--font-size-fluid-6);
+		letter-spacing: var(--letter-spacing-6);
+		line-height: var(--heading-line-height-6);
+		font-weight: var(--font-weight-medium);
+	}
+
+	h5 {
+		font-size: var(--font-size-fluid-5);
+		letter-spacing: var(--letter-spacing-5);
+		line-height: var(--heading-line-height-5);
+		font-weight: var(--font-weight-medium);
+	}
+
+	h6 {
+		font-size: var(--font-size-fluid-4);
+		letter-spacing: var(--letter-spacing-4);
+		line-height: var(--heading-line-height-4);
+		font-weight: var(--font-weight-medium);
+	}
+
+	/* Paragraphs and text */
+	p {
+		font-size: var(--font-size-fluid-3);
+		letter-spacing: var(--letter-spacing-3);
+		line-height: var(--line-height-3);
+	}
+
+	small {
+		font-size: var(--font-size-fluid-1);
+		letter-spacing: var(--letter-spacing-2);
+		line-height: var(--line-height-2);
+	}
+
+	/* Links */
+	a {
+		font-weight: var(--font-weight-medium);
+		@apply transition-colors duration-200;
+	}
+
+	a:hover {
+		color: var(--color-primary);
+	}
+
+	/* Code element */
+	code {
+		font-family: var(--code-font-family);
+		font-size: calc(1em * var(--code-font-size-adjust));
+		font-style: var(--code-font-style);
+		font-weight: var(--code-font-weight);
+		letter-spacing: var(--code-letter-spacing);
+		padding-top: var(--code-padding-top);
+		padding-bottom: var(--code-padding-bottom);
+		padding-left: var(--code-padding-left);
+		padding-right: var(--code-padding-right);
+		background-color: var(--color-muted);
+		border-radius: 3px;
+	}
+
+	/* Strong element */
+	strong {
+		font-family: var(--strong-font-family);
+		font-size: calc(1em * var(--strong-font-size-adjust));
+		font-style: var(--strong-font-style);
+		font-weight: var(--strong-font-weight);
+		letter-spacing: var(--strong-letter-spacing);
+	}
+
+	/* Emphasis element */
+	em {
+		font-family: var(--em-font-family);
+		font-size: calc(1em * var(--em-font-size-adjust));
+		font-style: var(--em-font-style);
+		font-weight: var(--em-font-weight);
+		letter-spacing: var(--em-letter-spacing);
+	}
+
+	/* Blockquote element */
+	blockquote {
+		font-family: var(--quote-font-family);
+		font-size: calc(1em * var(--quote-font-size-adjust));
+		font-style: var(--quote-font-style);
+		font-weight: var(--quote-font-weight);
+		letter-spacing: var(--quote-letter-spacing);
+		border-left: 4px solid var(--color-border);
+		padding-left: 1rem;
+		margin-left: 0;
+		margin-right: 0;
+	}
+}

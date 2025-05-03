@@ -1,3 +1,5 @@
+/// <reference types="vitest/config" />
+
 import { defineWorkersConfig } from "@cloudflare/vitest-pool-workers/config";
 import tsconfigPaths from "vite-tsconfig-paths";
 
@@ -8,6 +10,7 @@ export default defineWorkersConfig({
 		}),
 	],
 	test: {
+		globals: true,
 		deps: {
 			optimizer: {
 				ssr: {
@@ -59,9 +62,6 @@ export default defineWorkersConfig({
 					name: "unit",
 					include: ["tests/unit/**/*.test.ts"],
 					setupFiles: ["./tests/unit/setup.ts"],
-					// Optionally override inherited settings, e.g., if unit tests don't need workers:
-					// pool: undefined,
-					// poolOptions: undefined,
 				},
 			},
 			{
@@ -70,8 +70,6 @@ export default defineWorkersConfig({
 				test: {
 					name: "integration",
 					include: ["tests/integration/**/*.test.ts"],
-					// setupFiles: ['./tests/integration/setup.ts'],
-					// Inherits worker pool settings by default
 				},
 			},
 			{
@@ -81,9 +79,6 @@ export default defineWorkersConfig({
 					name: "e2e",
 					include: ["tests/e2e/**/*.test.ts"],
 					setupFiles: ["./tests/e2e/setup.ts"],
-					// Inherits worker pool settings by default - adjust if needed
-					// pool: undefined,
-					// poolOptions: undefined,
 				},
 			},
 		],

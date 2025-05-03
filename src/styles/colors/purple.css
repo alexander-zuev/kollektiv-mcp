@@ -1,0 +1,18 @@
+@import "@radix-ui/colors/purple.css";
+@import "@radix-ui/colors/purple-dark.css";
+@import "@radix-ui/colors/purple-alpha.css";
+@import "@radix-ui/colors/purple-dark-alpha.css";
+
+:root,
+.dark,
+.dark-theme {
+	--purple-contrast: white;
+	--purple-surface: #2b173580;
+	--purple-indicator: var(--purple-9);
+	--purple-track: var(--purple-9);
+	@supports (color: color(display-p3 1 1 1)) {
+		@media (color-gamut: p3) {
+			--purple-surface: color(display-p3 0.149 0.0941 0.1961 / 0.5);
+		}
+	}
+}
