@@ -12,6 +12,6 @@ export default new OAuthProvider({
 	// @ts-ignore
 	defaultHandler: app,
 	authorizeEndpoint: "/authorize",
-	tokenEndpoint: "/token",
-	clientRegistrationEndpoint: "/register",
+	tokenEndpoint: "/oauth/token",
+	clientRegistrationEndpoint: "/oauth/register",
 });

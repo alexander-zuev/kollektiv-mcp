@@ -1,6 +1,5 @@
 import { getSupabase } from "@/web/middleware/supabase";
-import type { User } from "@/web/types";
-import { AuthError, isAuthApiError } from "@supabase/supabase-js";
+import { AuthError, type User, isAuthApiError } from "@supabase/supabase-js";
 import type { Context } from "hono";
 
 const NO_VALID_SESSION_ERRORS = new Set([

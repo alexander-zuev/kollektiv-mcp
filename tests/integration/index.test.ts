@@ -1,3 +1,4 @@
+// @ts-ignore
 import { SELF } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 

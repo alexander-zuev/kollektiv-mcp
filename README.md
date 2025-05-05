@@ -19,16 +19,51 @@ out of the box - Cursor, Windsurf, Claude Desktop, etc.
 
 ## Installation
 
+The simplest way to install Kollektiv MCP (currently) is to copy & paste the following
+configuration into your editor's `mcp.json` file:
+
+```json
+{
+  "mcpServers": {
+    "kollektiv": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://mcp.thekollektiv.ai/sse"
+      ]
+    }
+  }
+}
+```
+
+The configuration is the same, with the exception of Claude Desktop which recently added direct
+support for connecting to remote MCP servers. Read client-specific sections below.
+
+### Cursor
+
+Open Cursor and go to `Cursor Settings > MCP > Add new global MCP Server`. Paste the configuration
+above and save (ctrl/cmd+s).
+![image](https://github.com/user-attachments/assets/b5f4ab86-1a84-475d-a191-4ad0e1f8e965)
+
+### Windsurf
+
+### Claude for Desktop
+
+### Cline
+
+### Others
+
 ## Troubleshooting
 
 ## Implementation details (for the 🤓):
 
-- Built on top of Cloudflare Workers which allows to implement authentication flows so that
-  users don't
+> If you are a regular user, feel free to skip this section. This is aimed mostly at devs.
 
-## Architecture
+Kollektiv MCP is one part of a larger application. It enables users to simplify RAG setup over
+personal data in a private and secure manner. It's essentially a gateway to your data and is
+tighly integrate with the backend server (FastAPI) and frontend server (React).
 
-Kollektiv MCP Server consists of several key components:
+Kollektiv MCP itself consists of three parts:
 
 - Oauth provider (`workers-oauth-provider` & `Supabase Auth`): MCP server implements the provider
   side of Oauth 2.0 to enable users to
@@ -36,16 +71,6 @@ Kollektiv MCP Server consists of several key components:
 - MCP server (`Cloudflare Agent SDK`): Exposes various tools following MCP protocol.
 - Web server (`Hono`): Wraps all non-mcp related functionality (e.g. authentication, static files,
   etc.)
-
-And is part of the Kollektiv application which consists of:
-
-- MCP server (Cloudflare worker) -> acts as the main interface for users to interact with their
-  documents
-- Backend server (FastAPI server) -> handles all processing, retrieval, and storage of users'
-  documents
-- Frontend server (React/Vite server) -> serves as the interface for users to upload their
-  documents and onboard to the
-  MCP server
 
 ## Getting Started
 
@@ -98,21 +123,6 @@ Kollektiv MCP implements several security measures:
 - OAuth 2.0 for secure authentication
 - HTTPS for all communications
 - Cookies? Signed?
-
-## Technical Details
-
-### Technology Stack Explained
-
-- MCP Server
-- Backend server
-- Frontend server
-
-### Project Structure
-
-- **/src**: Source code for the MCP server implementation
-- **/tests**: Unit, integration, and end-to-end tests
-- **/public**: Static assets served by Worker
-- **/docs**: Internal project documentation
 
 ## License
 

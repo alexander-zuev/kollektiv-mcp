@@ -1,9 +1,9 @@
 import { authCallbackHandler } from "@/web/handlers/callback";
 import * as SupabaseModule from "@/web/middleware/supabase";
 import { AppRoutes } from "@/web/routes";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Context } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-// Import the mock data directly
 import { testSession, testUser } from "../../../mocks";
 
 describe("authCallbackHandler", () => {
@@ -31,7 +31,7 @@ describe("authCallbackHandler", () => {
 			auth: {
 				exchangeCodeForSession: vi.fn(),
 			},
-		};
+		} as unknown as SupabaseClient;
 
 		// Mock the getSupabase function to return our mock client
 		vi.spyOn(SupabaseModule, "getSupabase").mockReturnValue(mockSupabaseClient);

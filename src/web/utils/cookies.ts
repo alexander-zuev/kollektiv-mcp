@@ -1,5 +1,5 @@
-import { type AuthFlowCookieData, ClientInfo, OAuthRequest } from "@/web/types";
-import { isValidClientInfo, isValidOAuthRequest } from "@/web/utils/authContext";
+import type { AuthFlowCookieData } from "@/web/types";
+import { isValidOAuthRequest } from "@/web/utils/authContext";
 import type { Context } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 
@@ -14,7 +14,7 @@ export const AUTH_FLOW_COOKIE_NAME = "authFlow";
  */
 export function persistCookie(c: Context, data: AuthFlowCookieData): void {
 	// Validate data before persisting
-	if (!isValidOAuthRequest(data.oauthReq) || !isValidClientInfo(data.clientInfo)) {
+	if (!isValidOAuthRequest(data.oauthReq)) {
 		console.error("[Cookie] Attempted to persist invalid AuthFlowCookieData:", data);
 		deleteCookie(c, AUTH_FLOW_COOKIE_NAME, { path: "/" });
 		return; // Do not persist invalid data
@@ -50,11 +50,11 @@ export function retrieveCookie(c: Context): AuthFlowCookieData | null {
 		const parsedData = JSON.parse(cookieData) as Partial<AuthFlowCookieData>; // Type assertion for better checking
 
 		// Validate the structure and content
-		if (isValidOAuthRequest(parsedData.oauthReq) && isValidClientInfo(parsedData.clientInfo)) {
+		if (isValidOAuthRequest(parsedData.oauthReq)) {
 			console.log("[Cookie] Valid auth flow data parsed from cookie.");
 			return {
 				oauthReq: parsedData.oauthReq, // No need for null check due to isValidOAuthRequest
-				clientInfo: parsedData.clientInfo,
+				clientInfo: parsedData?.clientInfo,
 			};
 		}
 		console.warn(

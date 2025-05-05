@@ -2,6 +2,7 @@ import { allTools } from "@/mcp/tools";
 import type { AuthContext } from "@/mcp/tools/types";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { McpAgent } from "agents/mcp";
+import type { ZodRawShape } from "zod";
 
 export class KollektivMCP extends McpAgent<Env, unknown, AuthContext> {
 	// Create a new MCP server instance
@@ -17,10 +18,15 @@ export class KollektivMCP extends McpAgent<Env, unknown, AuthContext> {
 		for (const tool of allTools) {
 			console.log(`Registering tool: ${tool.name}`);
 
-			this.server.tool(tool.name, tool.description, tool.paramsSchema, (params, extra) => {
-				// @ts-ignore because I couldn't find a better way to pass props
-				return tool.handler(params, extra, this.props);
-			});
+			this.server.tool(
+				tool.name,
+				tool.description,
+				tool.paramsSchema,
+				(params: ZodRawShape, extra: any) => {
+					// @ts-ignore because I couldn't find a better way to pass props
+					return tool.handler(params, extra, this.props);
+				},
+			);
 		}
 	}
 }

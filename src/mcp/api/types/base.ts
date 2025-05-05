@@ -9,7 +9,7 @@ export type QueryParams = Record<string, string | number | boolean | undefined>;
 export interface ApiRequestOptions {
 	pathParams?: PathParams;
 	queryParams?: QueryParams;
-	headers?: Record<string, string>;
+	headers?: Record<string, string | undefined>;
 	timeoutMs?: number;
 }
 

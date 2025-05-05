@@ -1,4 +1,4 @@
-import { isValidClientInfo, isValidOAuthRequest } from "@/web/utils/authContext";
+import { isValidOAuthRequest } from "@/web/utils/authContext";
 import {
 	AUTH_FLOW_COOKIE_NAME,
 	deleteAuthFlowCookie,
@@ -7,7 +7,7 @@ import {
 } from "@/web/utils/cookies";
 import type { Context } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the hono/cookie module
 vi.mock("hono/cookie", () => ({
@@ -24,7 +24,6 @@ vi.mock("@/web/utils/authContext", () => ({
 
 // Get the mocked functions
 const mockedIsValidOAuthRequest = vi.mocked(isValidOAuthRequest);
-const mockedIsValidClientInfo = vi.mocked(isValidClientInfo);
 
 describe("Cookie Utilities", () => {
 	// Create a mock context for testing
@@ -38,8 +37,19 @@ describe("Cookie Utilities", () => {
 
 	// Valid test data
 	const validAuthFlowData = {
-		oauthReq: { clientId: "test-client-id", redirectUri: "https://example.com/callback" },
-		clientInfo: { clientName: "Test Client" },
+		oauthReq: {
+			responseType: "code",
+			clientId: "test-client-id",
+			redirectUri: "https://example.com/callback",
+			scope: [],
+			state: "test-state",
+		},
+		clientInfo: {
+			clientName: "Test Client",
+			clientId: "test-client-id",
+			redirectUris: ["https://example.com/callback"],
+			tokenEndpointAuthMethod: "client_secret_basic",
+		},
 	};
 
 	// Reset mocks before each test
@@ -52,7 +62,6 @@ describe("Cookie Utilities", () => {
 			// Arrange
 			const mockContext = createMockContext();
 			mockedIsValidOAuthRequest.mockReturnValue(true);
-			mockedIsValidClientInfo.mockReturnValue(true);
 
 			// Act
 			persistCookie(mockContext, validAuthFlowData);
@@ -76,9 +85,9 @@ describe("Cookie Utilities", () => {
 			const mockContext = createMockContext();
 			const invalidData = { ...validAuthFlowData, oauthReq: null };
 			mockedIsValidOAuthRequest.mockReturnValue(false);
-			mockedIsValidClientInfo.mockReturnValue(true);
 
 			// Act
+			// @ts-ignore
 			persistCookie(mockContext, invalidData);
 
 			// Assert
@@ -86,29 +95,27 @@ describe("Cookie Utilities", () => {
 			expect(deleteCookie).toHaveBeenCalledWith(mockContext, AUTH_FLOW_COOKIE_NAME, { path: "/" });
 		});
 
-		it("should not set a cookie with invalid client info", () => {
+		it("should set a cookie with invalid client info", () => {
 			// Arrange
 			const mockContext = createMockContext();
 			const invalidData = { ...validAuthFlowData, clientInfo: null };
 			mockedIsValidOAuthRequest.mockReturnValue(true);
-			mockedIsValidClientInfo.mockReturnValue(false);
 
 			// Act
+			// @ts-ignore
 			persistCookie(mockContext, invalidData);
 
 			// Assert
-			expect(setCookie).not.toHaveBeenCalled();
-			expect(deleteCookie).toHaveBeenCalledWith(mockContext, AUTH_FLOW_COOKIE_NAME, { path: "/" });
+			expect(setCookie).toHaveBeenCalled();
 		});
 
 		it("should handle errors when setting cookie", () => {
 			// Arrange
 			const mockContext = createMockContext();
 			mockedIsValidOAuthRequest.mockReturnValue(true);
-			mockedIsValidClientInfo.mockReturnValue(true);
 
 			// Mock setCookie to throw an error
-			const setCookieMock = setCookie as vi.Mock;
+			const setCookieMock = setCookie as Mock;
 			setCookieMock.mockImplementationOnce(() => {
 				throw new Error("Cookie error");
 			});
@@ -134,7 +141,7 @@ describe("Cookie Utilities", () => {
 		it("should return null when no cookie data is present", () => {
 			// Arrange
 			const mockContext = createMockContext();
-			(getCookie as vi.Mock).mockReturnValue(null);
+			(getCookie as Mock).mockReturnValue(null);
 
 			// Act
 			const result = retrieveCookie(mockContext);
@@ -147,9 +154,8 @@ describe("Cookie Utilities", () => {
 		it("should return valid data from cookie", () => {
 			// Arrange
 			const mockContext = createMockContext();
-			(getCookie as vi.Mock).mockReturnValue(JSON.stringify(validAuthFlowData));
+			(getCookie as Mock).mockReturnValue(JSON.stringify(validAuthFlowData));
 			mockedIsValidOAuthRequest.mockReturnValue(true);
-			mockedIsValidClientInfo.mockReturnValue(true);
 
 			// Act
 			const result = retrieveCookie(mockContext);
@@ -162,9 +168,8 @@ describe("Cookie Utilities", () => {
 			// Arrange
 			const mockContext = createMockContext();
 			const invalidData = { oauthReq: null, clientInfo: null };
-			(getCookie as vi.Mock).mockReturnValue(JSON.stringify(invalidData));
+			(getCookie as Mock).mockReturnValue(JSON.stringify(invalidData));
 			mockedIsValidOAuthRequest.mockReturnValue(false);
-			mockedIsValidClientInfo.mockReturnValue(false);
 
 			// Act
 			const result = retrieveCookie(mockContext);
@@ -177,7 +182,7 @@ describe("Cookie Utilities", () => {
 		it("should handle JSON parsing errors", () => {
 			// Arrange
 			const mockContext = createMockContext();
-			(getCookie as vi.Mock).mockReturnValue("invalid-json");
+			(getCookie as Mock).mockReturnValue("invalid-json");
 
 			// Spy on console.error
 			const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});

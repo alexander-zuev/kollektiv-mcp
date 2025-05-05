@@ -1,7 +1,7 @@
-import type { ClientInfo, OAuthRequest } from "@/web/types";
 import { persistCookie, retrieveCookie } from "@/web/utils/cookies";
+import type { AuthRequest, ClientInfo } from "@cloudflare/workers-oauth-provider";
 import type { Context } from "hono";
-import { deleteCookie, getCookie } from "hono/cookie";
+import { deleteCookie } from "hono/cookie";
 
 // Custom error for cleaner handling in the route
 export class AuthFlowError extends Error {
@@ -12,19 +12,13 @@ export class AuthFlowError extends Error {
 }
 
 /** Basic validation for OAuthRequest */
-export function isValidOAuthRequest(oauthReq: any): oauthReq is OAuthRequest {
+export function isValidOAuthRequest(oauthReq: any): oauthReq is AuthRequest {
 	// Add more checks as needed (e.g., redirectUri, responseType)
 	return !!(oauthReq && typeof oauthReq.clientId === "string" && oauthReq.clientId.length > 0);
 }
 
-/** Basic validation for ClientInfo */
-export function isValidClientInfo(clientInfo: any): clientInfo is ClientInfo {
-	// Add more checks based on your ClientInfo structure
-	return !!(clientInfo && typeof clientInfo.clientName === "string");
-}
-
 export type authContext = {
-	oauthReq: OAuthRequest;
+	oauthReq: AuthRequest;
 	clientInfo: ClientInfo;
 };
 
@@ -39,14 +33,14 @@ export type authContext = {
  * @throws {AuthFlowError} If a valid context cannot be established from params or cookie.
  */
 export async function getValidAuthContext(c: Context): Promise<{
-	oauthReq: OAuthRequest;
-	clientInfo: ClientInfo;
+	oauthReq: AuthRequest;
+	clientInfo?: ClientInfo;
 }> {
 	console.log("[AuthContext] Attempting to establish valid auth context...");
 
 	// 1. Try parsing from request parameters
-	let oauthReq: OAuthRequest | null = null;
-	let clientInfo: ClientInfo | null = null;
+	let oauthReq: AuthRequest | undefined;
+	let clientInfo: ClientInfo | undefined;
 
 	try {
 		// These provider functions might throw errors, or return null/invalid shapes
@@ -54,16 +48,21 @@ export async function getValidAuthContext(c: Context): Promise<{
 		// Only lookup client if clientId seems present
 		console.log("[AuthContext] Calling lookupClient with clientId:", oauthReq?.clientId);
 		if (oauthReq?.clientId) {
-			clientInfo = await c.env.OAUTH_PROVIDER.lookupClient(oauthReq.clientId);
+			try {
+				clientInfo = await c.env.OAUTH_PROVIDER.lookupClient(oauthReq.clientId);
+			} catch (lookupError) {
+				console.warn(`[AuthContext] Failed to lookup client ${oauthReq.clientId}:`, lookupError);
+				clientInfo = undefined; // Explicitly set to null on lookup failure
+			}
 		}
-		console.log("[AuthContext] Data parsed from params:", { oauthReq, clientInfo });
+		console.debug("[AuthContext] OAuth request lookup result:", oauthReq || "No AuthReq info");
+		console.debug("[AuthContext] Client lookup result:", clientInfo || "No client info");
 	} catch (error) {
 		console.warn("[AuthContext] Error parsing request/client from params:", error);
-		// Allow fallback to cookie
 	}
 
 	// 2. Validate data from parameters
-	if (isValidOAuthRequest(oauthReq) && isValidClientInfo(clientInfo)) {
+	if (isValidOAuthRequest(oauthReq)) {
 		console.log("[AuthContext] Valid context established from parameters.");
 		// Persist this valid context to the cookie for potential subsequent steps (like post-login)
 		persistCookie(c, { oauthReq, clientInfo });

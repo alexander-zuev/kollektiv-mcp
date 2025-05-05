@@ -1,9 +1,4 @@
-import {
-	AuthFlowError,
-	getValidAuthContext,
-	isValidClientInfo,
-	isValidOAuthRequest,
-} from "@/web/utils/authContext";
+import { AuthFlowError, getValidAuthContext, isValidOAuthRequest } from "@/web/utils/authContext";
 import { persistCookie, retrieveCookie } from "@/web/utils/cookies";
 import type { Context } from "hono";
 import { deleteCookie } from "hono/cookie";
@@ -59,28 +54,6 @@ describe("Auth Context Utilities", () => {
 		});
 	});
 
-	describe("isValidClientInfo", () => {
-		it("should return true for valid client info", () => {
-			const validClientInfo = { clientName: "Test Client" };
-			expect(isValidClientInfo(validClientInfo)).toBe(true);
-		});
-
-		it("should return false for null or undefined", () => {
-			expect(isValidClientInfo(null)).toBe(false);
-			expect(isValidClientInfo(undefined)).toBe(false);
-		});
-
-		it("should return false for client info without clientName", () => {
-			const invalidClientInfo = { someOtherProp: "value" };
-			expect(isValidClientInfo(invalidClientInfo)).toBe(false);
-		});
-
-		it("should return false for client info with non-string clientName", () => {
-			const invalidClientInfo = { clientName: 123 };
-			expect(isValidClientInfo(invalidClientInfo)).toBe(false);
-		});
-	});
-
 	describe("getValidAuthContext", () => {
 		// Create a mock context for testing
 		const createMockContext = (): Context => {
@@ -128,31 +101,13 @@ describe("Auth Context Utilities", () => {
 			);
 		});
 
-		it("should fall back to cookie when request parameters are invalid", async () => {
+		// TODO: this previously asserted that we fallback to cookie if both params are invalid
+		//  - this is no longer the case
+		it("should fall back to cookie when AuthRequest is invalid. ClientInfo may be empty", async () => {
 			// Arrange
 			const mockContext = createMockContext();
 			mockContext.env.OAUTH_PROVIDER.parseAuthRequest.mockResolvedValue({ clientId: "" }); // Invalid OAuth request
 			mockContext.env.OAUTH_PROVIDER.lookupClient.mockResolvedValue(validClientInfo);
-
-			const cookieData = { oauthReq: validOAuthReq, clientInfo: validClientInfo };
-			(retrieveCookie as Mock).mockReturnValue(cookieData);
-
-			// Act
-			const result = await getValidAuthContext(mockContext);
-
-			// Assert
-			expect(result).toEqual(cookieData);
-			expect(persistCookie).not.toHaveBeenCalled();
-			expect(retrieveCookie).toHaveBeenCalledWith(mockContext);
-		});
-
-		it("should fall back to cookie when lookupClient fails", async () => {
-			// Arrange
-			const mockContext = createMockContext();
-			mockContext.env.OAUTH_PROVIDER.parseAuthRequest.mockResolvedValue(validOAuthReq);
-			mockContext.env.OAUTH_PROVIDER.lookupClient.mockRejectedValue(
-				new Error("Client lookup failed"),
-			);
 
 			const cookieData = { oauthReq: validOAuthReq, clientInfo: validClientInfo };
 			(retrieveCookie as Mock).mockReturnValue(cookieData);
@@ -191,6 +146,66 @@ describe("Auth Context Utilities", () => {
 			// Assert
 			expect(result).toEqual(cookieData);
 			expect(persistCookie).not.toHaveBeenCalled();
+		});
+
+		it("resolves with {oauthReq, clientInfo: undefined} and DOES NOT consult cookie when lookupClient fails", async () => {
+			// Arrange
+			const mockContext = createMockContext();
+			mockContext.env.OAUTH_PROVIDER.parseAuthRequest.mockResolvedValue(validOAuthReq);
+			mockContext.env.OAUTH_PROVIDER.lookupClient.mockRejectedValue(
+				new Error("Client lookup failed"),
+			);
+
+			// ─ Act
+			const result = await getValidAuthContext(mockContext);
+
+			// ─ Assert
+			expect(result).toEqual({ oauthReq: validOAuthReq, clientInfo: undefined });
+
+			// retrieveCookie must never be called
+			expect(retrieveCookie).not.toHaveBeenCalled();
+
+			// The function must write a cookie that contains ONLY oauthReq
+			expect(persistCookie).toHaveBeenCalledTimes(1);
+			expect(persistCookie).toHaveBeenCalledWith(mockContext, {
+				oauthReq: validOAuthReq,
+				clientInfo: undefined,
+			});
+		});
+
+		describe("cookie that holds only oauthReq", () => {
+			const cookieOnlyOAuthReq = { oauthReq: validOAuthReq, clientInfo: undefined };
+
+			it("accepts an existing cookie with only oauthReq (no persistence)", async () => {
+				// Arrange
+				const mockContext = createMockContext();
+				mockContext.env.OAUTH_PROVIDER.parseAuthRequest.mockResolvedValue(null); // invalid params
+				(retrieveCookie as Mock).mockReturnValue(cookieOnlyOAuthReq);
+
+				// ─ Act
+				const result = await getValidAuthContext(mockContext);
+
+				// ─ Assert
+				expect(result).toEqual(cookieOnlyOAuthReq);
+				expect(persistCookie).not.toHaveBeenCalled();
+			});
+
+			it("persists a cookie with only oauthReq when lookupClient fails", async () => {
+				// Arrange
+				const mockContext = createMockContext();
+				mockContext.env.OAUTH_PROVIDER.parseAuthRequest.mockResolvedValue(validOAuthReq);
+				mockContext.env.OAUTH_PROVIDER.lookupClient.mockRejectedValue(
+					new Error("Client lookup failed"),
+				);
+				(retrieveCookie as Mock).mockReturnValue(null); // nothing in the browser yet
+
+				// ─ Act
+				const result = await getValidAuthContext(mockContext);
+
+				// ─ Assert
+				expect(result).toEqual(cookieOnlyOAuthReq);
+				expect(persistCookie).toHaveBeenCalledWith(mockContext, cookieOnlyOAuthReq);
+			});
 		});
 	});
 });

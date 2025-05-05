@@ -1,5 +1,5 @@
 import { AppRoutes } from "@/web/routes";
-import type { ClientInfo } from "@/web/types";
+import type { ClientInfo } from "@cloudflare/workers-oauth-provider";
 import { html } from "hono/html";
 
 /** Authorised login providers */
@@ -22,14 +22,14 @@ const OAUTH_PROVIDERS: { id: LoginProvider; label: string; icon: string }[] = [
 	{ id: LoginProvider.GOOGLE, label: "Login with Google", icon: "ph-google-logo" },
 ];
 
-export const renderLoginScreen = (clientInfo: ClientInfo) => {
+export const renderLoginScreen = (clientInfo?: ClientInfo) => {
 	/* Helper for OAuth buttons */
 	const renderOAuthButton = ({ id, label, icon }: (typeof OAUTH_PROVIDERS)[number]) => html`
         <form method="POST" action="${AppRoutes.LOGIN}" onsubmit="
         this.querySelectorAll('button[type=submit]')
             .forEach(btn => {
               btn.disabled = true;
-              btn.classList.add('bg-muted/90' 'cursor-not-allowed' 'hover:text-muted-foreground/90');
+              btn.classList.add('bg-muted/90', 'cursor-not-allowed' ,'hover:text-muted-foreground/90');
             });
       ">
             <input type="hidden" name="provider" value="${id}"/>
@@ -47,12 +47,13 @@ export const renderLoginScreen = (clientInfo: ClientInfo) => {
             >
                 <i class="ph ph-sign-in text-5xl text-primary mt-4"></i>
                 <h1 class="text-2xl text-center text-foreground">
-                    Login to authorize <strong>${clientInfo.clientName}</strong>
+                    Login to authorize <strong>${clientInfo?.clientName}</strong>
                 </h1>
 
                 <p class="text-base text-center text-foreground/80 mb-2">
                     You’re connecting your Kollektiv account so that
-                    <strong>${clientInfo.clientName}</strong> can securely use Kollektiv MCP on your
+                    <strong>${clientInfo?.clientName || "your IDE/client"}</strong> can securely use
+                    Kollektiv MCP on your
                     behalf.
                     Choose any sign-in method below.
                 </p>
@@ -74,7 +75,7 @@ export const renderLoginScreen = (clientInfo: ClientInfo) => {
         this.querySelectorAll('button[type=submit]')
             .forEach(btn => {
               btn.disabled = true;
-              btn.classList.add('bg-muted/90' 'cursor-not-allowed' 'hover:text-muted-foreground/90');
+              btn.classList.add('bg-muted/90', 'cursor-not-allowed', 'hover:text-muted-foreground/90');
 
             });
       " class="w-full space-y-4">

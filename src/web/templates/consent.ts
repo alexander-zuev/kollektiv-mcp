@@ -1,13 +1,14 @@
 import { AppRoutes } from "@/web/routes";
-import type { ClientInfo, OAuthRequest, User } from "@/web/types";
+import type { AuthRequest, ClientInfo } from "@cloudflare/workers-oauth-provider";
+import type { User } from "@supabase/supabase-js";
 import { html } from "hono/html";
 
 /**
  * Props needed for rendering the consent screen template.
  */
 export type ConsentScreenProps = {
-	oauthReq: OAuthRequest; // Use the central type
-	clientInfo: ClientInfo; // Use the central type
+	oauthReq: AuthRequest; // Use the central type
+	clientInfo?: ClientInfo; // Use the central type
 	user: User; // Use the Supabase User type
 };
 
@@ -21,8 +22,8 @@ export const renderConsentScreen = ({ oauthReq, clientInfo, user }: ConsentScree
                 <h1 class="text-2xl text-center text-foreground">Authorization Request</h1>
 
                 <p class="text-center text-base text-foreground mb-2">
-                    Hi, ${userIdentifier}! You are authorizing
-                    <strong>${clientInfo.clientName}</strong> to
+                    Hi, ${userIdentifier}! Authorize
+                    <strong>${clientInfo?.clientName}</strong> to
                     connect to <strong>Kollektiv MCP</strong>.
                 </p>
 
