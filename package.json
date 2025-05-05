@@ -25,7 +25,8 @@
 		"test:integration": "vitest run tests/integration",
 		"test:e2e": "vitest run tests/e2e",
 		"storybook": "storybook dev -p 6006",
-		"build-storybook": "storybook build"
+		"build-storybook": "storybook build",
+		"logs": "wrangler tail --env prod --sampling-rate=none --format=pretty"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
