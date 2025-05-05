@@ -1,11 +1,11 @@
 import { beforeEach, vi } from "vitest";
 import { mockSignInWithOAuthSuccess, testSession, testUser } from "../mocks";
-import { mockContext } from "../mocks/hono-mocks";
+import { createMockContext } from "../mocks/hono-mocks";
 
 // Extend Vitest's TestContext so TypeScript knows there is a `c`
 declare module "vitest" {
 	interface TestContext {
-		c: ReturnType<typeof mockContext>;
+		c: ReturnType<typeof createMockContext>;
 	}
 }
 
@@ -45,7 +45,7 @@ vi.mock("@/web/middleware/supabase", () => {
 
 beforeEach(async (ctx) => {
 	// Prepare fresh hono context before ach test
-	ctx.c = mockContext();
+	ctx.c = createMockContext();
 
 	// Retrieve the nested mocks if you exported them
 	const supabaseModule = await import("@/web/middleware/supabase");

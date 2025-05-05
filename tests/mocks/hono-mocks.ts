@@ -9,7 +9,7 @@ import { vi } from "vitest";
  *  – A tiny `req` shim exposes `.parseBody()` and `.url`.
  *  – Everything is override-able via the `overrides` argument.
  */
-export function mockContext(overrides: Partial<Context> = {}): Context {
+export function createMockContext(overrides: Partial<Context> = {}): Context {
 	/* ---------- request shim ---------- */
 	const req = {
 		parseBody: vi.fn().mockResolvedValue({}),
@@ -46,7 +46,11 @@ export function mockContext(overrides: Partial<Context> = {}): Context {
 	/* ---------- context skeleton ---------- */
 	const contextImpl: Partial<Context> = {
 		req,
-		env: { SITE_URL: "https://test.thekollektiv.ai", ...(overrides.env as any) },
+		env: {
+			SITE_URL: "https://test.thekollektiv.ai",
+			COOKIE_SIGNING_SECRET: "super-secret-key",
+			...(overrides.env as any),
+		},
 		text,
 		html,
 		json,

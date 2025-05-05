@@ -80,7 +80,7 @@ export const postAuthorizeHandler = async (c: Context) => {
 		return c.text("Unauthorized", 401);
 	}
 
-	const cookieData = retrieveCookie(c);
+	const cookieData = await retrieveCookie(c);
 
 	// Validate Cookie Data and Extract OAuth Request
 	if (!cookieData || !cookieData.oauthReq) {

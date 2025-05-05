@@ -49,6 +49,7 @@ export async function getValidAuthContext(c: Context): Promise<{
 		console.log("[AuthContext] Calling lookupClient with clientId:", oauthReq?.clientId);
 		if (oauthReq?.clientId) {
 			try {
+				console.debug("[AuthContext] Attempting to lookup client info with AuthReq:", oauthReq);
 				clientInfo = await c.env.OAUTH_PROVIDER.lookupClient(oauthReq.clientId);
 			} catch (lookupError) {
 				console.warn(`[AuthContext] Failed to lookup client ${oauthReq.clientId}:`, lookupError);
@@ -65,7 +66,7 @@ export async function getValidAuthContext(c: Context): Promise<{
 	if (isValidOAuthRequest(oauthReq)) {
 		console.log("[AuthContext] Valid context established from parameters.");
 		// Persist this valid context to the cookie for potential subsequent steps (like post-login)
-		persistCookie(c, { oauthReq, clientInfo });
+		await persistCookie(c, { oauthReq, clientInfo });
 		return { oauthReq, clientInfo };
 	}
 
@@ -73,7 +74,7 @@ export async function getValidAuthContext(c: Context): Promise<{
 	console.log(
 		"[AuthContext] Invalid or incomplete context from parameters, attempting cookie fallback.",
 	);
-	const cookie = retrieveCookie(c);
+	const cookie = await retrieveCookie(c);
 
 	if (cookie) {
 		console.log("[AuthContext] Valid context established from cookie.");
