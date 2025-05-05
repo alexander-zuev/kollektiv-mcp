@@ -4,7 +4,7 @@
 		"enabled": true
 	},
 	"files": {
-		"ignore": ["worker-configuration.d.ts", "dist/**", "node_modules/**"]
+		"ignore": ["worker-configuration.d.ts", "dist/**", "node_modules/**", "public/**"]
 	},
 	"vcs": {
 		"enabled": true,

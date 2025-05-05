@@ -1,6 +1,6 @@
 import { getSupabase } from "@/web/middleware/supabase";
 import { AppRoutes } from "@/web/routes";
-import { LoginProvider } from "@/web/templates";
+import { LoginProvider, renderMagicLinkSentScreen } from "@/web/templates";
 import { base } from "@/web/templates/base";
 import type { Context } from "hono";
 
@@ -65,7 +65,9 @@ export const loginHandler = async (c: Context) => {
 	// If we have an email, assume magic link login
 	if (formData.provider === LoginProvider.MAGIC_LINK) {
 		const email = formData.email.toString();
-		console.log(`[POST /login] Processing Magic Link login for email: ${email}`);
+		console.log(
+			`[POST /login] Processing Magic Link login for email ${email} and setting redirect URL to ${redirectUrl}`,
+		);
 
 		// Use signInWithOtp for magic link login
 		// This sends an email with a link that the user can click to authenticate
@@ -83,9 +85,6 @@ export const loginHandler = async (c: Context) => {
 		}
 
 		// Import the magic link sent screen template
-		const { renderMagicLinkSentScreen } = await import("@/web/templates/magic-link");
-
-		// Render the magic link sent screen
 		const content = await renderMagicLinkSentScreen({ email });
 		return c.html(base(content, "Check your email"));
 	}

@@ -1,13 +1,14 @@
 import { AppRoutes } from "@/web/routes";
-import type { ClientInfo, OAuthRequest, User } from "@/web/types";
+import type { AuthRequest, ClientInfo } from "@cloudflare/workers-oauth-provider";
+import type { User } from "@supabase/supabase-js";
 import { html } from "hono/html";
 
 /**
  * Props needed for rendering the consent screen template.
  */
 export type ConsentScreenProps = {
-	oauthReq: OAuthRequest; // Use the central type
-	clientInfo: ClientInfo; // Use the central type
+	oauthReq: AuthRequest; // Use the central type
+	clientInfo?: ClientInfo; // Use the central type
 	user: User; // Use the Supabase User type
 };
 
@@ -21,18 +22,18 @@ export const renderConsentScreen = ({ oauthReq, clientInfo, user }: ConsentScree
                 <h1 class="text-2xl text-center text-foreground">Authorization Request</h1>
 
                 <p class="text-center text-base text-foreground mb-2">
-                    Hi, ${userIdentifier}! You are authorizing
-                    <strong>${clientInfo.clientName}</strong> to
-                    connect to <strong>Kollektiv MCP</strong>.
+                    Authorize <strong>${clientInfo?.clientName}</strong> to
+                    connect to <strong>Kollektiv</strong> account.
                 </p>
 
                 <div class="w-full text-left space-y-3 my-2">
                     <p class="text-sm font-medium text-foreground">
-                        Kollektiv MCP will have access to:
+                        <strong>${clientInfo?.clientName}</strong> requests read-only access to your
+                        Kollektiv account:
                     </p>
                     <div class="flex items-start gap-2 text-sm text-foreground/80">
                         <i class="ph ph-check-circle text-success text-lg mt-0.5"></i>
-                        <span>Query the documents you uploaded to Kollektiv app</span>
+                        <span>Search and read the documents you have uploaded</span>
                     </div>
                 </div>
 
@@ -68,7 +69,7 @@ export const renderConsentScreen = ({ oauthReq, clientInfo, user }: ConsentScree
 
                 <div class="flex flex-row items-center gap-2 mt-4 text-sm text-muted-foreground border-t border-border pt-4 w-full justify-start">
                     <i class="ph ph-shield text-success"></i>
-                    <span>Your data is secure and will only be used for the specified purposes.</span>
+                    <span>Access is limited, revocable, and never includes write permissions.</span>
                 </div>
             </div>
         </div>

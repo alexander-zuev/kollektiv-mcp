@@ -3,17 +3,18 @@ import { base } from "@/web/templates/base";
 import { renderConsentScreen } from "@/web/templates/consent";
 import { renderErrorScreen } from "@/web/templates/error";
 import { renderLoginScreen } from "@/web/templates/login";
-import type { ClientInfo, OAuthRequest, User } from "@/web/types";
 import { AuthFlowError, getValidAuthContext } from "@/web/utils/authContext";
 import { AUTH_FLOW_COOKIE_NAME, retrieveCookie } from "@/web/utils/cookies";
 import { FormValidationError, parseFormData } from "@/web/utils/form";
 import { getCurrentUser } from "@/web/utils/user";
+import type { AuthRequest, ClientInfo } from "@cloudflare/workers-oauth-provider";
+import type { User } from "@supabase/supabase-js";
 import type { Context } from "hono";
 import { deleteCookie } from "hono/cookie";
 
 export const getAuthorizeHandler = async (c: Context) => {
-	let oauthReq: OAuthRequest | null = null;
-	let clientInfo: ClientInfo | null = null;
+	let oauthReq: AuthRequest | undefined = undefined;
+	let clientInfo: ClientInfo | undefined = undefined;
 
 	// 1. Get oauth req
 	console.log("[GET /authorize] Handling request.");
@@ -29,7 +30,7 @@ export const getAuthorizeHandler = async (c: Context) => {
 			// Specific, expected error from our logic (e.g., missing params and cookie)
 			// Return 401
 			const content = await renderErrorScreen({
-				title: "Invalid Authorisation Request",
+				title: "Invalid Authorization Request",
 				message: error.message,
 				hint:
 					"Please ensure you are logging in from an MCP client (Cursor / Windsurf /" +
@@ -58,7 +59,7 @@ export const getAuthorizeHandler = async (c: Context) => {
 		console.log("[GET /authorize] No session found. Rendering login screen.");
 		// Pass the validated clientInfo
 		const content = await renderLoginScreen(clientInfo); // Pass the whole object
-		const pageTitle = `Log in to authorize ${clientInfo.clientName || "Application"}`;
+		const pageTitle = `Log in to authorize ${clientInfo?.clientName || "Application"}`;
 		return c.html(base(content, pageTitle));
 	}
 
@@ -66,7 +67,7 @@ export const getAuthorizeHandler = async (c: Context) => {
 	console.log(`[GET /authorize] Session found for user ${user.id}. Rendering consent screen.`);
 	// Pass validated objects
 	const content = await renderConsentScreen({ oauthReq, clientInfo, user });
-	const pageTitle = `Authorize ${clientInfo.clientName || "Application"}`;
+	const pageTitle = `Authorize ${clientInfo?.clientName || "Application"}`;
 	return c.html(base(content, pageTitle));
 };
 
@@ -79,7 +80,7 @@ export const postAuthorizeHandler = async (c: Context) => {
 		return c.text("Unauthorized", 401);
 	}
 
-	const cookieData = retrieveCookie(c);
+	const cookieData = await retrieveCookie(c);
 
 	// Validate Cookie Data and Extract OAuth Request
 	if (!cookieData || !cookieData.oauthReq) {
@@ -90,7 +91,7 @@ export const postAuthorizeHandler = async (c: Context) => {
 		return c.text("Bad Request: Missing or invalid authorization context.", 400);
 	}
 	// Store the validated OAuth Request (ignore clientInfo if not needed)
-	const oauthReq: OAuthRequest = cookieData.oauthReq;
+	const oauthReq: AuthRequest = cookieData.oauthReq;
 
 	// Parse consent form
 	let validatedFormData: ConsentFormData; // Use the type inferred from the schema

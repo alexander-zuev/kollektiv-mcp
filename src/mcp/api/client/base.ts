@@ -176,7 +176,7 @@ export function createApiClient(options: ApiClientConfig) {
 		const url = buildApiUrl(path, requestOptions.pathParams, requestOptions.queryParams);
 
 		// Merge default headers with request headers
-		const headers: Record<string, string> = {
+		const headers: Record<string, string> | undefined = {
 			...defaultHeaders,
 			...(requestOptions.headers || {}),
 		};

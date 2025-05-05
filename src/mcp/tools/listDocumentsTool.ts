@@ -15,7 +15,7 @@ const listDocumentsToolSchema = {};
 // Define handler function
 
 const listDocumentsToolHandler: ToolCallback<typeof listDocumentsToolSchema> = async (
-	_params,
+	_params: any,
 	_extra: any,
 	authContext: AuthContext,
 ) => {
