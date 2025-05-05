@@ -3,77 +3,81 @@
  * https://developers.cloudflare.com/workers/wrangler/configuration/
  */
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "kollektiv-mcp",
-	"main": "src/index.ts",
-	"compatibility_date": "2025-03-10",
-	"compatibility_flags": ["nodejs_compat"],
-	"migrations": [
-		{
-			"new_sqlite_classes": ["KollektivMCP"],
-			"tag": "v1"
-		}
-	],
-	"vars": {
-		"API_BASE_URL": "http://localhost:8080",
-		"SITE_URL": "http://localhost:8787"
-	},
-	"durable_objects": {
-		"bindings": [
-			{
-				"name": "MCP_OBJECT",
-				"class_name": "KollektivMCP"
-			}
-		]
-	},
-	"kv_namespaces": [
-		{
-			"binding": "OAUTH_KV",
-			"id": "a8ecb6db9bc64a48b328d4d3a3fe17d1"
-		}
-	],
-	"observability": {
-		"enabled": true
-	},
-	"assets": {
-		"directory": "./public/",
-		"binding": "ASSETS"
-	},
-	"env": {
-		"prod": {
-			"name": "kollektiv-mcp-prod",
-			"vars": {
-				"API_BASE_URL": "https://api.thekollektiv.ai",
-				"SITE_URL": "https://mcp.thekollektiv.ai"
-			},
-			"routes": [
-				{
-					"pattern": "mcp.thekollektiv.ai",
-					"custom_domain": true
-				}
-			],
-			"durable_objects": {
-				"bindings": [
-					{
-						"name": "MCP_OBJECT",
-						"class_name": "KollektivMCP"
-					}
-				]
-			},
-			"kv_namespaces": [
-				{
-					"binding": "OAUTH_KV",
-					"id": "843b3b3108ea45f6be7cc9e4d68ee948"
-				}
-			],
-			"tail_consumers": [
-				{
-					"service": "kollektiv-mcp-sentry-tail"
-				}
-			],
-			"upload_source_maps": true
-		}
-	}
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "kollektiv-mcp",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-03-10",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "migrations": [
+    {
+      "new_sqlite_classes": [
+        "KollektivMCP"
+      ],
+      "tag": "v1"
+    }
+  ],
+  "vars": {
+    "API_BASE_URL": "http://localhost:8080",
+    "SITE_URL": "http://localhost:8787"
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "MCP_OBJECT",
+        "class_name": "KollektivMCP"
+      }
+    ]
+  },
+  "kv_namespaces": [
+    {
+      "binding": "OAUTH_KV",
+      "id": "a8ecb6db9bc64a48b328d4d3a3fe17d1"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "./public/",
+    "binding": "ASSETS"
+  },
+  "env": {
+    "prod": {
+      "name": "kollektiv-mcp-prod",
+      "vars": {
+        "API_BASE_URL": "https://api.thekollektiv.ai",
+        "SITE_URL": "https://mcp.thekollektiv.ai"
+      },
+      "routes": [
+        {
+          "pattern": "mcp.thekollektiv.ai",
+          "custom_domain": true
+        }
+      ],
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "MCP_OBJECT",
+            "class_name": "KollektivMCP"
+          }
+        ]
+      },
+      "kv_namespaces": [
+        {
+          "binding": "OAUTH_KV",
+          "id": "843b3b3108ea45f6be7cc9e4d68ee948"
+        }
+      ],
+      "tail_consumers": [
+        {
+          "service": "kollektiv-mcp-sentry-tail"
+        }
+      ],
+      "upload_source_maps": true
+    }
+  }
 }
 /**
  * Smart Placement
