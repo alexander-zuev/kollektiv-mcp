@@ -56,7 +56,6 @@ export async function getValidAuthContext(c: Context): Promise<{
 				clientInfo = undefined; // Explicitly set to null on lookup failure
 			}
 		}
-		console.debug("[AuthContext] OAuth request lookup result:", oauthReq || "No AuthReq info");
 		console.debug("[AuthContext] Client lookup result:", clientInfo || "No client info");
 	} catch (error) {
 		console.warn("[AuthContext] Error parsing request/client from params:", error);

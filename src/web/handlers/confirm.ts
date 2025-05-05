@@ -1,5 +1,6 @@
 import { getSupabase } from "@/web/middleware/supabase";
 import { AppRoutes } from "@/web/routes";
+import { base, renderErrorScreen } from "@/web/templates";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import type { Context } from "hono";
 
@@ -27,7 +28,13 @@ export const authConfirmHandler = async (c: Context) => {
 
 	if (error || !data.session) {
 		console.error("[/auth/confirm] verifyOtp error:", error?.message);
-		return c.text(`Error verifying link: ${error?.message ?? "unknown"}`, 400);
+		const content = await renderErrorScreen({
+			title: "OTP Token Expired or Invalid",
+			message: "OTP token is either expired or invalid. Please try again.",
+			hint: "Try logging in again. If the problem persists, please contact support.",
+			details: error instanceof Error ? { stack: error.stack, name: error.name } : undefined,
+		});
+		return c.html(base(content, "OTP Expired or Invalid"), 401);
 	}
 
 	await supabase.auth.setSession({
