@@ -9,6 +9,7 @@
 		"deploy": "npx @tailwindcss/cli -i ./src/styles.css -o ./public/styles.css --minify && wrangler types && wrangler deploy --env prod",
 		"deploy:dry": "wrangler deploy --dry-run --outdir dist",
 		"dev": "wrangler types && wrangler dev",
+		"dev:remote": "wrangler types && wrangler dev --remote --env preview",
 		"format": "biome format --write",
 		"lint:fix": "biome lint --write",
 		"check": "biome check",

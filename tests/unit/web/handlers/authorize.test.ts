@@ -1,5 +1,6 @@
 import { getAuthorizeHandler } from "@/web/handlers/authorize";
 import { renderConsentScreen } from "@/web/templates/consent";
+import { renderErrorPage } from "@/web/templates/error";
 import { renderLoginScreen } from "@/web/templates/login";
 import { AuthFlowError, getValidAuthContext } from "@/web/utils/authContext";
 import { getCurrentUser } from "@/web/utils/user";
@@ -7,12 +8,13 @@ import type { Context } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { testUser } from "../../../mocks";
 
-// Mock dependencies
+/* ─────────────────────────  Mocks  ────────────────────────── */
+
 vi.mock("@/web/utils/authContext", () => ({
 	AuthFlowError: vi.fn().mockImplementation((message) => {
-		const error = new Error(message);
-		error.name = "AuthFlowError";
-		return error;
+		const err = new Error(message);
+		err.name = "AuthFlowError";
+		return err;
 	}),
 	getValidAuthContext: vi.fn(),
 }));
@@ -21,15 +23,6 @@ vi.mock("@/web/utils/user", () => ({
 	getCurrentUser: vi.fn(),
 }));
 
-vi.mock("@/web/utils/cookies", () => {
-	return {
-		retrieveCookie: vi.fn(),
-
-		AUTH_FLOW_COOKIE_NAME: "authFlow",
-	};
-});
-
-// Mock the hono/cookie module
 vi.mock("hono/cookie", () => ({
 	deleteCookie: vi.fn(),
 	getCookie: vi.fn(),
@@ -48,146 +41,130 @@ vi.mock("@/web/templates/base", () => ({
 	base: vi.fn((content) => `<base>${content}</base>`),
 }));
 
+vi.mock("@/web/templates/error", () => ({
+	renderErrorPage: vi.fn().mockResolvedValue("<error-page-html>"),
+}));
+
 vi.mock("@/web/utils/form", () => ({
 	FormValidationError: vi.fn().mockImplementation((issues) => {
-		const error = new Error(`Form validation failed: ${issues[0]?.message || "Invalid input"}`);
-		error.name = "FormValidationError";
-		error.issues = issues;
-		return error;
+		const err = new Error(`Form validation failed: ${issues[0]?.message || "Invalid input"}`);
+		err.name = "FormValidationError";
+		err.issues = issues;
+		return err;
 	}),
 	parseFormData: vi.fn(),
 }));
 
+/* ────────────────────────  Helpers  ───────────────────────── */
+
+const createMockContext = (): Context => {
+	const mockHtml = vi.fn();
+	const mockText = vi.fn();
+	const mockRedirect = vi.fn();
+
+	return {
+		req: {
+			raw: new Request("https://example.com"),
+			url: "https://example.com",
+			query: () => undefined,
+		},
+		html: mockHtml,
+		text: mockText,
+		redirect: mockRedirect,
+		env: {
+			OAUTH_PROVIDER: {
+				parseAuthRequest: vi.fn(),
+				lookupClient: vi.fn(),
+				completeAuthorization: vi.fn(),
+			},
+		},
+	} as unknown as Context;
+};
+
+/* ─────────────────────────  Fixtures  ──────────────────────── */
+
+const validOAuthReq = {
+	clientId: "test-client-id",
+	redirectUri: "https://example.com/callback",
+	state: "test-state",
+	scope: ["profile", "email"],
+	responseType: "code",
+	codeChallenge: "test-challenge",
+	codeChallengeMethod: "S256",
+};
+
+const validClientInfo = { clientName: "Test Client" };
+const txId = "test-tx";
+const csrfToken = "csrf-token";
+
+/* ─────────────────────────  Tests  ────────────────────────── */
+
 describe("Authorize Handlers", () => {
-	// Reset mocks before each test
 	beforeEach(() => {
 		vi.resetAllMocks();
 	});
 
 	describe("getAuthorizeHandler", () => {
-		// Helper to create a mock context
-		const createMockContext = (): Context => {
-			const mockHtml = vi.fn();
-			const mockText = vi.fn();
+		it("renders login screen when no user is authenticated", async () => {
+			const c = createMockContext();
 
-			return {
-				req: {
-					raw: new Request("https://example.com"),
-					url: "https://example.com",
-				},
-				html: mockHtml,
-				text: mockText,
-				env: {
-					OAUTH_PROVIDER: {
-						parseAuthRequest: vi.fn(),
-						lookupClient: vi.fn(),
-						completeAuthorization: vi.fn(),
-					},
-				},
-			} as unknown as Context;
-		};
-
-		// Valid test data
-		const validOAuthReq = {
-			clientId: "test-client-id",
-			redirectUri: "https://example.com/callback",
-			state: "test-state",
-			scope: ["profile", "email"],
-			responseType: "code",
-			codeChallenge: "test-challenge",
-			codeChallengeMethod: "S256",
-		};
-		const validClientInfo = { clientName: "Test Client" };
-
-		it("should render login screen when no user is authenticated", async () => {
-			// Arrange
-			const mockContext = createMockContext();
-
-			// Mock getValidAuthContext to return valid data
 			(getValidAuthContext as vi.Mock).mockResolvedValue({
 				oauthReq: validOAuthReq,
-				clientInfo: validClientInfo,
+				client: validClientInfo,
+				tx: txId,
+				csrfToken,
 			});
-
-			// Mock getCurrentUser to return null (no authenticated user)
 			(getCurrentUser as vi.Mock).mockResolvedValue(null);
 
-			// Act
-			await getAuthorizeHandler(mockContext);
+			await getAuthorizeHandler(c);
 
-			// Assert
-			expect(getValidAuthContext).toHaveBeenCalledWith(mockContext);
-			expect(getCurrentUser).toHaveBeenCalledWith(mockContext);
-			expect(renderLoginScreen).toHaveBeenCalledWith(validClientInfo);
-			expect(mockContext.html).toHaveBeenCalled();
-			expect(mockContext.html.mock.calls[0][0]).toContain("<base>");
-			expect(mockContext.html.mock.calls[0][1]).toBeUndefined();
+			expect(getValidAuthContext).toHaveBeenCalledWith(c);
+			expect(getCurrentUser).toHaveBeenCalledWith(c);
+			expect(renderLoginScreen).toHaveBeenCalledWith(c, validClientInfo, txId);
 		});
 
-		it("should render consent screen when user is authenticated", async () => {
-			// Arrange
-			const mockContext = createMockContext();
+		it("renders consent screen when user is authenticated", async () => {
+			const c = createMockContext();
 
-			// Mock getValidAuthContext to return valid data
 			(getValidAuthContext as vi.Mock).mockResolvedValue({
 				oauthReq: validOAuthReq,
-				clientInfo: validClientInfo,
+				client: validClientInfo,
+				tx: txId,
+				csrfToken,
 			});
-
-			// Mock getCurrentUser to return a user
 			(getCurrentUser as vi.Mock).mockResolvedValue(testUser);
 
-			// Act
-			await getAuthorizeHandler(mockContext);
+			await getAuthorizeHandler(c);
 
-			// Assert
-			expect(getValidAuthContext).toHaveBeenCalledWith(mockContext);
-			expect(getCurrentUser).toHaveBeenCalledWith(mockContext);
-			expect(renderConsentScreen).toHaveBeenCalledWith({
-				oauthReq: validOAuthReq,
-				clientInfo: validClientInfo,
-				user: testUser,
-			});
-			expect(mockContext.html).toHaveBeenCalled();
-			expect(mockContext.html.mock.calls[0][0]).toContain("<base>");
-			expect(mockContext.html.mock.calls[0][1]).toBeUndefined();
+			expect(getValidAuthContext).toHaveBeenCalledWith(c);
+			expect(getCurrentUser).toHaveBeenCalledWith(c);
+			expect(renderConsentScreen).toHaveBeenCalledWith(
+				c,
+				validOAuthReq,
+				validClientInfo,
+				testUser,
+				txId,
+				csrfToken,
+			);
 		});
 
-		it("should handle AuthFlowError and return 400 Bad Request", async () => {
-			// Arrange
-			const mockContext = createMockContext();
+		it("handles AuthFlowError and returns error page", async () => {
+			const c = createMockContext();
 
-			// Mock getValidAuthContext to throw AuthFlowError
-			const errorMessage = "Invalid or missing authorization request.";
-			(getValidAuthContext as vi.Mock).mockRejectedValue(new AuthFlowError(errorMessage));
+			(getValidAuthContext as vi.Mock).mockRejectedValue(new AuthFlowError("Bad request"));
 
-			// Act
-			await getAuthorizeHandler(mockContext);
+			await getAuthorizeHandler(c);
 
-			// Assert
-			expect(getValidAuthContext).toHaveBeenCalledWith(mockContext);
-			expect(mockContext.html).toHaveBeenCalled();
-			expect(mockContext.html.mock.calls[0][0]).toContain("<base>");
-			expect(mockContext.html.mock.calls[0][1]).toBe(401);
+			expect(renderErrorPage).toHaveBeenCalled();
 		});
 
-		it("should handle unexpected errors and return 500 Internal Server Error", async () => {
-			// Arrange
-			const mockContext = createMockContext();
+		it("propagates unexpected errors (500)", async () => {
+			const c = createMockContext();
+			const boom = new Error("Unexpected");
 
-			// Mock getValidAuthContext to throw an unexpected error
-			(getValidAuthContext as vi.Mock).mockRejectedValue(new Error("Unexpected error"));
+			(getValidAuthContext as vi.Mock).mockRejectedValue(boom);
 
-			// Act
-			await getAuthorizeHandler(mockContext);
-
-			// Assert
-			expect(getValidAuthContext).toHaveBeenCalledWith(mockContext);
-			expect(mockContext.html).toHaveBeenCalled();
-			expect(mockContext.html.mock.calls[0][0]).toContain("<base>");
-			expect(mockContext.html.mock.calls[0][1]).toBe(500);
+			await expect(getAuthorizeHandler(c)).rejects.toThrow(boom);
 		});
 	});
-
-	// Tests for postAuthorizeHandler can be added here
 });

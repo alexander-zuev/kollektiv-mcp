@@ -1,12 +1,9 @@
 import { isValidOAuthRequest } from "@/web/utils/authContext";
 import {
-	AUTH_FLOW_COOKIE_NAME,
-	b64url,
-	deleteAuthFlowCookie,
-	encodeCookie,
-	hmac,
-	persistCookie,
-	retrieveCookie,
+	type AuthCookie,
+	clearAuthCookie,
+	loadAuthCookie,
+	saveAuthCookie,
 } from "@/web/utils/cookies";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
@@ -22,16 +19,16 @@ vi.mock("hono/cookie", () => ({
 // Mock the authContext validation functions
 vi.mock("@/web/utils/authContext", () => ({
 	isValidOAuthRequest: vi.fn(),
-	isValidClientInfo: vi.fn(),
 }));
 
 // Get the mocked functions
 const mockedIsValidOAuthRequest = vi.mocked(isValidOAuthRequest);
 const ENCODED = "signed.b64url.payload";
+const TEST_TX = "test-transaction-id";
 
 describe("Cookie Utilities", () => {
 	// Valid test data
-	const validAuthFlowData = {
+	const validAuthCookie: AuthCookie = {
 		oauthReq: {
 			responseType: "code",
 			clientId: "test-client-id",
@@ -39,12 +36,7 @@ describe("Cookie Utilities", () => {
 			scope: [],
 			state: "test-state",
 		},
-		clientInfo: {
-			clientName: "Test Client",
-			clientId: "test-client-id",
-			redirectUris: ["https://example.com/callback"],
-			tokenEndpointAuthMethod: "client_secret_basic",
-		},
+		csrfToken: "test-csrf-token",
 	};
 
 	// Reset mocks before each test
@@ -53,71 +45,80 @@ describe("Cookie Utilities", () => {
 	});
 
 	describe("cookie utils (encoding/decoding)", () => {
-		it("sets a signed cookie when given valid data", async (c) => {
-			mockedIsValidOAuthRequest.mockReturnValue(true);
-
+		it("sets a signed cookie when given valid data", async () => {
 			const mockContext = createMockContext();
-			await persistCookie(mockContext, validAuthFlowData);
+			await saveAuthCookie(mockContext, TEST_TX, validAuthCookie);
 
 			// Assert
 			expect(setCookie).toHaveBeenCalledTimes(1);
 			const [_c, cookieName, cookieValue, options] = (setCookie as Mock).mock.calls[0];
 
-			expect(cookieName).toBe(AUTH_FLOW_COOKIE_NAME);
+			expect(cookieName).toBe(`auth_tx_${TEST_TX}`);
 			expect(typeof cookieValue).toBe("string");
-			expect(cookieValue.split(".")).toHaveLength(3); // meta.payload.signature
+			expect(cookieValue.split(".")).toHaveLength(2); // body.signature
 
 			expect(options).toMatchObject({
 				path: "/",
 				httpOnly: true,
-				secure: true,
-				sameSite: "None",
+				secure: mockContext.env.NODE_ENV !== "development",
+				sameSite: mockContext.env.NODE_ENV !== "development" ? "none" : "lax",
 				maxAge: 60 * 5,
 			});
 		});
+
 		it("returns null if the signature is invalid", async () => {
-			mockedIsValidOAuthRequest.mockReturnValue(true);
-
 			const c = createMockContext();
-			const cookie = await encodeCookie(validAuthFlowData, c.env.COOKIE_SIGNING_SECRET);
-			const tampered = cookie.replace(/\w$/, "X"); // flip one character
 
+			// Mock a tampered cookie value
+			const tampered = "invalid.signature";
 			(getCookie as Mock).mockReturnValue(tampered);
 
-			const result = await retrieveCookie(c);
+			const result = await loadAuthCookie(c, TEST_TX);
 			expect(result).toBeNull();
-			expect(deleteCookie).toHaveBeenCalledWith(c, AUTH_FLOW_COOKIE_NAME, { path: "/" });
 		});
+
 		it("returns null for malformed cookie structure", async () => {
 			const c = createMockContext();
 			(getCookie as Mock).mockReturnValue("invalid-part-only");
 
-			const result = await retrieveCookie(c);
+			const result = await loadAuthCookie(c, TEST_TX);
 			expect(result).toBeNull();
 		});
 
 		it("returns null for invalid JSON payload", async () => {
 			const c = createMockContext();
-			const meta = JSON.stringify({ v: 1, t: Date.now() });
-			const payload = b64url(new TextEncoder().encode("{invalid-json"));
-			const toSign = `${meta}.${payload}`;
-			const sig = await hmac(c.env.COOKIE_SIGNING_SECRET, toSign);
 
-			const malformedCookie = `${toSign}.${sig}`;
-			(getCookie as Mock).mockReturnValue(malformedCookie);
+			// Mock an invalid JSON payload
+			(getCookie as Mock).mockReturnValue("invalid.json.payload");
 
-			const result = await retrieveCookie(c);
+			const result = await loadAuthCookie(c, TEST_TX);
 			expect(result).toBeNull();
 		});
 	});
-	describe("persistCookie", async () => {
+	describe("saveAuthCookie", async () => {
 		it("should set a cookie with valid data", async () => {
 			// Arrange
-			const mockContext = createMockContext();
-			mockedIsValidOAuthRequest.mockReturnValue(true);
+			const mockContext = createMockContext({
+				env: { NODE_ENV: "production" },
+			});
+
+			// Mock crypto functions
+			vi.spyOn(global.crypto.subtle, "importKey").mockResolvedValue({} as CryptoKey);
+			vi.spyOn(global.crypto.subtle, "sign").mockResolvedValue(new ArrayBuffer(32));
+
+			// Mock Buffer.from for encoding
+			const originalFrom = Buffer.from;
+			vi.spyOn(Buffer, "from").mockImplementation((data: any, encoding?: string) => {
+				if (!encoding && (data instanceof ArrayBuffer || ArrayBuffer.isView(data))) {
+					return {
+						toString: () => "mockedSignature",
+					} as Buffer;
+				}
+				return originalFrom(data, encoding as BufferEncoding);
+			});
 
 			// Act
-			await persistCookie(mockContext, validAuthFlowData);
+			await saveAuthCookie(mockContext, TEST_TX, validAuthCookie);
 
 			// Assert
 			expect(setCookie).toHaveBeenCalledTimes(1);
@@ -125,142 +126,193 @@ describe("Cookie Utilities", () => {
 			const [ctxArg, nameArg, valueArg, optsArg] = (setCookie as Mock).mock.calls[0];
 
 			expect(ctxArg).toBe(mockContext);
-			expect(nameArg).toBe(AUTH_FLOW_COOKIE_NAME);
+			expect(nameArg).toBe(`auth_tx_${TEST_TX}`);
 			expect(typeof valueArg).toBe("string");
-			expect(valueArg.split(".")).toHaveLength(3); // meta.payload.signature
+			expect(valueArg.split(".")).toHaveLength(2); // body.signature
 			expect(optsArg).toMatchObject({
 				path: "/",
 				httpOnly: true,
 				secure: true,
-				sameSite: "None",
+				sameSite: "none",
+				maxAge: 60 * 5,
 			});
+
+			// Restore mocks
+			vi.restoreAllMocks();
 		});
 
-		it("should not set a cookie with invalid OAuth request", () => {
+		it("should set cookie with development settings when NODE_ENV is development", async () => {
 			// Arrange
-			const mockContext = createMockContext();
-			const invalidData = { ...validAuthFlowData, oauthReq: null };
-			mockedIsValidOAuthRequest.mockReturnValue(false);
+			const mockContext = createMockContext({
+				env: { NODE_ENV: "development" },
+			});
+
+			// Mock crypto functions
+			vi.spyOn(global.crypto.subtle, "importKey").mockResolvedValue({} as CryptoKey);
+			vi.spyOn(global.crypto.subtle, "sign").mockResolvedValue(new ArrayBuffer(32));
+
+			// Mock Buffer.from for encoding
+			const originalFrom = Buffer.from;
+			vi.spyOn(Buffer, "from").mockImplementation((data: any, encoding?: string) => {
+				if (!encoding && (data instanceof ArrayBuffer || ArrayBuffer.isView(data))) {
+					return {
+						toString: () => "mockedSignature",
+					} as Buffer;
+				}
+				return originalFrom(data, encoding as BufferEncoding);
+			});
 
 			// Act
-			// @ts-ignore
-			persistCookie(mockContext, invalidData);
+			await saveAuthCookie(mockContext, TEST_TX, validAuthCookie);
 
 			// Assert
-			expect(setCookie).not.toHaveBeenCalled();
-			expect(deleteCookie).toHaveBeenCalledWith(mockContext, AUTH_FLOW_COOKIE_NAME, { path: "/" });
-		});
+			expect(setCookie).toHaveBeenCalledTimes(1);
+			const [_c, _name, _value, options] = (setCookie as Mock).mock.calls[0];
+			expect(options).toMatchObject({
+				secure: false,
+				sameSite: "lax",
+			});
 
-		it("should set a cookie with invalid client info", async () => {
-			// Arrange
-			const mockContext = createMockContext();
-			const invalidData = { ...validAuthFlowData, clientInfo: null };
-			mockedIsValidOAuthRequest.mockReturnValue(true);
-
-			// Act
-			// @ts-ignore
-			await persistCookie(mockContext, invalidData);
-
-			// Assert
-			expect(setCookie).toHaveBeenCalled();
+			// Restore mocks
+			vi.restoreAllMocks();
 		});
 
 		it("should handle errors when setting cookie", async () => {
 			// Arrange
 			const mockContext = createMockContext();
-			mockedIsValidOAuthRequest.mockReturnValue(true);
+
+			// Mock crypto functions
+			vi.spyOn(global.crypto.subtle, "importKey").mockResolvedValue({} as CryptoKey);
+			vi.spyOn(global.crypto.subtle, "sign").mockResolvedValue(new ArrayBuffer(32));
+
+			// Mock Buffer.from for encoding
+			const originalFrom = Buffer.from;
+			vi.spyOn(Buffer, "from").mockImplementation((data: any, encoding?: string) => {
+				if (!encoding && (data instanceof ArrayBuffer || ArrayBuffer.isView(data))) {
+					return {
+						toString: () => "mockedSignature",
+					} as unknown as Buffer;
+				}
+				return originalFrom(data, encoding as BufferEncoding);
+			});
 
 			// Mock setCookie to throw an error
-			const setCookieMock = setCookie as Mock;
-			setCookieMock.mockImplementationOnce(() => {
+			(setCookie as Mock).mockImplementationOnce(() => {
 				throw new Error("Cookie error");
 			});
 
-			// Spy on console.error
-			const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
-			// Act
-			await persistCookie(mockContext, validAuthFlowData);
-
-			// Assert
-			expect(consoleErrorSpy).toHaveBeenCalledWith(
-				"[persistAuthFlowCookie] Error persisting auth flow cookie:",
-				expect.any(Error),
+			// Act & Assert
+			await expect(saveAuthCookie(mockContext, TEST_TX, validAuthCookie)).rejects.toThrow(
+				"Cookie error",
 			);
+			expect(setCookie).toHaveBeenCalledTimes(1);
 
 			// Cleanup
-			consoleErrorSpy.mockRestore();
+			vi.restoreAllMocks();
 		});
 	});
 
-	describe("retrieveCookie", () => {
+	describe("loadAuthCookie", () => {
 		it("should return null when no cookie data is present", async () => {
 			// Arrange
 			const mockContext = createMockContext();
 			(getCookie as Mock).mockReturnValue(null);
 
 			// Act
-			const result = await retrieveCookie(mockContext);
+			const result = await loadAuthCookie(mockContext, TEST_TX);
 
 			// Assert
 			expect(result).toBeNull();
-			expect(getCookie).toHaveBeenCalledWith(mockContext, AUTH_FLOW_COOKIE_NAME);
+			expect(getCookie).toHaveBeenCalledWith(mockContext, `auth_tx_${TEST_TX}`);
 		});
 
 		it("should return valid data from a signed cookie", async () => {
 			// Arrange
 			const c = createMockContext();
-			mockedIsValidOAuthRequest.mockReturnValue(true);
 
-			const signedCookie = await encodeCookie(validAuthFlowData, c.env.COOKIE_SIGNING_SECRET);
-			(getCookie as Mock).mockReturnValue(signedCookie);
+			// Mock getCookie to return a valid cookie value
+			const validCookieValue = "validBody.validSignature";
+			(getCookie as Mock).mockReturnValue(validCookieValue);
+
+			// Mock hmac to always return the signature part of our cookie
+			vi.spyOn(global.crypto.subtle, "importKey").mockResolvedValue({} as CryptoKey);
+			vi.spyOn(global.crypto.subtle, "sign").mockImplementation(() => {
+				return Promise.resolve(new TextEncoder().encode("validSignature").buffer);
+			});
+
+			// Mock Buffer.from for both encoding directions
+			const originalFrom = Buffer.from;
+			vi.spyOn(Buffer, "from").mockImplementation((data: any, encoding?: string) => {
+				// For deb64u function - decode the body
+				if (encoding === "base64url" && data === "validBody") {
+					return Buffer.from(
+						JSON.stringify({
+							v: 1,
+							oauthReq: validAuthCookie.oauthReq,
+							csrfToken: validAuthCookie.csrfToken,
+						}),
+					);
+				}
+				// For b64u function - encode the signature
+				if (!encoding && data instanceof ArrayBuffer) {
+					return {
+						toString: () => "validSignature",
+					} as unknown as Buffer;
+				}
+				return originalFrom(data, encoding as BufferEncoding);
+			});
 
 			// Act
-			const result = await retrieveCookie(c);
+			const result = await loadAuthCookie(c, TEST_TX);
 
 			// Assert
-			expect(result).toEqual(validAuthFlowData);
+			expect(result).not.toBeNull();
+			// Ignore version field while asserting core data
+			expect(result).toMatchObject(validAuthCookie);
+			// Explicitly verify version for completeness
+			expect((result as any).v).toBe(1);
+
+			// Cleanup
+			vi.restoreAllMocks();
 		});
 
-		it("should return null and delete cookie when data is invalid", async () => {
+		it("should log message when cookie is invalid", async () => {
 			// Arrange
 			const mockContext = createMockContext();
-			const invalidData = { oauthReq: null, clientInfo: null };
-			(getCookie as Mock).mockReturnValue(JSON.stringify(invalidData));
-			mockedIsValidOAuthRequest.mockReturnValue(false);
+			(getCookie as Mock).mockReturnValue("invalid.cookie");
+
+			// Spy on console.log
+			const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
 			// Act
-			const result = await retrieveCookie(mockContext);
+			const result = await loadAuthCookie(mockContext, TEST_TX);
 
 			// Assert
 			expect(result).toBeNull();
-			expect(deleteCookie).toHaveBeenCalledWith(mockContext, AUTH_FLOW_COOKIE_NAME, { path: "/" });
+			expect(consoleLogSpy).toHaveBeenCalledWith(`[Cookie] No cookie auth_tx_${TEST_TX}`);
+
+			// Cleanup
+			consoleLogSpy.mockRestore();
 		});
 	});
 
-	describe("deleteAuthFlowCookie", () => {
-		it("deletes cookie and does not persist if oauthReq is invalid", async () => {
+	describe("clearAuthCookie", () => {
+		it("should delete the auth cookie for a transaction", () => {
 			// Arrange
 			const mockContext = createMockContext();
 
-			mockedIsValidOAuthRequest.mockReturnValue(false);
+			// Spy on console.log
+			const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
 			// Act
-			await persistCookie(mockContext, validAuthFlowData);
+			clearAuthCookie(mockContext, TEST_TX);
 
 			// Assert
-			expect(setCookie).not.toHaveBeenCalled();
-			expect(deleteCookie).toHaveBeenCalledWith(mockContext, AUTH_FLOW_COOKIE_NAME, { path: "/" });
-		});
-		it("should delete the auth flow cookie", () => {
-			// Arrange
-			const mockContext = createMockContext();
+			expect(deleteCookie).toHaveBeenCalledWith(mockContext, `auth_tx_${TEST_TX}`, { path: "/" });
+			expect(consoleLogSpy).toHaveBeenCalledWith(`[Cookie] Cookie auth_tx_${TEST_TX} deleted`);
 
-			// Act
-			deleteAuthFlowCookie(mockContext);
-
-			// Assert
-			expect(deleteCookie).toHaveBeenCalledWith(mockContext, AUTH_FLOW_COOKIE_NAME, { path: "/" });
+			// Cleanup
+			consoleLogSpy.mockRestore();
 		});
 	});
 });

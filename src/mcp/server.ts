@@ -4,6 +4,8 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { McpAgent } from "agents/mcp";
 import type { ZodRawShape } from "zod";
 
+// TODO: review if I have to switch to access token for better security?
+// https://github.com/cloudflare/ai/blob/main/demos/remote-mcp-auth0/mcp-auth0-oidc/src/index.ts
 export class KollektivMCP extends McpAgent<Env, unknown, AuthContext> {
 	// Create a new MCP server instance
 	server = new McpServer({

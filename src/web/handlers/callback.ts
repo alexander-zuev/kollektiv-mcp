@@ -6,13 +6,15 @@ export const authCallbackHandler = async (c: Context) => {
 	const supabase = getSupabase(c);
 	const code = c.req.query("code");
 	const state = c.req.query("state");
-	const originalUrl = c.req.url;
+	const tx = c.req.query("tx");
+	if (!tx) {
+		console.error("[GET /auth/callback] Missing transaction ID in the callback request.");
+		return c.text("Bad Request: Missing cookie transaction id.", 400);
+	}
 
-	console.log(`[GET /auth/callback] Handling request for URL: ${originalUrl}`);
 	console.log(
 		`[GET /auth/callback] Code: ${code ? "present" : "missing"}, State: ${state ? "present" : "missing"}`,
 	);
-	console.log(`[GET /auth/callback] Query params: ${new URL(originalUrl).searchParams}`);
 
 	if (!code) {
 		console.error("[GET /auth/callback] No code found in the callback request from Supabase");
@@ -31,7 +33,7 @@ export const authCallbackHandler = async (c: Context) => {
 		}
 
 		console.log("[GET /auth/callback] Code exchange successful.");
-		return c.redirect(`${AppRoutes.AUTHORIZE}`);
+		return c.redirect(`${AppRoutes.AUTHORIZE}?tx=${tx}`, 302);
 	} catch (exchangeError) {
 		console.error(`[GET /auth/callback] Unexpected error: ${exchangeError}`);
 		return c.text("Internal Server Error: Failed to process authentication callback.", 500);

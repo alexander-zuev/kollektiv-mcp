@@ -1,103 +1,74 @@
 import { type ConsentFormData, ConsentFormSchema } from "@/web/schemas/consentForm"; // Adjust path
-import { base } from "@/web/templates/base";
 import { renderConsentScreen } from "@/web/templates/consent";
-import { renderErrorScreen } from "@/web/templates/error";
+import { renderErrorPage } from "@/web/templates/error";
 import { renderLoginScreen } from "@/web/templates/login";
-import { AuthFlowError, getValidAuthContext } from "@/web/utils/authContext";
-import { AUTH_FLOW_COOKIE_NAME, retrieveCookie } from "@/web/utils/cookies";
+import { type AuthFlowContext, AuthFlowError, getValidAuthContext } from "@/web/utils/authContext";
+import { clearAuthCookie, loadAuthCookie } from "@/web/utils/cookies";
 import { FormValidationError, parseFormData } from "@/web/utils/form";
 import { getCurrentUser } from "@/web/utils/user";
-import type { AuthRequest, ClientInfo } from "@cloudflare/workers-oauth-provider";
+import type { AuthRequest } from "@cloudflare/workers-oauth-provider";
 import type { User } from "@supabase/supabase-js";
 import type { Context } from "hono";
-import { deleteCookie } from "hono/cookie";
 
 export const getAuthorizeHandler = async (c: Context) => {
-	let oauthReq: AuthRequest | undefined = undefined;
-	let clientInfo: ClientInfo | undefined = undefined;
+	let ctx: AuthFlowContext;
 
 	// 1. Get oauth req
 	console.log("[GET /authorize] Handling request.");
 	try {
-		({ oauthReq, clientInfo } = await getValidAuthContext(c));
-		console.log("[GET /authorize] Successfully obtained valid auth context.");
+		ctx = await getValidAuthContext(c);
 	} catch (error) {
-		console.warn("[GET /authorize] No valid auth context:", error);
-		// Ensure stale cookie is cleaned up if context fetching fails
-		deleteCookie(c, AUTH_FLOW_COOKIE_NAME, { path: "/" });
-
 		if (error instanceof AuthFlowError) {
-			// Specific, expected error from our logic (e.g., missing params and cookie)
-			// Return 401
-			const content = await renderErrorScreen({
-				title: "Invalid Authorization Request",
-				message: error.message,
-				hint:
-					"Please ensure you are logging in from an MCP client (Cursor / Windsurf /" +
+			return renderErrorPage(
+				error.message,
+				"Invalid Authorization Request",
+				c,
+				"Please ensure you are logging in from an MCP client (Cursor / Windsurf /" +
 					" Claude Desktop / others)",
-			});
-			return c.html(base(content, "Authorization Error"), 401);
+				"Authorization Error",
+			);
 		}
-		// Unexpected error during context fetching (e.g., provider internal error)
-		// Return 500 Internal Server Error
-		const content = await renderErrorScreen({
-			title: "Internal Server Error",
-			message: "An unexpected error occurred while authorizing your session.",
-			hint: "Please try again later.",
-			details: error instanceof Error ? { stack: error.stack, name: error.name } : undefined,
-		});
-		return c.html(base(content, "Internal Server Error"), 500);
+		throw error;
 	}
-
-	// If we reach here, oauthReq and clientInfo are guaranteed to be valid
 
 	// 2. Check user
 	const user: User | null = await getCurrentUser(c);
 
 	// 3. If no user -> render login screen
 	if (!user) {
-		console.log("[GET /authorize] No session found. Rendering login screen.");
-		// Pass the validated clientInfo
-		const content = await renderLoginScreen(clientInfo); // Pass the whole object
-		const pageTitle = `Log in to authorize ${clientInfo?.clientName || "Application"}`;
-		return c.html(base(content, pageTitle));
+		console.log("[GET /authorize] No User found. Rendering login screen.");
+		return renderLoginScreen(c, ctx.client, ctx.tx);
 	}
 
 	// 4. If user -> render consent screen
 	console.log(`[GET /authorize] Session found for user ${user.id}. Rendering consent screen.`);
-	// Pass validated objects
-	const content = await renderConsentScreen({ oauthReq, clientInfo, user });
-	const pageTitle = `Authorize ${clientInfo?.clientName || "Application"}`;
-	return c.html(base(content, pageTitle));
+	return renderConsentScreen(c, ctx.oauthReq, ctx.client, user, ctx.tx, ctx.csrfToken);
 };
 
 export const postAuthorizeHandler = async (c: Context) => {
 	console.log("[POST /authorize] Handling request.");
-	// Verify user session
+	const tx = c.req.query("tx");
+	if (!tx) {
+		console.error("[POST /authorize] No transaction ID found in the request.");
+		return c.text("Bad Request: Missing cookie transaction id.", 400);
+	}
 	const user = await getCurrentUser(c);
 	if (!user) {
 		console.log("[POST /authorize] No session found. Returning 401 Unauthorized.");
 		return c.text("Unauthorized", 401);
 	}
 
-	const cookieData = await retrieveCookie(c);
+	const cookieData = await loadAuthCookie(c, tx);
 
 	// Validate Cookie Data and Extract OAuth Request
 	if (!cookieData || !cookieData.oauthReq) {
 		console.error("[POST /authorize] Failed to retrieve valid OAuth request from cookie.");
-		// Clean up potentially invalid cookie if present
-		deleteCookie(c, AUTH_FLOW_COOKIE_NAME, { path: "/" });
-		// Return an error - cannot proceed without the original request context
+		clearAuthCookie(c, tx);
 		return c.text("Bad Request: Missing or invalid authorization context.", 400);
 	}
-	// Store the validated OAuth Request (ignore clientInfo if not needed)
-	const oauthReq: AuthRequest = cookieData.oauthReq;
 
 	// Parse consent form
-	let validatedFormData: ConsentFormData; // Use the type inferred from the schema
-	console.log(
-		`[POST /authorize] Successfully retrieved OAuth request from cookie for client: ${oauthReq.clientId}`,
-	);
+	let validatedFormData: ConsentFormData;
 
 	try {
 		validatedFormData = await parseFormData(c, ConsentFormSchema);
@@ -113,9 +84,10 @@ export const postAuthorizeHandler = async (c: Context) => {
 		console.error("[POST /authorize] Error processing form data:", error);
 		return c.text("Internal Server Error: Failed to process request form.", 500);
 	}
-
+	const oauthReq: AuthRequest = cookieData.oauthReq;
 	// Execute action based on form data
 	if (validatedFormData.action === "deny") {
+		const oauthReq: AuthRequest = cookieData.oauthReq;
 		const { redirectUri, state } = oauthReq;
 		console.log("[POST /authorize] User denied the request via form.");
 		const redirectUrl = new URL(redirectUri);
@@ -143,11 +115,11 @@ export const postAuthorizeHandler = async (c: Context) => {
 		});
 
 		console.log(`[POST /authorize] Redirecting approval to: ${redirectTo}`);
-		deleteCookie(c, AUTH_FLOW_COOKIE_NAME, { path: "/" }); // Clean up cookie on completion
+		clearAuthCookie(c, tx);
 		return c.redirect(redirectTo, 302);
 	} catch (error) {
 		console.error("[POST /authorize] Error during completeAuthorization:", error);
-		deleteCookie(c, AUTH_FLOW_COOKIE_NAME, { path: "/" }); // Clean up cookie on error
+		clearAuthCookie(c, tx);
 
 		// Attempt to redirect with error, using details from the cookie's oauthReq
 		const { redirectUri, state } = oauthReq;
@@ -157,9 +129,7 @@ export const postAuthorizeHandler = async (c: Context) => {
 				errorRedirectUrl.searchParams.set("error", "server_error");
 				if (state) errorRedirectUrl.searchParams.set("state", state);
 				return c.redirect(errorRedirectUrl.toString(), 302);
-			} catch (e) {
-				/* fall through to generic error if redirect URI is bad */
-			}
+			} catch (e) {}
 		}
 		// Fallback generic error page
 		return c.html("<h1>Server Error</h1><p>Could not complete authorization.</p>", 500);

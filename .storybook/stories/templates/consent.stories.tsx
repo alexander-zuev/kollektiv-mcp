@@ -1,4 +1,4 @@
-import { base, renderConsentScreen } from "@/web/templates";
+import { base, consentScreen } from "@/web/templates";
 import type { ClientInfo, OAuthRequest, User } from "@/web/types";
 import type { Meta, StoryObj } from "@storybook/html";
 
@@ -39,7 +39,7 @@ export const Default: StoryObj = {
 	// @ts-ignore
 	render: () => {
 		return base(
-			renderConsentScreen({
+			consentScreen({
 				user: mockUser,
 				clientInfo: mockClientInfo,
 				oauthReq: mockOAuthRequest,

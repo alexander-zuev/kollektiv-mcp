@@ -1,0 +1,38 @@
+sequenceDiagram
+    autonumber
+    participant IDE as 🖥️ MCP Client
+    participant Worker as ☁️ Worker
+    participant Browser as 🌐 Browser
+    participant Supa as ⚡ Supabase
+    participant IdP as 🔒 GitHub/Google
+%% 1. IDE calls /sse without token
+    IDE ->>+ Worker: GET /sse (no Authorization)
+    Worker -->>- IDE: 401 Unauthorized + 302 Location: /authorize?client_id=...&scope=...&state=...&code_challenge=...&code_challenge_method=S256
+%% 2. Browser renders login/consent choice
+    Browser ->>+ Worker: GET /authorize?client_id=...&state=...&code_challenge=...&code_challenge_method=S256
+    note right of Worker: oauthReq = parseAuthRequest()<br/>clientInfo = lookupClient()
+    Worker -->>- Browser: HTML form (GitHub, Google, Email)
+%% 3. Browser → Supabase authorize endpoint
+    Browser ->>+ Supa: GET /auth/v1/authorize?provider=github&redirect_to=https%3A%2F%2Fmcp...%2Fsupabase%2Fcallback&state=...&code_challenge=...&code_challenge_method=S256
+    Supa ->>+ IdP: Redirect to GitHub/Google login
+    IdP -->>- Supa: 302 back to Supabase
+    Supa -->>- Browser: 302 Location: /supabase/callback?code=AAA&state=...
+%% 4. Worker exchanges Supabase code & mints MCP code
+    Browser ->>+ Worker: GET /supabase/callback?code=AAA&state=...
+    note right of Worker: session = supabase.auth.exchangeCodeForSession(AAA)
+    Worker ->> Worker: completeAuthorization({userId, props:{uid}})
+    note right of Worker: stores grant + issues code XYZ
+    Worker -->>- Browser: 302 Location: myapp://callback?code=XYZ&state=...
+%% 5. IDE swaps MCP code for tokens
+    Browser ->>+ IDE: open myapp://callback?code=XYZ&state=...
+    IDE ->>+ Worker: POST /token grant_type=authorization_code&code=XYZ&code_verifier=...
+    Worker -->>- IDE: {access_token, refresh_token, expires_in}
+%% 6. IDE calls /sse with MCP token
+    IDE ->>+ Worker: GET /sse Authorization: Bearer MCP_ACCESS
+    note right of Worker: validate JWT, extract props.uid
+    Worker -->>- IDE: 200 OK (SSE/JSON)
+%% 7. Refresh and revocation (optional)
+    IDE ->>+ Worker: POST /token grant_type=refresh_token&refresh_token=MCP_REFRESH
+    Worker -->>- IDE: {access_token2, refresh_token2, expires_in}
+    IDE ->>+ Worker: POST /revocation token=MCP_REFRESH2&token_type_hint=refresh_token
+    Worker -->>- IDE: 200 OK

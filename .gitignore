@@ -192,5 +192,5 @@ pids/
 .Python
 
 # Local docs
-docs
+
 *storybook.log

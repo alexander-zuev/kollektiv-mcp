@@ -1,6 +1,8 @@
 import { AppRoutes } from "@/web/routes";
+import { base } from "@/web/templates/base";
 import type { AuthRequest, ClientInfo } from "@cloudflare/workers-oauth-provider";
 import type { User } from "@supabase/supabase-js";
+import type { Context } from "hono";
 import { html } from "hono/html";
 
 /**
@@ -8,13 +10,14 @@ import { html } from "hono/html";
  */
 export type ConsentScreenProps = {
 	oauthReq: AuthRequest; // Use the central type
-	clientInfo?: ClientInfo; // Use the central type
+	client?: ClientInfo; // Use the central type
 	user: User; // Use the Supabase User type
+	tx: string; // transaction id
+	csrfToken: string; // from cookie
 };
 
-export const renderConsentScreen = ({ oauthReq, clientInfo, user }: ConsentScreenProps) => {
-	const userIdentifier = user.email || `User ${user.id.substring(0, 8)}`;
-
+export const consentScreen = (props: ConsentScreenProps) => {
+	const clientName = props.client?.clientName || "Application";
 	return html`
         <div class="flex w-full justify-center p-8">
             <div class="max-w-lg w-full rounded-lg border border-border bg-card p-6 text-center flex flex-col gap-4 items-center">
@@ -22,13 +25,14 @@ export const renderConsentScreen = ({ oauthReq, clientInfo, user }: ConsentScree
                 <h1 class="text-2xl text-center text-foreground">Authorization Request</h1>
 
                 <p class="text-center text-base text-foreground mb-2">
-                    Authorize <strong>${clientInfo?.clientName}</strong> to
+                    Authorize <strong>${clientName}</strong> to
                     connect to <strong>Kollektiv</strong> account.
                 </p>
 
                 <div class="w-full text-left space-y-3 my-2">
                     <p class="text-sm font-medium text-foreground">
-                        <strong>${clientInfo?.clientName}</strong> requests read-only access to your
+                        <strong>${clientName}</strong> requests read-only access to
+                        your
                         Kollektiv account:
                     </p>
                     <div class="flex items-start gap-2 text-sm text-foreground/80">
@@ -37,14 +41,16 @@ export const renderConsentScreen = ({ oauthReq, clientInfo, user }: ConsentScree
                     </div>
                 </div>
 
-                <form method="POST" action='${AppRoutes.AUTHORIZE}' class="w-full">
-                    <input type="hidden" name="client_id" value="${oauthReq.clientId}"/>
-                    <input type="hidden" name="state" value="${oauthReq.state}"/>
-                    <input type="hidden" name="code_challenge" value="${oauthReq.codeChallenge}"/>
+                <form method="POST" action='${AppRoutes.AUTHORIZE}?tx=${props.tx}' class="w-full">
+                    <input type="hidden" name="csrf" value="${props.csrfToken}"/>
+                    <input type="hidden" name="client_id" value="${props.oauthReq.clientId}"/>
+                    <input type="hidden" name="state" value="${props.oauthReq.state}"/>
+                    <input type="hidden" name="code_challenge"
+                           value="${props.oauthReq.codeChallenge}"/>
                     <input type="hidden" name="code_challenge_method"
-                           value="${oauthReq.codeChallengeMethod}"/>
-                    <input type="hidden" name="scope" value="${oauthReq.scope}"/>
-                    <input type="hidden" name="redirect_uri" value="${oauthReq.redirectUri}"/>
+                           value="${props.oauthReq.codeChallengeMethod}"/>
+                    <input type="hidden" name="scope" value="${props.oauthReq.scope}"/>
+                    <input type="hidden" name="redirect_uri" value="${props.oauthReq.redirectUri}"/>
 
                     <!-- Add Approve and Deny buttons -->
                     <div class="flex flex-col sm:flex-row gap-4 mt-4 w-full">
@@ -75,3 +81,16 @@ export const renderConsentScreen = ({ oauthReq, clientInfo, user }: ConsentScree
         </div>
     `;
 };
+
+export async function renderConsentScreen(
+	c: Context,
+	oauthReq: AuthRequest,
+	client: ClientInfo,
+	user: User,
+	tx: string,
+	csrfToken: string,
+) {
+	const content = await consentScreen({ oauthReq, client, user, tx, csrfToken });
+	const pageTitle = `Authorization Request"}`;
+	return c.html(base(content, pageTitle));
+}
