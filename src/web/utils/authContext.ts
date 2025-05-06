@@ -1,89 +1,132 @@
-import { persistCookie, retrieveCookie } from "@/web/utils/cookies";
+import { loadAuthCookie, saveAuthCookie } from "@/web/utils/cookies";
 import type { AuthRequest, ClientInfo } from "@cloudflare/workers-oauth-provider";
 import type { Context } from "hono";
-import { deleteCookie } from "hono/cookie";
 
 // Custom error for cleaner handling in the route
 export class AuthFlowError extends Error {
-	constructor(message: string) {
-		super(message);
+	public readonly cause?: unknown; // keep the original
+	public readonly code?: string; // optional machine-readable code
+
+	constructor(userMessage: string, opts?: { cause?: unknown; code?: string }) {
+		super(userMessage, { cause: opts?.cause });
 		this.name = "AuthFlowError";
+		this.cause = opts?.cause;
+		this.code = opts?.code;
 	}
 }
 
-/** Basic validation for OAuthRequest */
-export function isValidOAuthRequest(oauthReq: any): oauthReq is AuthRequest {
-	// Add more checks as needed (e.g., redirectUri, responseType)
-	return !!(oauthReq && typeof oauthReq.clientId === "string" && oauthReq.clientId.length > 0);
+/**
+ * Decides whether the current /authorize hit is the *initial* OAuth request
+ * (coming straight from the relying party) or a *subsequent* one that we
+ * triggered ourselves (e.g. after login / callback).
+ *
+ * Heuristics:
+ *   1.  The server only adds the `tx` parameter once it has written the
+ *       auth-context cookie.
+ *   2.  Therefore, if a `tx` is present **and** the corresponding cookie can
+ *       be loaded, we are in a follow-up request.
+ */
+async function isSubsequentRequest(c: Context, tx: string): Promise<boolean> {
+	if (!tx) return false;
+	return Boolean(await loadAuthCookie(c, tx));
 }
 
-export type authContext = {
+/** Basic validation for OAuthRequest */
+export function isValidOAuthRequest(oauthReq: unknown): oauthReq is AuthRequest {
+	return (
+		!!oauthReq &&
+		!!(oauthReq as AuthRequest).clientId &&
+		(oauthReq as AuthRequest).clientId.length > 0
+	);
+}
+
+export type AuthFlowContext = {
 	oauthReq: AuthRequest;
-	clientInfo: ClientInfo;
+	client: ClientInfo;
+	tx: string;
+	csrfToken: string;
 };
+
+async function extractContextFromCookie(c: Context, tx: string): Promise<AuthFlowContext> {
+	/* Cookie fallback (second /authorize after /login) */
+	const stored = await loadAuthCookie(c, tx);
+	if (!stored) {
+		console.error("[AuthContext] No auth context found in cookie", tx);
+		throw new AuthFlowError("Authorization context missing");
+	}
+	const client = await c.env.OAUTH_PROVIDER.lookupClient(stored.oauthReq.clientId);
+	if (!client) {
+		console.error("[AuthContext] Client not found in cookie", stored.oauthReq.clientId);
+		throw new AuthFlowError("Client id not found in cookie");
+	}
+	console.debug("[AuthContext] Valid auth context found in cookie", tx, stored.oauthReq, client);
+	return { oauthReq: stored.oauthReq, client, tx, csrfToken: stored.csrfToken };
+}
 
 /**
  * Retrieves the valid OAuth request and client information, attempting
  * request parameters first, then falling back to a temporary cookie.
- * Persists valid parameter data to the cookie for subsequent requests
+ * Persists valid parameter data to the cookie for later requests
  * within the flow (e.g., after login).
  *
  * @param c Hono Context
  * @returns A promise resolving to an object containing oauthReq and clientInfo.
- * @throws {AuthFlowError} If a valid context cannot be established from params or cookie.
+ * @throws {AuthFlowError} If a valid context cannot be established from cookies.
  */
-export async function getValidAuthContext(c: Context): Promise<{
-	oauthReq: AuthRequest;
-	clientInfo?: ClientInfo;
-}> {
-	console.log("[AuthContext] Attempting to establish valid auth context...");
-
-	// 1. Try parsing from request parameters
+export async function getValidAuthContext(c: Context): Promise<AuthFlowContext> {
+	const url = new URL(c.req.url);
+	const tx = url.searchParams.get("state") ?? url.searchParams.get("tx") ?? crypto.randomUUID();
+	const subsequent = await isSubsequentRequest(c, tx);
+	const csrfToken = crypto.randomUUID();
 	let oauthReq: AuthRequest | undefined;
-	let clientInfo: ClientInfo | undefined;
+
+	/* ------------------------------------------------------------------ */
+	/* 1. Try to parse the OAuth request that came in on the query string */
+	/* ------------------------------------------------------------------ */
 
 	try {
-		// These provider functions might throw errors, or return null/invalid shapes
 		oauthReq = await c.env.OAUTH_PROVIDER.parseAuthRequest(c.req.raw);
-		// Only lookup client if clientId seems present
-		console.log("[AuthContext] Calling lookupClient with clientId:", oauthReq?.clientId);
-		if (oauthReq?.clientId) {
-			try {
-				console.debug("[AuthContext] Attempting to lookup client info with AuthReq:", oauthReq);
-				clientInfo = await c.env.OAUTH_PROVIDER.lookupClient(oauthReq.clientId);
-			} catch (lookupError) {
-				console.warn(`[AuthContext] Failed to lookup client ${oauthReq.clientId}:`, lookupError);
-				clientInfo = undefined; // Explicitly set to null on lookup failure
-			}
+	} catch (err) {
+		console.error("[AuthContext] Failed to parse auth request:", err);
+
+		// For the very first request we must abort – we have no valid context.
+		if (!subsequent) {
+			throw new AuthFlowError("Invalid authorization request", { cause: err });
 		}
-		console.debug("[AuthContext] Client lookup result:", clientInfo || "No client info");
-	} catch (error) {
-		console.warn("[AuthContext] Error parsing request/client from params:", error);
+		// Otherwise we silently fall through to cookie restoration ↓
 	}
 
-	// 2. Validate data from parameters
+	// if request is valid -> try to extract client info from request parameters
 	if (isValidOAuthRequest(oauthReq)) {
-		console.log("[AuthContext] Valid context established from parameters.");
-		// Persist this valid context to the cookie for potential subsequent steps (like post-login)
-		await persistCookie(c, { oauthReq, clientInfo });
-		return { oauthReq, clientInfo };
+		const client = await c.env.OAUTH_PROVIDER.lookupClient(oauthReq.clientId);
+		console.debug(
+			"[AuthContext] Retrieved clientInfo for client_id",
+			client || "ClientInfo" + " not found for client_id",
+			oauthReq.clientId,
+		);
+		if (!client) {
+			// Client is unknown -> this should also be addressed. Authentication can no continue
+			console.error("[AuthContext] clientInfo not found for clientID:", oauthReq.clientId);
+
+			if (!subsequent) {
+				throw new AuthFlowError("Client application unknown");
+			}
+			// fall through to cookie
+		} else {
+			// Everything checks out → persist and return
+			await saveAuthCookie(c, tx, { oauthReq, csrfToken });
+			console.debug(
+				"[AuthContext] Valid auth context found in request parameters",
+				tx,
+				oauthReq,
+				client,
+			);
+			return { oauthReq, client, tx, csrfToken };
+		}
+	} else if (!subsequent) {
+		// No client_id (or otherwise malformed) in the *first* request → hard fail
+		throw new AuthFlowError("Missing or invalid client_id");
 	}
 
-	// 3. If parameters didn't yield valid data, try the cookie
-	console.log(
-		"[AuthContext] Invalid or incomplete context from parameters, attempting cookie fallback.",
-	);
-	const cookie = await retrieveCookie(c);
-
-	if (cookie) {
-		console.log("[AuthContext] Valid context established from cookie.");
-		// We have valid data from the cookie, use it.
-		return cookie; // Contains validated oauthReq and clientInfo
-	}
-
-	// 4. If neither parameters nor cookie yielded valid data, fail the flow.
-	console.error("[AuthContext] Failed to establish valid context from parameters or cookie.");
-	// Clean up any potentially invalid cookie before throwing
-	deleteCookie(c, "authFlow", { path: "/" });
-	throw new AuthFlowError("Missing or invalid authorization request details.");
+	return await extractContextFromCookie(c, tx);
 }

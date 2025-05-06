@@ -1,4 +1,4 @@
-import { base, renderLoginScreen } from "@/web/templates/";
+import { base } from "@/web/templates/";
 import type { ClientInfo } from "@/web/types";
 import type { Meta, StoryObj } from "@storybook/html";
 

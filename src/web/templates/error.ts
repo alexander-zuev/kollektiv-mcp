@@ -1,3 +1,5 @@
+import { base } from "@/web/templates/base";
+import type { Context } from "hono";
 import { html } from "hono/html";
 
 export type ErrorScreenProps = {
@@ -7,7 +9,7 @@ export type ErrorScreenProps = {
 	details?: Record<string, unknown>; // structured object dumped prettily
 };
 
-export const renderErrorScreen = ({
+const errorScreenPage = ({
 	title = "Authorization Error",
 	message,
 	hint,
@@ -26,13 +28,13 @@ export const renderErrorScreen = ({
                 ${
 									hint
 										? html`<p class="mb-4 text-sm text-muted-foreground">
-                    ${hint}</p>`
+                                    ${hint}</p>`
 										: ""
 								}
                 ${
 									details
 										? html`
-                            <pre class="text-sm w-full bg-muted text-muted-foreground p-4 rounded-lg overflow-auto">
+                                    <pre class="text-sm w-full bg-muted text-muted-foreground p-4 rounded-lg overflow-auto">
 ${JSON.stringify(details, null, 2)}</pre>`
 										: ""
 								}
@@ -41,3 +43,21 @@ ${JSON.stringify(details, null, 2)}</pre>`
         </div>
     `;
 };
+
+export async function renderErrorPage(
+	errMsg: string,
+	title: string,
+	c: Context,
+	hint: string,
+	pageTitle: string,
+) {
+	const content = await errorScreenPage({
+		title: title || "Invalid Authorization Request",
+		message: errMsg || "The authorization request is invalid or expired.",
+		hint:
+			hint ||
+			"Please ensure you are logging in from an MCP client (Cursor / Windsurf /" +
+				" Claude Desktop / others)",
+	});
+	return c.html(base(content, pageTitle || "Authorization Error"), 401);
+}

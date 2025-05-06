@@ -1,4 +1,4 @@
-import { type ErrorScreenProps, base, renderErrorScreen } from "@/web/templates";
+import { type ErrorScreenProps, base, errorScreenPage } from "@/web/templates";
 import type { Meta, StoryObj } from "@storybook/html";
 
 const meta: Meta = {
@@ -22,5 +22,5 @@ export const Default: StoryObj = {
 	render: () =>
 		// unwrap both snippets to plain strings
 		// @ts-ignore
-		base(renderErrorScreen(errorDetails), "Error").toString(),
+		base(errorScreenPage(errorDetails), "Error").toString(),
 };

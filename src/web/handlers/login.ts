@@ -6,24 +6,26 @@ import type { Context } from "hono";
 
 export const loginHandler = async (c: Context) => {
 	const supabase = getSupabase(c);
-
-	// Get form data to determine which login method was chosen
 	const formData = await c.req.parseBody();
+	const tx = c.req.query("tx");
+	if (!tx) {
+		console.error("[POST /login] missing tx");
+		return c.text("Bad request: missing cookie tx - try logging in again.", 400);
+	}
 	console.log("[POST /login] Form data received:", formData);
 
 	// Get the site URL to use for redirects
 	const siteUrl = c.env.SITE_URL;
 	console.log(`[POST /login] Site URL: ${siteUrl}`);
-	const redirectUrl = `${siteUrl}${AppRoutes.AUTH_CALLBACK}`;
-	console.log(`[POST /login] Redirect URL: ${redirectUrl}`);
+	const redirectURL = `${siteUrl}${AppRoutes.AUTH_CALLBACK}?tx=${tx}`;
 
 	// Determine which login method to use based on form data
 	if (formData.provider === LoginProvider.GITHUB) {
-		console.log("[POST /login] Processing GitHub login");
+		console.log("[POST /login] Processing GitHub login with redirect URL:", redirectURL);
 		const { data, error } = await supabase.auth.signInWithOAuth({
 			provider: "github",
 			options: {
-				redirectTo: redirectUrl,
+				redirectTo: redirectURL,
 			},
 		});
 
@@ -41,11 +43,12 @@ export const loginHandler = async (c: Context) => {
 	}
 
 	if (formData.provider === LoginProvider.GOOGLE) {
-		console.log("[POST /login] Processing Google login");
+		console.log("[POST /login] Processing Google login with redirect URL:", redirectURL);
+
 		const { data, error } = await supabase.auth.signInWithOAuth({
 			provider: "google",
 			options: {
-				redirectTo: redirectUrl,
+				redirectTo: redirectURL,
 			},
 		});
 
@@ -66,7 +69,7 @@ export const loginHandler = async (c: Context) => {
 	if (formData.provider === LoginProvider.MAGIC_LINK) {
 		const email = formData.email.toString();
 		console.log(
-			`[POST /login] Processing Magic Link login for email ${email} and setting redirect URL to ${redirectUrl}`,
+			`[POST /login] Processing Magic Link login for email ${email} and setting redirect URL to ${redirectURL}`,
 		);
 
 		// Use signInWithOtp for magic link login
@@ -75,7 +78,7 @@ export const loginHandler = async (c: Context) => {
 			email,
 			options: {
 				shouldCreateUser: true,
-				emailRedirectTo: redirectUrl,
+				emailRedirectTo: redirectURL,
 			},
 		});
 

@@ -1,13 +1,13 @@
 import { AuthFlowError, getValidAuthContext, isValidOAuthRequest } from "@/web/utils/authContext";
-import { persistCookie, retrieveCookie } from "@/web/utils/cookies";
+import { loadAuthCookie, saveAuthCookie } from "@/web/utils/cookies";
 import type { Context } from "hono";
 import { deleteCookie } from "hono/cookie";
 import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the cookies module
 vi.mock("@/web/utils/cookies", () => ({
-	persistCookie: vi.fn(),
-	retrieveCookie: vi.fn(),
+	loadAuthCookie: vi.fn(),
+	saveAuthCookie: vi.fn(),
 }));
 
 // Mock the hono/cookie module
@@ -56,10 +56,13 @@ describe("Auth Context Utilities", () => {
 
 	describe("getValidAuthContext", () => {
 		// Create a mock context for testing
-		const createMockContext = (): Context => {
+		const createMockContext = (txParam?: string): Context => {
+			const url = txParam ? `https://example.com?tx=${txParam}` : "https://example.com";
+
 			return {
 				req: {
-					raw: new Request("https://example.com"),
+					raw: new Request(url),
+					url: url,
 				},
 				env: {
 					OAUTH_PROVIDER: {
@@ -71,12 +74,16 @@ describe("Auth Context Utilities", () => {
 			} as unknown as Context;
 		};
 
+		// Test transaction ID
+		const TEST_TX = "test-transaction-id";
+
 		// Valid test data
 		const validOAuthReq = {
 			clientId: "test-client-id",
 			redirectUri: "https://example.com/callback",
 		};
 		const validClientInfo = { clientName: "Test Client" };
+		const validCsrfToken = "test-csrf-token";
 
 		it("should return valid context from request parameters", async () => {
 			// Arrange
@@ -84,127 +91,177 @@ describe("Auth Context Utilities", () => {
 			mockContext.env.OAUTH_PROVIDER.parseAuthRequest.mockResolvedValue(validOAuthReq);
 			mockContext.env.OAUTH_PROVIDER.lookupClient.mockResolvedValue(validClientInfo);
 
+			// Mock crypto.randomUUID to return predictable values
+			const originalRandomUUID = crypto.randomUUID;
+			crypto.randomUUID = vi
+				.fn()
+				.mockReturnValueOnce(TEST_TX) // First call for tx
+				.mockReturnValueOnce(validCsrfToken); // Second call for csrfToken
+
 			// Act
 			const result = await getValidAuthContext(mockContext);
 
 			// Assert
-			expect(result).toEqual({ oauthReq: validOAuthReq, clientInfo: validClientInfo });
-			expect(persistCookie).toHaveBeenCalledWith(mockContext, {
+			expect(result).toEqual({
 				oauthReq: validOAuthReq,
-				clientInfo: validClientInfo,
+				client: validClientInfo,
+				tx: TEST_TX,
+				csrfToken: validCsrfToken,
 			});
+
+			expect(saveAuthCookie).toHaveBeenCalledWith(mockContext, TEST_TX, {
+				oauthReq: validOAuthReq,
+				csrfToken: validCsrfToken,
+			});
+
 			expect(mockContext.env.OAUTH_PROVIDER.parseAuthRequest).toHaveBeenCalledWith(
 				mockContext.req.raw,
 			);
+
 			expect(mockContext.env.OAUTH_PROVIDER.lookupClient).toHaveBeenCalledWith(
 				validOAuthReq.clientId,
 			);
+
+			// Restore original function
+			crypto.randomUUID = originalRandomUUID;
 		});
 
-		// TODO: this previously asserted that we fallback to cookie if both params are invalid
-		//  - this is no longer the case
-		it("should fall back to cookie when AuthRequest is invalid. ClientInfo may be empty", async () => {
+		it("should fall back to cookie when AuthRequest is invalid in a subsequent request", async () => {
 			// Arrange
-			const mockContext = createMockContext();
+			const mockContext = createMockContext(TEST_TX);
 			mockContext.env.OAUTH_PROVIDER.parseAuthRequest.mockResolvedValue({ clientId: "" }); // Invalid OAuth request
 			mockContext.env.OAUTH_PROVIDER.lookupClient.mockResolvedValue(validClientInfo);
 
-			const cookieData = { oauthReq: validOAuthReq, clientInfo: validClientInfo };
-			(retrieveCookie as Mock).mockReturnValue(cookieData);
+			const cookieData = {
+				oauthReq: validOAuthReq,
+				csrfToken: validCsrfToken,
+			};
+			(loadAuthCookie as Mock).mockResolvedValue(cookieData);
 
 			// Act
 			const result = await getValidAuthContext(mockContext);
 
 			// Assert
-			expect(result).toEqual(cookieData);
-			expect(persistCookie).not.toHaveBeenCalled();
-			expect(retrieveCookie).toHaveBeenCalledWith(mockContext);
+			expect(result).toEqual({
+				oauthReq: validOAuthReq,
+				client: validClientInfo,
+				tx: TEST_TX,
+				csrfToken: validCsrfToken,
+			});
+			expect(saveAuthCookie).not.toHaveBeenCalled();
+			expect(loadAuthCookie).toHaveBeenCalledWith(mockContext, TEST_TX);
 		});
 
-		it("should throw AuthFlowError when both parameters and cookie are invalid", async () => {
+		it("should throw AuthFlowError when parameters are invalid in the first request", async () => {
 			// Arrange
 			const mockContext = createMockContext();
-			mockContext.env.OAUTH_PROVIDER.parseAuthRequest.mockResolvedValue(null);
-			(retrieveCookie as Mock).mockReturnValue(null);
+			mockContext.env.OAUTH_PROVIDER.parseAuthRequest.mockResolvedValue({ clientId: "" }); // Invalid OAuth request
+
+			// Mock loadAuthCookie to return null to ensure it's treated as a first request
+			(loadAuthCookie as Mock).mockResolvedValue(null);
+
+			// Mock crypto.randomUUID to return predictable values
+			const originalRandomUUID = crypto.randomUUID;
+			crypto.randomUUID = vi.fn().mockReturnValue(TEST_TX);
 
 			// Act & Assert
 			await expect(getValidAuthContext(mockContext)).rejects.toThrow(AuthFlowError);
-			expect(deleteCookie).toHaveBeenCalled();
+
+			// Restore original function
+			crypto.randomUUID = originalRandomUUID;
 		});
 
-		it("should handle errors from parseAuthRequest", async () => {
+		it("should handle errors from parseAuthRequest in a subsequent request", async () => {
 			// Arrange
-			const mockContext = createMockContext();
+			const mockContext = createMockContext(TEST_TX);
 			mockContext.env.OAUTH_PROVIDER.parseAuthRequest.mockRejectedValue(new Error("Parse error"));
 
-			const cookieData = { oauthReq: validOAuthReq, clientInfo: validClientInfo };
-			(retrieveCookie as Mock).mockReturnValue(cookieData);
+			const cookieData = {
+				oauthReq: validOAuthReq,
+				csrfToken: validCsrfToken,
+			};
+			(loadAuthCookie as Mock).mockResolvedValue(cookieData);
+			mockContext.env.OAUTH_PROVIDER.lookupClient.mockResolvedValue(validClientInfo);
 
 			// Act
 			const result = await getValidAuthContext(mockContext);
 
 			// Assert
-			expect(result).toEqual(cookieData);
-			expect(persistCookie).not.toHaveBeenCalled();
+			expect(result).toEqual({
+				oauthReq: validOAuthReq,
+				client: validClientInfo,
+				tx: TEST_TX,
+				csrfToken: validCsrfToken,
+			});
+			expect(saveAuthCookie).not.toHaveBeenCalled();
 		});
 
-		it("resolves with {oauthReq, clientInfo: undefined} and DOES NOT consult cookie when lookupClient fails", async () => {
+		it("throws AuthFlowError when client lookup fails in the first request", async () => {
 			// Arrange
 			const mockContext = createMockContext();
 			mockContext.env.OAUTH_PROVIDER.parseAuthRequest.mockResolvedValue(validOAuthReq);
+
+			// Mock loadAuthCookie to return null to ensure it's treated as a first request
+			(loadAuthCookie as Mock).mockResolvedValue(null);
+
+			// Mock client lookup to throw an AuthFlowError
 			mockContext.env.OAUTH_PROVIDER.lookupClient.mockRejectedValue(
-				new Error("Client lookup failed"),
+				new AuthFlowError("Client lookup failed"),
 			);
 
-			// ─ Act
-			const result = await getValidAuthContext(mockContext);
+			// Mock crypto.randomUUID to return predictable values
+			const originalRandomUUID = crypto.randomUUID;
+			crypto.randomUUID = vi
+				.fn()
+				.mockReturnValueOnce(TEST_TX) // First call for tx
+				.mockReturnValueOnce(validCsrfToken); // Second call for csrfToken
 
-			// ─ Assert
-			expect(result).toEqual({ oauthReq: validOAuthReq, clientInfo: undefined });
+			// ─ Act & Assert
+			await expect(getValidAuthContext(mockContext)).rejects.toThrow(AuthFlowError);
 
-			// retrieveCookie must never be called
-			expect(retrieveCookie).not.toHaveBeenCalled();
-
-			// The function must write a cookie that contains ONLY oauthReq
-			expect(persistCookie).toHaveBeenCalledTimes(1);
-			expect(persistCookie).toHaveBeenCalledWith(mockContext, {
-				oauthReq: validOAuthReq,
-				clientInfo: undefined,
-			});
+			// Restore original function
+			crypto.randomUUID = originalRandomUUID;
 		});
 
-		describe("cookie that holds only oauthReq", () => {
-			const cookieOnlyOAuthReq = { oauthReq: validOAuthReq, clientInfo: undefined };
-
-			it("accepts an existing cookie with only oauthReq (no persistence)", async () => {
+		describe("cookie with missing client info", () => {
+			it("should throw AuthFlowError when cookie exists but client lookup fails", async () => {
 				// Arrange
-				const mockContext = createMockContext();
-				mockContext.env.OAUTH_PROVIDER.parseAuthRequest.mockResolvedValue(null); // invalid params
-				(retrieveCookie as Mock).mockReturnValue(cookieOnlyOAuthReq);
+				const mockContext = createMockContext(TEST_TX);
+				mockContext.env.OAUTH_PROVIDER.parseAuthRequest.mockResolvedValue({ clientId: "" }); // Invalid OAuth request
 
-				// ─ Act
-				const result = await getValidAuthContext(mockContext);
+				const cookieData = {
+					oauthReq: validOAuthReq,
+					csrfToken: validCsrfToken,
+				};
+				(loadAuthCookie as Mock).mockResolvedValue(cookieData);
 
-				// ─ Assert
-				expect(result).toEqual(cookieOnlyOAuthReq);
-				expect(persistCookie).not.toHaveBeenCalled();
+				// Mock client lookup to fail with an AuthFlowError
+				mockContext.env.OAUTH_PROVIDER.lookupClient.mockRejectedValue(
+					new AuthFlowError("Client lookup failed"),
+				);
+
+				// ─ Act & Assert
+				await expect(getValidAuthContext(mockContext)).rejects.toThrow(AuthFlowError);
+				expect(loadAuthCookie).toHaveBeenCalledWith(mockContext, TEST_TX);
 			});
 
-			it("persists a cookie with only oauthReq when lookupClient fails", async () => {
+			it("should throw AuthFlowError when client is not found", async () => {
 				// Arrange
-				const mockContext = createMockContext();
-				mockContext.env.OAUTH_PROVIDER.parseAuthRequest.mockResolvedValue(validOAuthReq);
-				mockContext.env.OAUTH_PROVIDER.lookupClient.mockRejectedValue(
-					new Error("Client lookup failed"),
-				);
-				(retrieveCookie as Mock).mockReturnValue(null); // nothing in the browser yet
+				const mockContext = createMockContext(TEST_TX);
+				mockContext.env.OAUTH_PROVIDER.parseAuthRequest.mockResolvedValue({ clientId: "" }); // Invalid OAuth request
 
-				// ─ Act
-				const result = await getValidAuthContext(mockContext);
+				const cookieData = {
+					oauthReq: validOAuthReq,
+					csrfToken: validCsrfToken,
+				};
+				(loadAuthCookie as Mock).mockResolvedValue(cookieData);
 
-				// ─ Assert
-				expect(result).toEqual(cookieOnlyOAuthReq);
-				expect(persistCookie).toHaveBeenCalledWith(mockContext, cookieOnlyOAuthReq);
+				// Mock client lookup to return null
+				mockContext.env.OAUTH_PROVIDER.lookupClient.mockResolvedValue(null);
+
+				// ─ Act & Assert
+				await expect(getValidAuthContext(mockContext)).rejects.toThrow(AuthFlowError);
+				expect(loadAuthCookie).toHaveBeenCalledWith(mockContext, TEST_TX);
 			});
 		});
 	});

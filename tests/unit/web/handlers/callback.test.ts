@@ -6,9 +6,14 @@ import type { Context } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { testSession, testUser } from "../../../mocks";
 
+const TEST_TX = "unit-test-tx";
+
 describe("authCallbackHandler", () => {
 	// Helper to create a mock context with query parameters
 	const createMockContext = (queryParams: Record<string, string | null>): Context => {
+		/* Always include the `tx` parameter – it’s mandatory for the flow */
+		if (!("tx" in queryParams)) queryParams.tx = TEST_TX;
+
 		// Create a mock request with the specified query parameters
 		const mockReq = {
 			url: `https://example.com/auth/callback${
@@ -49,95 +54,85 @@ describe("authCallbackHandler", () => {
 	});
 
 	// Happy path test
-	it("should exchange code for session and redirect to authorize page on success", async () => {
-		// Arrange
-		const mockContext = createMockContext({ code: "valid-code", state: "some-state" });
+	it("exchanges code for session and redirects to /authorize with tx on success", async () => {
+		const ctx = createMockContext({ code: "valid-code", state: "some-state" });
 
-		// Get the mock Supabase client
-		const mockSupabaseClient = SupabaseModule.getSupabase(mockContext as Context);
-
-		// Configure the mock to return a successful response
-		mockSupabaseClient.auth.exchangeCodeForSession.mockResolvedValue({
-			data: {
-				session: testSession,
-				user: testUser,
-			},
+		const supabase = SupabaseModule.getSupabase(ctx);
+		supabase.auth.exchangeCodeForSession.mockResolvedValue({
+			data: { session: testSession, user: testUser },
 			error: null,
 		});
 
-		// Act
-		await authCallbackHandler(mockContext);
+		await authCallbackHandler(ctx);
 
-		// Assert
-		expect(mockContext.req.query).toHaveBeenCalledWith("code");
-		expect(mockContext.req.query).toHaveBeenCalledWith("state");
-		expect(mockSupabaseClient.auth.exchangeCodeForSession).toHaveBeenCalledWith("valid-code");
-		expect(mockContext.redirect).toHaveBeenCalledWith(`${AppRoutes.AUTHORIZE}`);
-		expect(mockContext.text).not.toHaveBeenCalled();
+		expect(ctx.req.query).toHaveBeenCalledWith("code");
+		expect(ctx.req.query).toHaveBeenCalledWith("state");
+		expect(ctx.req.query).toHaveBeenCalledWith("tx");
+		expect(supabase.auth.exchangeCodeForSession).toHaveBeenCalledWith("valid-code");
+		expect(ctx.redirect).toHaveBeenCalledWith(`${AppRoutes.AUTHORIZE}?tx=${TEST_TX}`, 302);
+		expect(ctx.text).not.toHaveBeenCalled();
 	});
 
 	// Unhappy path test - missing code
-	it("should return an error when code is missing", async () => {
-		// Arrange
-		const mockContext = createMockContext({ state: "some-state" });
+	it("returns 400 when code is missing", async () => {
+		const ctx = createMockContext({ state: "some-state" });
 
-		// Act
-		await authCallbackHandler(mockContext);
+		await authCallbackHandler(ctx);
 
-		// Assert
-		expect(mockContext.req.query).toHaveBeenCalledWith("code");
-		expect(mockContext.text).toHaveBeenCalledWith(
+		expect(ctx.req.query).toHaveBeenCalledWith("code");
+		expect(ctx.req.query).toHaveBeenCalledWith("tx");
+		expect(ctx.text).toHaveBeenCalledWith(
 			"Authentication Error: Authorization code was missing.",
 			400,
 		);
-		expect(mockContext.redirect).not.toHaveBeenCalled();
+		expect(ctx.redirect).not.toHaveBeenCalled();
 	});
 
 	// Error handling test - exchange fails
-	it("should handle errors when exchanging code for session", async () => {
-		// Arrange
-		const mockContext = createMockContext({ code: "invalid-code" });
+	it("propagates Supabase error when code exchange fails", async () => {
+		const ctx = createMockContext({ code: "invalid-code" });
 
-		// Get the mock Supabase client
-		const mockSupabaseClient = SupabaseModule.getSupabase(mockContext as Context);
-
-		// Configure the mock to return an error
-		mockSupabaseClient.auth.exchangeCodeForSession.mockResolvedValue({
+		const supabase = SupabaseModule.getSupabase(ctx);
+		supabase.auth.exchangeCodeForSession.mockResolvedValue({
 			data: { session: null, user: null },
 			error: { message: "Invalid code", status: 400 },
 		});
 
-		// Act
-		await authCallbackHandler(mockContext);
+		await authCallbackHandler(ctx);
 
-		// Assert
-		expect(mockContext.req.query).toHaveBeenCalledWith("code");
-		expect(mockSupabaseClient.auth.exchangeCodeForSession).toHaveBeenCalledWith("invalid-code");
-		expect(mockContext.text).toHaveBeenCalledWith("Authentication Error: Invalid code", 400);
-		expect(mockContext.redirect).not.toHaveBeenCalled();
+		expect(ctx.req.query).toHaveBeenCalledWith("code");
+		expect(ctx.req.query).toHaveBeenCalledWith("tx");
+		expect(supabase.auth.exchangeCodeForSession).toHaveBeenCalledWith("invalid-code");
+		expect(ctx.text).toHaveBeenCalledWith("Authentication Error: Invalid code", 400);
+		expect(ctx.redirect).not.toHaveBeenCalled();
 	});
 
 	// Error handling test - unexpected error
-	it("should handle unexpected errors during code exchange", async () => {
-		// Arrange
-		const mockContext = createMockContext({ code: "error-code" });
+	it("handles unexpected errors thrown during code exchange", async () => {
+		const ctx = createMockContext({ code: "error-code" });
 
-		// Get the mock Supabase client
-		const mockSupabaseClient = SupabaseModule.getSupabase(mockContext as Context);
+		const supabase = SupabaseModule.getSupabase(ctx);
+		supabase.auth.exchangeCodeForSession.mockRejectedValue(new Error("Network error"));
 
-		// Configure the mock to throw an error
-		mockSupabaseClient.auth.exchangeCodeForSession.mockRejectedValue(new Error("Network error"));
+		await authCallbackHandler(ctx);
 
-		// Act
-		await authCallbackHandler(mockContext);
-
-		// Assert
-		expect(mockContext.req.query).toHaveBeenCalledWith("code");
-		expect(mockSupabaseClient.auth.exchangeCodeForSession).toHaveBeenCalledWith("error-code");
-		expect(mockContext.text).toHaveBeenCalledWith(
+		expect(ctx.req.query).toHaveBeenCalledWith("code");
+		expect(ctx.req.query).toHaveBeenCalledWith("tx");
+		expect(supabase.auth.exchangeCodeForSession).toHaveBeenCalledWith("error-code");
+		expect(ctx.text).toHaveBeenCalledWith(
 			"Internal Server Error: Failed to process authentication callback.",
 			500,
 		);
-		expect(mockContext.redirect).not.toHaveBeenCalled();
+		expect(ctx.redirect).not.toHaveBeenCalled();
+	});
+
+	it("returns 400 when tx parameter is missing", async () => {
+		const ctx = createMockContext({ code: "some-code", tx: null });
+
+		await authCallbackHandler(ctx);
+
+		expect(ctx.req.query).toHaveBeenCalledWith("tx");
+		expect(ctx.text).toHaveBeenCalledWith("Bad Request: Missing cookie transaction id.", 400);
+		expect(ctx.redirect).not.toHaveBeenCalled();
 	});
 });

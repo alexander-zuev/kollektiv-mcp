@@ -15,6 +15,11 @@ export function createMockContext(overrides: Partial<Context> = {}): Context {
 		parseBody: vi.fn().mockResolvedValue({}),
 		url: "https://example.com",
 		header: (_name: string) => undefined,
+		query: vi
+			.fn()
+			.mockImplementation((key?: string) =>
+				key ? undefined : ({} as Record<string, string | undefined>),
+			),
 		...overrides.req,
 	};
 

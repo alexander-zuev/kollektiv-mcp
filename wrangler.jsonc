@@ -1,6 +1,17 @@
 /**
- * For more details on how to configure Wrangler, refer to:
- * https://developers.cloudflare.com/workers/wrangler/configuration/
+ * Wrangler config for kollektiv-mcp
+ *
+ * - Default-level keys define shared configuration for local development.
+ * - The "prod" environment is used for production deployment on the custom domain.
+ * - The "preview" environment is used for remote dev previews (wrangler dev --env preview --remote).
+ *
+ * Each environment can override specific keys (like vars or kv_namespaces),
+ * while inheriting all other settings from the default config.
+ *
+ * Usage:
+ * - Local dev:            wrangler dev
+ * - Remote preview dev:   wrangler dev --env preview --remote
+ * - Production publish:   wrangler publish --env prod
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
@@ -72,40 +83,28 @@
 				}
 			],
 			"upload_source_maps": true
+		},
+		"preview": {
+			"name": "kollektiv-mcp-preview",
+			"vars": {
+				"API_BASE_URL": "http://localhost:8080",
+				"SITE_URL": "https://kollektiv-mcp.azuev.workers.dev"
+			},
+			"durable_objects": {
+				"bindings": [
+					{
+						"name": "MCP_OBJECT",
+						"class_name": "KollektivMCP"
+					}
+				]
+			},
+			"kv_namespaces": [
+				{
+					"binding": "OAUTH_KV",
+					"id": "1a71071eb37648fdad5acac97b63fd85",
+					"preview_id": "1a71071eb37648fdad5acac97b63fd85"
+				}
+			]
 		}
 	}
 }
-/**
- * Smart Placement
- * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
- */
-// "placement": { "mode": "smart" },
-
-/**
- * Bindings
- * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
- * databases, object storage, AI inference, real-time communication and more.
- * https://developers.cloudflare.com/workers/runtime-apis/bindings/
- */
-
-/**
- * Environment Variables
- * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
- */
-// "vars": { "MY_VARIABLE": "production_value" },
-/**
- * Note: Use secrets to store sensitive data.
- * https://developers.cloudflare.com/workers/configuration/secrets/
- */
-
-/**
- * Static Assets
- * https://developers.cloudflare.com/workers/static-assets/binding/
- */
-// "assets": { "directory": "./public/", "binding": "ASSETS" },
-
-/**
- * Service Bindings (communicate between multiple Workers)
- * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
- */
-// "services": [{ "binding": "MY_SERVICE", "service": "my-service" }]

@@ -16,6 +16,7 @@ import type { Context } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const TEST_EMAIL = "test@user.com";
+const TEST_TX = "unit-test-tx";
 
 vi.mock("@/web/templates", async () => {
 	// We still want all the real exports except the ones we override
@@ -39,6 +40,11 @@ describe("Login Handler tests covering all major flows", () => {
 
 	beforeEach((ctx) => {
 		c = ctx.c as Context;
+
+		/* Inject the tx query parameter for every test */
+		vi.spyOn(c.req, "query").mockImplementation((key?: string) =>
+			key === "tx" ? TEST_TX : undefined,
+		);
 	});
 
 	it("Redirects to Github provider URL on success", async () => {
@@ -58,7 +64,7 @@ describe("Login Handler tests covering all major flows", () => {
 		expect(__mocks.mockSignInWithOAuth).toHaveBeenCalledWith({
 			provider: LoginProvider.GITHUB,
 			options: expect.objectContaining({
-				redirectTo: `${c.env.SITE_URL}${AppRoutes.AUTH_CALLBACK}`,
+				redirectTo: `${c.env.SITE_URL}${AppRoutes.AUTH_CALLBACK}?tx=${TEST_TX}`,
 			}),
 		});
 		expect(res.status).toBe(302);
@@ -83,7 +89,7 @@ describe("Login Handler tests covering all major flows", () => {
 		expect(__mocks.mockSignInWithOAuth).toHaveBeenCalledWith({
 			provider: LoginProvider.GOOGLE,
 			options: expect.objectContaining({
-				redirectTo: `${c.env.SITE_URL}${AppRoutes.AUTH_CALLBACK}`,
+				redirectTo: `${c.env.SITE_URL}${AppRoutes.AUTH_CALLBACK}?tx=${TEST_TX}`,
 			}),
 		});
 		expect(res.status).toBe(302);
@@ -113,7 +119,7 @@ describe("Login Handler tests covering all major flows", () => {
 			email: TEST_EMAIL,
 			options: expect.objectContaining({
 				shouldCreateUser: true,
-				emailRedirectTo: `${c.env.SITE_URL}${AppRoutes.AUTH_CALLBACK}`,
+				emailRedirectTo: `${c.env.SITE_URL}${AppRoutes.AUTH_CALLBACK}?tx=${TEST_TX}`,
 			}),
 		});
 

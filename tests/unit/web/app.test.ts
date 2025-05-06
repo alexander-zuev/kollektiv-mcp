@@ -1,3 +1,13 @@
+// Import handlers after mocks are set up
+import {
+	allRoutesHandler,
+	authCallbackHandler,
+	getAuthorizeHandler,
+	loginHandler,
+	postAuthorizeHandler,
+	rootHandler,
+} from "@/web/handlers";
+import { logoutHandler } from "@/web/handlers/logout";
 import { AppRoutes } from "@/web/routes";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -28,18 +38,6 @@ vi.mock("@/web/handlers", () => ({
 vi.mock("@/web/handlers/logout", () => ({
 	logoutHandler: vi.fn(),
 }));
-
-// Import handlers after mocks are set up
-import {
-	allRoutesHandler,
-	authCallbackHandler,
-	authConfirmHandler,
-	getAuthorizeHandler,
-	loginHandler,
-	postAuthorizeHandler,
-	rootHandler,
-} from "@/web/handlers";
-import { logoutHandler } from "@/web/handlers/logout";
 
 /**
  * Tests for the web app route configuration
@@ -85,10 +83,6 @@ describe("Web App Routes", () => {
 	describe("POST routes", () => {
 		it("registers authorize route", () => {
 			expect(mockPost).toHaveBeenCalledWith(AppRoutes.AUTHORIZE, postAuthorizeHandler);
-		});
-
-		it("registers auth confirm route", () => {
-			expect(mockPost).toHaveBeenCalledWith(AppRoutes.AUTH_CONFIRM, authConfirmHandler);
 		});
 
 		it("registers login route", () => {

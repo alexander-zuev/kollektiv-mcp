@@ -1,5 +1,7 @@
 import { AppRoutes } from "@/web/routes";
+import { base } from "@/web/templates/base";
 import type { ClientInfo } from "@cloudflare/workers-oauth-provider";
+import type { Context } from "hono";
 import { html } from "hono/html";
 
 /** Authorised login providers */
@@ -22,10 +24,10 @@ const OAUTH_PROVIDERS: { id: LoginProvider; label: string; icon: string }[] = [
 	{ id: LoginProvider.GOOGLE, label: "Login with Google", icon: "ph-google-logo" },
 ];
 
-export const renderLoginScreen = (clientInfo?: ClientInfo) => {
+export const loginScreen = (clientInfo: ClientInfo, tx: string) => {
 	/* Helper for OAuth buttons */
 	const renderOAuthButton = ({ id, label, icon }: (typeof OAUTH_PROVIDERS)[number]) => html`
-        <form method="POST" action="${AppRoutes.LOGIN}" onsubmit="
+        <form method="POST" action="${AppRoutes.LOGIN}?tx=${tx}" onsubmit="
         this.querySelectorAll('button[type=submit]')
             .forEach(btn => {
               btn.disabled = true;
@@ -71,7 +73,7 @@ export const renderLoginScreen = (clientInfo?: ClientInfo) => {
                 </div>
 
                 <!-- Magic-link form -->
-                <form method="POST" action="${AppRoutes.LOGIN}" onsubmit="
+                <form method="POST" action="${AppRoutes.LOGIN}?tx=${tx}" onsubmit="
         this.querySelectorAll('button[type=submit]')
             .forEach(btn => {
               btn.disabled = true;
@@ -108,3 +110,9 @@ export const renderLoginScreen = (clientInfo?: ClientInfo) => {
         </div>
     `;
 };
+
+export async function renderLoginScreen(c: Context, client: ClientInfo, tx: string) {
+	const content = await loginScreen(client, tx);
+	const pageTitle = `Log in to authorize ${client?.clientName || "Application"}`;
+	return c.html(base(content, pageTitle));
+}
