@@ -12,7 +12,12 @@ import { type ZodRawShape, z } from "zod";
 
 // Define tool parameters schema
 const queryToolParamSchema = {
-	query: z.string().min(1, "Query can not be empty"),
+	query: z
+		.string()
+		.min(1, "Query can not be empty")
+		.describe(
+			'Standalone natural-language search phrase or question distilled from the current conversation. Include only the domain-specific keywords needed for retrieval; exclude greetings, explanations, or answer content. Example: "OAuth PKCE token lifetime"',
+		),
 };
 
 // Define handler function
@@ -51,9 +56,7 @@ const queryToolHandler: ToolCallback<typeof queryToolParamSchema> = async (
 export const queryDocumentsTool: ToolDefinitionSchema<typeof queryToolParamSchema> = {
 	name: "query_documents",
 	description:
-		"Query the documents uploaded by the user and return a response from LLM based" +
-		" on retrieved documents. The response will be LLM summary based on retrieved documents" +
-		" (if any). ",
+		"Performs a semantic RAG search over the user’s uploaded documents. Invoke this tool when additional factual context is required. Provide exactly one argument, `query`, containing a concise, standalone search phrase or question that captures the user’s current intent. The string is passed verbatim to the retriever, so omit answers, summaries, code, or conversational filler.",
 	paramsSchema: queryToolParamSchema,
 	handler: queryToolHandler,
 };

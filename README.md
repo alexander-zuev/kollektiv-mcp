@@ -23,8 +23,8 @@ Claude Desktop, etc.
 ## 💿 Connection
 
 The simplest way to connect to Kollektiv MCP is to copy & paste the following
-configuration into your editor's `mcp.json` file. All clients (Cursor, Windsurf, Claude Desktop
-/ Code / Cline / VSCode / PyCharm) support this `json` format
+configuration into your editor's `mcp.json` file. All clients (Cursor, Windsurf, Claude Desktop,
+VSCode, PyCharm) support this `json` format
 
 ```json
 {
@@ -52,9 +52,7 @@ configuration into your editor's `mcp.json` file. All clients (Cursor, Windsurf,
       Kollektiv)
     - `https://mcp.thekollektiv.ai/mcp` - is the endpoint you are connecting to
 
-Check out a quick demo below and see client-specific instructions.
-
-![Connection Demo](./public/connection.gif)
+Check out client-specific instructions to learn how to connect.
 
 ### Cursor
 
