@@ -7,20 +7,24 @@
 [![codecov](https://codecov.io/gh/alexander-zuev/kollektiv-mcp/graph/badge.svg)](https://codecov.io/gh/alexander-zuev/kollektiv-mcp)
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue?logo=apache&logoColor=white)](LICENSE)
 
-> 🧪 Kollektiv is in Beta:
-> There are still some rough edges - if you spot one,
-> please [open an issue](https://github.com/alexander-zuev/kollektiv-mcp/issues/new)!
+## 🧠 Your personal LLM knowledgebase
 
-## Overview
+Kollektiv MCP enables you to build personal LLM knowledge base in seconds and use it from your
+favorite editor / client. No more infrastructure setup, chunking, syncing - just upload your
+data and start chatting. Supports all major MCP clients out of the box - Cursor, Windsurf,
+Claude Desktop, etc.
 
-Kollektiv MCP enables you to setup RAG over your data in seconds. No more infrastructure setup,
-chunking, syncing -> just upload your data and start chatting. Supports all major MCP clients
-out of the box - Cursor, Windsurf, Claude Desktop, etc.
+> 🧪 Kollektiv is in early beta. If you
+> experience any issues connecting to the MCP client, try
+> going over [these steps](#connection-troubleshooting) first. If still unsuccessful please raise an
+> issue
+> [here](https://github.com/alexander-zuev/kollektiv-mcp/issues/new)
 
-## Installation
+## 💿 Connection
 
-The simplest way to install Kollektiv MCP (currently) is to copy & paste the following
-configuration into your editor's `mcp.json` file:
+The simplest way to connect to Kollektiv MCP is to copy & paste the following
+configuration into your editor's `mcp.json` file. All clients (Cursor, Windsurf, Claude Desktop
+/ Code / Cline / VSCode / PyCharm) support this `json` format
 
 ```json
 {
@@ -28,103 +32,321 @@ configuration into your editor's `mcp.json` file:
     "kollektiv": {
       "command": "npx",
       "args": [
+        "-y",
         "mcp-remote",
-        "https://mcp.thekollektiv.ai/sse"
+        "https://mcp.thekollektiv.ai/mcp"
       ]
     }
   }
 }
 ```
 
-The configuration is the same, with the exception of Claude Desktop which recently added direct
-support for connecting to remote MCP servers. Read client-specific sections below.
+- **name:**
+    - `kollektiv`- you can you give the server any descriptive name
+- **command:**
+    - `npx` - ensure you have node.js install before running this command
+- **args:**
+    - `-y` - this enables your shell to install `mcp-remote` which is currently required to connect
+      to remote servers
+    - `mcp-remote` - this enables your client to connect to a remote MCP server (in this case
+      Kollektiv)
+    - `https://mcp.thekollektiv.ai/mcp` - is the endpoint you are connecting to
+
+Check out a quick demo below and see client-specific instructions.
+
+![Connection Demo](./public/connection.gif)
 
 ### Cursor
 
 Open Cursor and go to `Cursor Settings > MCP > Add new global MCP Server`. Paste the configuration
 above and save (ctrl/cmd+s).
-![image](https://github.com/user-attachments/assets/b5f4ab86-1a84-475d-a191-4ad0e1f8e965)
+
+![Cursor Configuration](https://github.com/user-attachments/assets/997188be-bd52-4d80-a03f-fbe17b8d7e38)
+
+If configuration is successful and you haven't authenticated before, a browser window should
+open guiding you to the login page.
+
+> 💡After saving the `json` it might take a while for Cursor to connect to the MCP. You might
+> need to restart Cursor or give it a bit of time. If you see 'Client is closed' or other errors,
+> taking these [troubleshooting](#connection-troubleshooting) steps might help.
+
+If the connection is successful, you should see Kollektiv MCP go green in the settings page:
+
+![Successful Cursor connection](https://github.com/user-attachments/assets/edfbe166-ce2a-4775-ac5f-38d6776bd968)
 
 ### Windsurf
 
+Open Windsurf and go to `Settings -> Windsurf Settings > MCP Servers > View raw config`.
+Paste the configuration above and save (ctrl/cmd+s).
+
+![Windsurf MCP configuration](https://github.com/user-attachments/assets/1f67953f-231d-4f6f-ba48-80982b849560)
+
+If configuration is successful and you haven't authenticated before, a browser window should
+open guiding you to the login page.
+
+> 💡Windsurf, in contrast to other clients, in my experience requires a restart of the app to
+> properly connect. If the server doesn't go 'green' after a while, try going over the
+> [troubleshooting](#connection-troubleshooting) steps below.
+
+If connection is successful you should see Kollektiv MCP go green in the settings page:
+
+![Successful Windsurf configuration](https://github.com/user-attachments/assets/b0909516-55d7-47ec-9712-895fd2ae66b6)
+
 ### Claude for Desktop
 
-### Cline
+Open Claude Desktop and go to `Settings -> Developer > Edit config`. Open `json` file in any
+text / code editor, paste the configuration above and save (ctrl/cmd+s).
 
-### Others
+![Claude Desktop Configuration](https://github.com/user-attachments/assets/1f67953f-231d-4f6f-ba48-80982b849560)
 
-## Troubleshooting
+If configuration is successful and you haven't authenticated before, a browser window should
+open guiding you to the login page.
 
-## Implementation details (for the 🤓):
+> 💡Claude for Desktop requires a restart of the app to properly connect. If the server doesn't go
+> 'green' after a while, try going over the
+> [troubleshooting](#connection-troubleshooting) steps below.
 
-> If you are a regular user, feel free to skip this section. This is aimed mostly at devs.
+If connection is successful you should see Kollektiv MCP go green in the settings page:
 
-Kollektiv MCP is one part of a larger application. It enables users to simplify RAG setup over
-personal data in a private and secure manner. It's essentially a gateway to your data and is
-tighly integrate with the backend server (FastAPI) and frontend server (React).
+![Successful Claude For Desktop](https://github.com/user-attachments/assets/530c32e7-72f4-4d3f-a88d-d6062b5b617a)
 
-Kollektiv MCP itself consists of three parts:
+### VS Code
 
-- Oauth provider (`workers-oauth-provider` & `Supabase Auth`): MCP server implements the provider
-  side of Oauth 2.0 to enable users to
-  authenticate with the MCP server easily (Oauth + Email).
-- MCP server (`Cloudflare Agent SDK`): Exposes various tools following MCP protocol.
-- Web server (`Hono`): Wraps all non-mcp related functionality (e.g. authentication, static files,
-  etc.)
+Open VS Code and go to `Settings -> MCP: Add server > Command (stdio)`:
 
-## Getting Started
+- **command:**
+    - `npx -y mcp-remote https://mcp.thekollektiv.ai/mcp`
+- **name:**
+    - give your server a descriptive name such as `kollektiv`
 
-### Local Development
-
-### Deployment
-
-## Connecting to the MCP Server
-
-You can connect to the MCP server using any MCP-compatible client such as Cursor, Windsurf, or
-Claude Desktop by configuring connection details as follows:
+Your configuration `settings.json` should look similar to this:
 
 ```json
 {
-  "mcpServers": {
-    "kollektiv-mcp": {
-      "command": "npx",
-      "args": [
-        "mcp-remote",
-        "https://mcp.thekollektiv.ai"
-      ]
+  "chat.mcp.discovery.enabled": true,
+  "chat.mcp.enabled": true,
+  "mcp": {
+    "servers": {
+      "kollektiv": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "mcp-remote",
+          "https://mcp.thekollektiv.ai/mcp"
+        ]
+      }
     }
   }
 }
 ```
 
-- `kollektiv-mcp` -> you can use any name you want
-- `command` -> `npx`
-- `args` -> `mcp-remote` and the URL of the MCP server. Use `http://localhost:8787/sse` for local
-  development.
+![VS Code Configuration](https://github.com/user-attachments/assets/2db10459-d10b-4997-88d4-1193fce0bef7)
 
-Connecting clients (Cursor, Windsurf, etc.) is done in much the same way as above. You can find
-documentation on how to your particular client on their respective websites.
+Next steps:
 
-### Using the MCP Inspector
+- Click **Start** to connect to the MCP Server
+    - if you are not authenticated - you will be taken to the authentication page
+- Remember to add `"chat.mcp.enabled": true,` in your `settings.json`
+- Switch to **Agent** mode
 
-For debugging purposes, you can use the MCP Inspector to connect to your MCP server.
+> 💡VS Code requires you to manually **start** your server, add `chat.mcp.enabled` and switch to
+> Agent mode to use MCP. If you do not see MCP tools in Agent mode, try going over the
+> [troubleshooting](#connection-troubleshooting) steps below.
+
+If connection is successful you should see the tools exposed by Kollektiv MCP.
+
+![Successful VS Code Connection](https://github.com/user-attachments/assets/b96132cc-6899-4f3e-ac9a-1eeb08de6bf2)
+
+### Cline
+
+Open Cline, click on `MCP Servers > Edit Configuration` and add the following configuration to your
+`cline_mcp_settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "kollektiv": {
+      "timeout": 60,
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://mcp.thekollektiv.ai/mcp"
+      ],
+      "transportType": "stdio",
+      "disabled": false
+    }
+  }
+}
+```
+
+> Note: direct connections to remote servers that support Authorization are not supported yet by
+> Cline.
+
+If connection is successful, you will be taken through to the authentication flow. After logging
+in, you should see Kollektiv MCP enabled in Cline.
+
+![Cline Configuration](https://github.com/user-attachments/assets/eb32d843-4d09-482c-b4c3-63ca25356c1f)
+
+### Others (PyCharm, Claude Code)
+
+Most MCP clients follow the same `.json` format and should work with similar configuration steps
+as previously mentioned clients:
+
+1. Copy & paste configuration into your client's `json` configuration
+2. Restart the app
+3. Authenticate if not already
+4. Kollektiv MCP should go green & be available in chat / agent mode
+
+Success of your connection depends on many factors including but not limited to:
+
+- how strong developers of a particular client wanted to support MCP connections
+- whether the client supports the
+  latest [MCP spec](https://modelcontextprotocol.io/specification/2025-03-26) with Oauth support
+
+If you are experiencing issues, going through these
+simple [troubleshooting steps](#connection-troubleshooting) might help.
+
+### Supported clients
+
+I've validated connection works to the following MCP clients:
+
+- Cursor ✅
+- Windsurf ✅
+- Claude Desktop ✅
+- VS Code ✅
+- Cline ✅
+
+Other MCP clients _should_ be supported in theory, but in practice things might be a little
+different. If you have a client you really want to connect to - let me know!
+
+## 🎮 Usage
+
+### Available Tools
+
+- `/query_documents` — Submit a question to the documents you’ve uploaded to Kollektiv and
+  receive an answer based on the sources from your documents.
+- `/list_documents` — Return a list of your synced documents together with basic metadata.
+- **Pro tip:** Include the phrase **“use Kollektiv MCP”** so the client knows to call these tools.
+
+#### Usage Tips
+
+- **Always add "use Kollektiv MCP"** — This tells the client which MCP server to use.
+- **Wait for document to be Available** — After upload, it takes 1–2 minutes before the document can
+  be queried.
+- **Rephrase queries when needed** — If the client generates a poor query, edit or rewrite it
+  yourself.
+
+## ❓ Troubleshooting & Support
+
+This MCP server uses Cloudflare Agents SDK as well as other libraries to provide the most modern
+way for users to connect to and use MCP servers. MCP clients on the other hand have yet to
+implement support for the 2 critical pieces:
+
+- remote MCP servers
+- MCP server authorization
+
+In case you experience connection issues, please go through the following troubleshooting steps
+which should help you connect to the MCP server.
+
+### Support
+
+If you require additional support please open a GitHub issue or reach out at support@thekollektiv.ai
+
+### Connection Troubleshooting
+
+If you are getting **Invalid Authorization Request** error as below or can not connect for
+another reason, try going through the steps below which should fix the issue.
+
+![Invalid Authorization Request](https://github.com/user-attachments/assets/87eb6d1f-6dd7-450a-a059-9e88bba68dcd)
+
+1. **Ensure you're connecting to the correct endpoint**:
+    - Use `https://mcp.thekollektiv.ai/mcp` as the MCP endpoint.
+
+2. **Clean mcp-remote cache**:
+    - What this does:
+        - Removes cache of `mcp-remote` library that is used to connect to the remote server from a
+          client that doesn't support remote connections
+    - How:
+        - Run the following command in your terminal
+
+```bash
+# MacOS
+rm -rf ~/.mcp-auth  
+
+# Windows
+Remove-Item -Recurse -Force "$env:USERPROFILE\.mcp-auth"
+```
+
+3. **Clear your browser data & cookies**:
+    - What this does:
+        - Removes browser cookies which are used to store authentication information when logging
+          into Kollektiv.
+    - How:
+        - Open your browser settings and delete browsing data for the last several hours
+
+> ⚠️ Note: this will sign you out from all active sessions, including Kollektiv. Only do this if
+> you're stuck in a broken login flow.
+
+4. **Restart your MCP client and try to reconnect to the MCP server:**
+    - What this does:
+        - MCP clients (Cursor, Windsurf, etc.) often cache connection / configuration settings from
+          previous runs which might interfere with authentication.
+    - How:
+        - Restart your editor / client
+        - Try reconnecting to the MCP server
+
+### Using MCP Inspector
+
+For debugging purposes, you can use the MCP Inspector to connect to Kollektiv MCP server.
 
 ```bash
 npx @modelcontextprotocol/inspector
 ```
 
-Then connect to the server at `http://localhost:8787/sse` (local) or `https://mcp.thekollektiv.ai`
-(production).
+Select either SSE or Streamable HTTP transport
 
-## Security (to be enhanced)
+- SSE: connect to the server at `https://mcp.thekollektiv.ai/sse`
+- Streamable HTTP: connect to the server at `https://mcp.thekollektiv.ai/mcp`
+
+## 🛠️ Implementation Details (for the 🤓)
+
+> If you're just here for Kollektiv - skip this. This section is for devs and builders curious
+> about how it works.
+
+Kollektiv MCP is part of a modular system enabling users to set up RAG over their data
+in seconds — without the need to manage infrastructure, pipelines, or model configs.
+
+It consists of three independently deployed services:
+
+- **MCP Server (Cloudflare Worker)**  
+  [`https://mcp.thekollektiv.ai`](https://mcp.thekollektiv.ai)  
+  Acts as a secure gateway for clients to interact with indexed data via the Model Context
+  Protocol. Supports OAuth.
+
+- **Frontend (React + Vite Worker)**  
+  [`https://thekollektiv.ai`](https://thekollektiv.ai)  
+  A clean, minimal user interface for uploading and managing their content.
+
+- **Backend (FastAPI)**  
+  [`https://api.thekollektiv.ai`](https://api.thekollektiv.ai)  
+  Handles source ingestion, validation, and orchestration of a RAG pipeline.
+
+## 🔐 Security
 
 Kollektiv MCP implements several security measures:
 
-- OAuth 2.0 for secure authentication
-- HTTPS for all communications
-- Cookies? Signed?
+- Sign-in happens via the standard **OAuth 2.1 “Authorization Code” flow** powered by Supabase; only
+  short-lived, `HttpOnly`, `Secure` cookies are stored—no passwords ever touch this server.
+- All traffic is served **exclusively over HTTPS through Cloudflare’s edge**, and every sensitive
+  POST request carries a one-time CSRF/transaction token.
+- The backend runs inside the **Cloudflare Workers sandbox** (no local file-system, no long-running
+  processes), drastically reducing the attack surface.
 
-## License
+  For detailed disclosure guidelines see [SECURITY.md](./SECURITY.md).
+
+## 🪪 License
 
 Released under the Apache License 2.0 — commercial support or alternative licensing:
 azuev@outlook.com
