@@ -74,7 +74,7 @@
 			"kv_namespaces": [
 				{
 					"binding": "OAUTH_KV",
-					"id": "843b3b3108ea45f6be7cc9e4d68ee948"
+					"id": "890edb0bb6754240b92708c4e8e7ff6d"
 				}
 			],
 			"tail_consumers": [

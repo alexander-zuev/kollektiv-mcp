@@ -86,6 +86,7 @@ export async function getValidAuthContext(c: Context): Promise<AuthFlowContext> 
 
 	try {
 		oauthReq = await c.env.OAUTH_PROVIDER.parseAuthRequest(c.req.raw);
+		console.debug("[AuthContext] Parsed auth request:", oauthReq);
 	} catch (err) {
 		console.error("[AuthContext] Failed to parse auth request:", err);
 
@@ -99,13 +100,9 @@ export async function getValidAuthContext(c: Context): Promise<AuthFlowContext> 
 	// if request is valid -> try to extract client info from request parameters
 	if (isValidOAuthRequest(oauthReq)) {
 		const client = await c.env.OAUTH_PROVIDER.lookupClient(oauthReq.clientId);
-		console.debug(
-			"[AuthContext] Retrieved clientInfo for client_id",
-			client || "ClientInfo" + " not found for client_id",
-			oauthReq.clientId,
-		);
+
 		if (!client) {
-			// Client is unknown -> this should also be addressed. Authentication can no continue
+			// Client is unknown -> this should also be addressed. Authentication can not continue
 			console.error("[AuthContext] clientInfo not found for clientID:", oauthReq.clientId);
 
 			if (!subsequent) {
@@ -113,6 +110,7 @@ export async function getValidAuthContext(c: Context): Promise<AuthFlowContext> 
 			}
 			// fall through to cookie
 		} else {
+			console.debug("[AuthContext] Retrieved clientInfo for client_id", client);
 			// Everything checks out → persist and return
 			await saveAuthCookie(c, tx, { oauthReq, csrfToken });
 			console.debug(
