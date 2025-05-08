@@ -23,8 +23,16 @@ export const getAuthorizeHandler = async (c: Context) => {
 				error.message,
 				"Invalid Authorization Request",
 				c,
-				"Please ensure you are logging in from an MCP client (Cursor / Windsurf /" +
-					" Claude Desktop / others)",
+				`
+Try the following:
+
+1. Clear your browser cookies
+2. Run in terminal: rm -rf ~/.mcp-auth (Mac)
+3. Restart your editor (Cursor, Windsurf, etc.)
+
+Full steps: 
+https://github.com/alexander-zuev/kollektiv-mcp#connection-troubleshooting
+`,
 				"Authorization Error",
 			);
 		}

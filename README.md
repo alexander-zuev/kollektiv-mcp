@@ -52,7 +52,9 @@ VSCode, PyCharm) support this `json` format
       Kollektiv)
     - `https://mcp.thekollektiv.ai/mcp` - is the endpoint you are connecting to
 
-Check out client-specific instructions to learn how to connect.
+Check out a short demo below or read client-specific instructions.
+
+![Connection Demo](https://github.com/user-attachments/assets/91f7fdf0-9957-4f4f-a5f6-d33d60d9ed4b)
 
 ### Cursor
 
@@ -257,7 +259,7 @@ If you require additional support please open a GitHub issue or reach out at sup
 If you are getting **Invalid Authorization Request** error as below or can not connect for
 another reason, try going through the steps below which should fix the issue.
 
-![Invalid Authorization Request](https://github.com/user-attachments/assets/87eb6d1f-6dd7-450a-a059-9e88bba68dcd)
+![Authorization Error](https://github.com/user-attachments/assets/1f950fdb-9b46-4799-9a33-5016b89bf117)
 
 1. **Ensure you're connecting to the correct endpoint**:
     - Use `https://mcp.thekollektiv.ai/mcp` as the MCP endpoint.

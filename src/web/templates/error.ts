@@ -9,12 +9,15 @@ export type ErrorScreenProps = {
 	details?: Record<string, unknown>; // structured object dumped prettily
 };
 
-const errorScreenPage = ({
+export const errorScreenPage = ({
 	title = "Authorization Error",
 	message,
 	hint,
 	details,
 }: ErrorScreenProps) => {
+	const errorHint = (hint ?? "").trim();
+	const errorDetails = details || {};
+
 	return html`
         <div class="flex w-full justify-center p-8">
             <div class="max-w-lg w-full rounded-lg border border-border bg-card p-6 text-center flex flex-col gap-4 items-center">
@@ -25,17 +28,14 @@ const errorScreenPage = ({
                 <p class="text-center text-base text-foreground mb-2">Error:
                     ${message}
                 </p>
+                <pre class="mb-4 text-sm text-muted-foreground text-left w-full">${errorHint}
+                </pre>
+
                 ${
-									hint
-										? html`<p class="mb-4 text-sm text-muted-foreground">
-                                    ${hint}</p>`
-										: ""
-								}
-                ${
-									details
+									Object.keys(errorDetails).length
 										? html`
-                                    <pre class="text-sm w-full bg-muted text-muted-foreground p-4 rounded-lg overflow-auto">
-${JSON.stringify(details, null, 2)}</pre>`
+                            <pre class="text-sm text-left w-full bg-muted text-muted-foreground p-4 rounded-lg overflow-auto">
+${JSON.stringify(errorDetails, null, 2)}</pre>`
 										: ""
 								}
             </div>
@@ -45,19 +45,18 @@ ${JSON.stringify(details, null, 2)}</pre>`
 };
 
 export async function renderErrorPage(
-	errMsg: string,
 	title: string,
+	errMsg: string,
 	c: Context,
 	hint: string,
 	pageTitle: string,
+	details?: Record<string, unknown>,
 ) {
 	const content = await errorScreenPage({
-		title: title || "Invalid Authorization Request",
-		message: errMsg || "The authorization request is invalid or expired.",
-		hint:
-			hint ||
-			"Please ensure you are logging in from an MCP client (Cursor / Windsurf /" +
-				" Claude Desktop / others)",
+		title,
+		message: errMsg,
+		hint,
+		details,
 	});
-	return c.html(base(content, pageTitle || "Authorization Error"), 401);
+	return c.html(base(content, pageTitle), 401);
 }
