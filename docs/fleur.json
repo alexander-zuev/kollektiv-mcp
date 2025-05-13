@@ -1,0 +1,28 @@
+{
+	"name": "Kollektiv",
+	"description": "Enables anyone to setup 'RAG over private data' in 2 clicks. No RAG infra or config to manage.",
+	"icon": {
+		"type": "url",
+		"url": {
+			"light": "https://thekollektiv.ai/logo-light.svg",
+			"dark": "https://thekollektiv.ai/logo-dark.svg"
+		}
+	},
+	"category": "Productivity",
+	"price": "Free during beta",
+	"developer": "Kollektiv LLC",
+	"sourceUrl": "https://github.com/alexander-zuev/kollektiv-mcp",
+	"config": {
+		"mcpKey": "kollektiv",
+		"runtime": "npx",
+		"args": ["-y", "mcp-remote", "https://mcp.thekollektiv.ai/mcp"]
+	},
+	"features": [
+		{
+			"name": "Query documents",
+			"description": "Ask questions and retrieve answers from your uploaded documents using semantic search.",
+			"prompt": "What does our onboarding guide say about setting up a dev environment?"
+		}
+	],
+	"setup": []
+}

@@ -52,7 +52,8 @@ VSCode, PyCharm) support this `json` format
       Kollektiv)
     - `https://mcp.thekollektiv.ai/mcp` - is the endpoint you are connecting to
 
-Check out a short demo below or read client-specific instructions.
+Check out a short demo below or read client-specific instructions on how to connect.
+
 
 ![Connection Demo](https://github.com/user-attachments/assets/91f7fdf0-9957-4f4f-a5f6-d33d60d9ed4b)
 

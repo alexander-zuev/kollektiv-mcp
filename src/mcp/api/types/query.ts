@@ -11,7 +11,6 @@ export const QueryRequestSchema = z.object({
  * Response data schema for the Query tool/endpoint.
  */
 export const QueryResponseSchema = z.object({
-	success: z.boolean(),
 	response: z.string(), // 🔥 always required
 	metadata: z.record(z.any()).nullable(),
 });

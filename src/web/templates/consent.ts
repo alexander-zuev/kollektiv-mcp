@@ -18,6 +18,8 @@ export type ConsentScreenProps = {
 
 export const consentScreen = (props: ConsentScreenProps) => {
 	const clientName = props.client?.clientName || "Application";
+	const userEmail = props.user?.email;
+
 	return html`
         <div class="flex w-full justify-center p-8">
             <div class="max-w-lg w-full rounded-lg border border-border bg-card p-6 text-center flex flex-col gap-4 items-center">
@@ -26,7 +28,7 @@ export const consentScreen = (props: ConsentScreenProps) => {
 
                 <p class="text-center text-base text-foreground mb-2">
                     Authorize <strong>${clientName}</strong> to
-                    connect to <strong>Kollektiv</strong> account.
+                    connect to your Kollektiv <strong> ${userEmail}</strong> account.
                 </p>
 
                 <div class="w-full text-left space-y-3 my-2">
