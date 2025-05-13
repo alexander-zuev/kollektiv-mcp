@@ -18,7 +18,7 @@ describe("queryDocumentsTool", () => {
 		const mockAuthContext = { userId: "test-user-id" };
 		// @ts-ignore
 		const result = await queryDocumentsTool.handler(
-			{ query: "test query" },
+			{ rag_query: "test query" },
 			{} as any,
 			mockAuthContext,
 		);
@@ -31,16 +31,15 @@ describe("queryDocumentsTool", () => {
 	});
 
 	it("should return error message when API response success is false", async () => {
-		const mockFailResponse = { success: false, response: "Our backend decided not respond" }; // Response content ignored on
-		// failure
-		vi.mocked(api.post).mockResolvedValue(mockFailResponse);
+		const simulatedApiError = new Error("Simulated API error (e.g., backend returned non-200)");
+		vi.mocked(api.post).mockRejectedValue(simulatedApiError);
 
 		// Verify API call parameters
 		const expectedQuery = "This query will lead to a failed response";
 		const mockAuthContext = { userId: "test-user-id" };
 		const result = await queryDocumentsTool.handler(
 			{
-				query: "This query will lead to a" + " failed response",
+				rag_query: "This query will lead to a failed response",
 			},
 			{} as any,
 			// @ts-ignore
@@ -52,9 +51,7 @@ describe("queryDocumentsTool", () => {
 			{ headers: { "x-user-id": "test-user-id" } },
 		);
 		expect(result).toEqual(
-			createErrorResponse(
-				"There was a server error making this tool call, please" + " try" + " again.",
-			),
+			createErrorResponse("There was a server error making this tool call, please try again."),
 		);
 	});
 
@@ -65,7 +62,7 @@ describe("queryDocumentsTool", () => {
 		// Even though the API call will throw an error, we can still verify that it was called with the correct parameters
 		// @ts-ignore
 		const result = await queryDocumentsTool.handler(
-			{ query: "error query" },
+			{ rag_query: "error query" },
 			{} as any,
 			mockAuthContext,
 		);
