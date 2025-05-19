@@ -16,6 +16,7 @@ export class KollektivMCP extends McpAgent<Env, unknown, AuthContext> {
 	async init() {
 		console.log("Initializing MCP server...");
 
+		// TODO: seems to be another way to pass AuthInfo https://github.com/modelcontextprotocol/typescript-sdk/pull/166
 		registerRagSearchTool(this.server, this.props);
 		registerListDocumentsTool(this.server, this.props);
 	}

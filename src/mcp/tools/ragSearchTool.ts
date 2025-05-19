@@ -1,26 +1,26 @@
-import {api} from "@/mcp/api/client";
-import {ApiRoutes} from "@/mcp/api/routes";
-import type {RagSearchRequest, RagSearchResponse} from "@/mcp/api/types/ragTasks"; // Adjust path as needed
+import { api } from "@/mcp/api/client";
+import { ApiRoutes } from "@/mcp/api/routes";
+import type { RagSearchRequest, RagSearchResponse } from "@/mcp/api/types/ragTasks"; // Adjust path as needed
 import {
-    type AuthContext,
-    CallToolResult,
-    createErrorResponse,
-    createSuccessResponse,
-    type ExtraWithAuth,
-    type ToolDefinitionSchema,
+	type AuthContext,
+	type CallToolResult,
+	type ExtraWithAuth,
+	type ToolDefinitionSchema,
+	createErrorResponse,
+	createSuccessResponse,
 } from "@/mcp/tools/types";
-import type {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
-import type {RequestHandlerExtra} from "@modelcontextprotocol/sdk/shared/protocol.js";
-import type {ServerNotification, ServerRequest} from "@modelcontextprotocol/sdk/types.js";
-import {z, type ZodTypeAny} from "zod";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
+import type { ServerNotification, ServerRequest } from "@modelcontextprotocol/sdk/types.js";
+import { type ZodTypeAny, z } from "zod";
 
 // Define tool parameters schema
 const ragQueryToolParamSchema = z.object({
-    rag_query: z
-        .string()
-        .min(1, "Query can not be empty")
-        .describe(
-            `A RAG query to conduct semantic search over user's uploaded documents. 
+	rag_query: z
+		.string()
+		.min(1, "Query can not be empty")
+		.describe(
+			`A RAG query to conduct semantic search over user's uploaded documents. 
             
 			DO:
 			- Extract key terms, acronyms, or concrete questions.
@@ -33,11 +33,11 @@ const ragQueryToolParamSchema = z.object({
 			- Mention document structure or metadata (e.g., 'section', 'title', 'from file X').
 			- Instructions (e.g. 'citing each page')
 `,
-        ),
-    context: z
-        .string()
-        .min(1)
-        .describe(`
+		),
+	context: z
+		.string()
+		.min(1)
+		.describe(`
 Supplemental context that helps the RAG agent refine the search.
 
 What to supply:
@@ -60,62 +60,61 @@ export type RagQueryToolInput = z.infer<typeof ragQueryToolParamSchema>;
 
 // TODO: this might need to be moved to a shared module
 export function createRagSearchToolResult(resp: RagSearchResponse): CallToolResult {
-    const chunks = resp.response
+	const chunks = resp.response;
 
-    const content: CallToolResult['content'] = [
-        {
-            type: "text",
-            text: chunks.length
-                ? `Search returned ${chunks.length} chunks:`
-                : `Search returned no chunks.`,
-        },
-        {
-            type: 'resource',
-            resource: {
-                uri: 'inline',
-                text: JSON.stringify(chunks, null, 2),
-                mimeType: 'application/json',
+	const content: CallToolResult["content"] = [
+		{
+			type: "text",
+			text: chunks.length
+				? `Search returned ${chunks.length} chunks:`
+				: "Search returned no chunks.",
+		},
+		{
+			type: "resource",
+			resource: {
+				uri: "inline",
+				text: JSON.stringify(chunks, null, 2),
+				mimeType: "application/json",
+			},
+		},
+	];
 
-            },
-        },
-    ];
-
-    return createSuccessResponse(content);
+	return createSuccessResponse(content);
 }
 
 // Define handler function
 
-const ragToolHandler = async ({rag_query, context}: RagQueryToolInput, extra: ExtraWithAuth) => {
-    const userId = extra.auth.userId;
+const ragToolHandler = async ({ rag_query, context }: RagQueryToolInput, extra: ExtraWithAuth) => {
+	const userId = extra.auth.userId;
 
-    console.log(`[ragSearchTool] User ${userId} querying with: "${rag_query}"`);
+	console.log(`[ragSearchTool] User ${userId} querying with: "${rag_query}"`);
 
-    try {
-        const payload: RagSearchRequest = {
-            ragQuery: rag_query,
-            context: context,
-        };
-        const response = await api.post<RagSearchResponse>(ApiRoutes.RAG_SEARCH, payload, {
-            headers: {"x-user-id": userId},
-        });
-        console.log(`[ragSearchTool] Received response from backend for user ${userId}`);
-        return createRagSearchToolResult(response)
-    } catch (error) {
-        console.error(
-            `[ragSearchTool] Error querying backend for user ${userId}:`,
-            JSON.stringify(error, null, 2),
-        );
-        return createErrorResponse("There was a server error making this tool call, please try again.");
-    }
+	try {
+		const payload: RagSearchRequest = {
+			ragQuery: rag_query,
+			context: context,
+		};
+		const response = await api.post<RagSearchResponse>(ApiRoutes.RAG_SEARCH, payload, {
+			headers: { "x-user-id": userId },
+		});
+		console.log(`[ragSearchTool] Received response from backend for user ${userId}`);
+		return createRagSearchToolResult(response);
+	} catch (error) {
+		console.error(
+			`[ragSearchTool] Error querying backend for user ${userId}:`,
+			JSON.stringify(error, null, 2),
+		);
+		return createErrorResponse("There was a server error making this tool call, please try again.");
+	}
 };
 
 // Create and export tool
 export const ragSearchTool: ToolDefinitionSchema<
-    typeof ragQueryToolParamSchema.shape,
-    ExtraWithAuth
+	typeof ragQueryToolParamSchema.shape,
+	ExtraWithAuth
 > = {
-    name: "execute_rag_search",
-    description: `Performs a semantic RAG search over the user’s uploaded documents. Invoke this tool when
+	name: "execute_rag_search",
+	description: `Performs a semantic RAG search over the user’s uploaded documents. Invoke this tool when
         additional factual context is required. 
         
         Tool requirements:
@@ -143,30 +142,30 @@ export const ragSearchTool: ToolDefinitionSchema<
         If no search results are found:
         - try rephrasing the query in a different way
         `,
-    paramsSchema: ragQueryToolParamSchema.shape,
-    toolAnnotations: {
-        title: "Conduct RAG search",
-    },
-    handler: ragToolHandler,
+	paramsSchema: ragQueryToolParamSchema.shape,
+	toolAnnotations: {
+		title: "Conduct RAG search",
+	},
+	handler: ragToolHandler,
 };
 
 // TODO: DRY this up later -> a single registerTool function should do
 export function registerRagSearchTool(mcpServer: McpServer, authContext: AuthContext) {
-    mcpServer.tool(
-        ragSearchTool.name,
-        ragSearchTool.description,
-        ragSearchTool.paramsSchema,
-        (
-            params: z.objectOutputType<typeof ragSearchTool.paramsSchema, ZodTypeAny>,
-            extra: RequestHandlerExtra<ServerRequest, ServerNotification>,
-        ) => {
-            // Extend extra safely
-            const extendedExtra: ExtraWithAuth = {
-                ...extra,
-                auth: authContext,
-            };
-            // return tool handler as callback
-            return ragSearchTool.handler(params, extendedExtra);
-        },
-    );
+	mcpServer.tool(
+		ragSearchTool.name,
+		ragSearchTool.description,
+		ragSearchTool.paramsSchema,
+		(
+			params: z.objectOutputType<typeof ragSearchTool.paramsSchema, ZodTypeAny>,
+			extra: RequestHandlerExtra<ServerRequest, ServerNotification>,
+		) => {
+			// Extend extra safely
+			const extendedExtra: ExtraWithAuth = {
+				...extra,
+				auth: authContext,
+			};
+			// return tool handler as callback
+			return ragSearchTool.handler(params, extendedExtra);
+		},
+	);
 }

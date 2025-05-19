@@ -8,21 +8,21 @@ pre-commit:
     gen-types:
       run: |
         echo "🤓 Generating types..."
-        npx wrangler types
+        pnpx wrangler types
       stage-fixed: true
 
     lint-and-format:
       run: |
         echo "👸 Linting and formatting staged files..."
-        npx lint-staged
+        pnpx lint-staged
 
     dry-deploy:
       run: |
         echo "🏗️ Deploying (kidding, it's a dry run)..."
-        npx wrangler deploy --dry-run
+        pnpx wrangler deploy --dry-run
       skip-output: true
 
     tests:
       run: |
         echo "🧪 Running tests..."
-        npm run test:hooks
+        pnpm run test:hooks
