@@ -14,97 +14,102 @@
  * - Production publish:   wrangler publish --env prod
  */
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "kollektiv-mcp",
-	"main": "src/index.ts",
-	"compatibility_date": "2025-03-10",
-	"compatibility_flags": ["nodejs_compat"],
-	"migrations": [
-		{
-			"new_sqlite_classes": ["KollektivMCP"],
-			"tag": "v1"
-		}
-	],
-	"vars": {
-		"API_BASE_URL": "http://localhost:8080",
-		"SITE_URL": "http://localhost:8787"
-	},
-	"durable_objects": {
-		"bindings": [
-			{
-				"name": "MCP_OBJECT",
-				"class_name": "KollektivMCP"
-			}
-		]
-	},
-	"kv_namespaces": [
-		{
-			"binding": "OAUTH_KV",
-			"id": "a8ecb6db9bc64a48b328d4d3a3fe17d1"
-		}
-	],
-	"observability": {
-		"enabled": true
-	},
-	"assets": {
-		"directory": "./public/",
-		"binding": "ASSETS"
-	},
-	"env": {
-		"prod": {
-			"name": "kollektiv-mcp-prod",
-			"vars": {
-				"API_BASE_URL": "https://api.thekollektiv.ai",
-				"SITE_URL": "https://mcp.thekollektiv.ai"
-			},
-			"routes": [
-				{
-					"pattern": "mcp.thekollektiv.ai",
-					"custom_domain": true
-				}
-			],
-			"durable_objects": {
-				"bindings": [
-					{
-						"name": "MCP_OBJECT",
-						"class_name": "KollektivMCP"
-					}
-				]
-			},
-			"kv_namespaces": [
-				{
-					"binding": "OAUTH_KV",
-					"id": "890edb0bb6754240b92708c4e8e7ff6d"
-				}
-			],
-			"tail_consumers": [
-				{
-					"service": "kollektiv-mcp-sentry-tail"
-				}
-			],
-			"upload_source_maps": true
-		},
-		"preview": {
-			"name": "kollektiv-mcp-preview",
-			"vars": {
-				"API_BASE_URL": "http://localhost:8080",
-				"SITE_URL": "https://kollektiv-mcp.azuev.workers.dev"
-			},
-			"durable_objects": {
-				"bindings": [
-					{
-						"name": "MCP_OBJECT",
-						"class_name": "KollektivMCP"
-					}
-				]
-			},
-			"kv_namespaces": [
-				{
-					"binding": "OAUTH_KV",
-					"id": "1a71071eb37648fdad5acac97b63fd85",
-					"preview_id": "1a71071eb37648fdad5acac97b63fd85"
-				}
-			]
-		}
-	}
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "kollektiv-mcp",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-03-10",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "migrations": [
+    {
+      "new_sqlite_classes": [
+        "KollektivMCP"
+      ],
+      "tag": "v1"
+    }
+  ],
+  "vars": {
+    "API_BASE_URL": "http://localhost:8080",
+    "SITE_URL": "http://localhost:8787"
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "MCP_OBJECT",
+        "class_name": "KollektivMCP"
+      }
+    ]
+  },
+  "kv_namespaces": [
+    {
+      "binding": "OAUTH_KV",
+      "id": "a8ecb6db9bc64a48b328d4d3a3fe17d1"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "./public/",
+    "binding": "ASSETS"
+  },
+  "env": {
+    "prod": {
+      "name": "kollektiv-mcp-prod",
+      "vars": {
+        "API_BASE_URL": "https://api.thekollektiv.ai",
+        "SITE_URL": "https://mcp.thekollektiv.ai",
+        "PNPM_VERSION": "10.11.0"
+      },
+      "routes": [
+        {
+          "pattern": "mcp.thekollektiv.ai",
+          "custom_domain": true
+        }
+      ],
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "MCP_OBJECT",
+            "class_name": "KollektivMCP"
+          }
+        ]
+      },
+      "kv_namespaces": [
+        {
+          "binding": "OAUTH_KV",
+          "id": "890edb0bb6754240b92708c4e8e7ff6d"
+        }
+      ],
+      "tail_consumers": [
+        {
+          "service": "kollektiv-mcp-sentry-tail"
+        }
+      ],
+      "upload_source_maps": true
+    },
+    "preview": {
+      "name": "kollektiv-mcp-preview",
+      "vars": {
+        "API_BASE_URL": "http://localhost:8080",
+        "SITE_URL": "https://kollektiv-mcp.azuev.workers.dev"
+      },
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "MCP_OBJECT",
+            "class_name": "KollektivMCP"
+          }
+        ]
+      },
+      "kv_namespaces": [
+        {
+          "binding": "OAUTH_KV",
+          "id": "1a71071eb37648fdad5acac97b63fd85",
+          "preview_id": "1a71071eb37648fdad5acac97b63fd85"
+        }
+      ]
+    }
+  }
 }

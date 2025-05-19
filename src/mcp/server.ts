@@ -1,8 +1,7 @@
-import { allTools } from "@/mcp/tools";
+import { registerListDocumentsTool, registerRagSearchTool } from "@/mcp/tools";
 import type { AuthContext } from "@/mcp/tools/types";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { McpAgent } from "agents/mcp";
-import type { ZodRawShape } from "zod";
 
 // TODO: review if I have to switch to access token (when supporting auth)?
 // https://github.com/cloudflare/ai/blob/main/demos/remote-mcp-auth0/mcp-auth0-oidc/src/index.ts
@@ -17,18 +16,8 @@ export class KollektivMCP extends McpAgent<Env, unknown, AuthContext> {
 	async init() {
 		console.log("Initializing MCP server...");
 
-		for (const tool of allTools) {
-			console.log(`Registering tool: ${tool.name}`);
-
-			this.server.tool(
-				tool.name,
-				tool.description,
-				tool.paramsSchema,
-				(params: ZodRawShape, extra: any) => {
-					// @ts-ignore because I couldn't find a better way to pass props
-					return tool.handler(params, extra, this.props);
-				},
-			);
-		}
+		// TODO: seems to be another way to pass AuthInfo https://github.com/modelcontextprotocol/typescript-sdk/pull/166
+		registerRagSearchTool(this.server, this.props);
+		registerListDocumentsTool(this.server, this.props);
 	}
 }

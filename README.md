@@ -20,6 +20,12 @@ Claude Desktop, etc.
 > issue
 > [here](https://github.com/alexander-zuev/kollektiv-mcp/issues/new)
 
+## Why Kollektiv?
+
+- **No need to re-upload data** between chat sessions
+- **Access from any client** - Cursor, Windsurf, Claude Desktop, VSCode, PyCharm, etc.
+- **No need for infrastructure setup** - just upload your data and start chatting
+
 ## 💿 Connection
 
 The simplest way to connect to Kollektiv MCP is to copy & paste the following

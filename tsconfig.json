@@ -14,9 +14,10 @@
 		"forceConsistentCasingInFileNames": true,
 		"strict": true,
 		"skipLibCheck": true,
-		"baseUrl": "./src",
+		"baseUrl": ".",
 		"paths": {
-			"@/*": ["*"]
+			"@/*": ["./src/*"],
+			"@tests/*": ["./tests/*"]
 		}
 	},
 	"include": ["worker-configuration.d.ts", "src/**/*.ts", "tests/**/*.ts"]

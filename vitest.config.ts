@@ -6,7 +6,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineWorkersConfig({
 	plugins: [
 		tsconfigPaths({
-			projects: ["./tsconfig.json", "./tests/tsconfig.json"],
+			projects: ["./tsconfig.json"],
 		}),
 	],
 	test: {
@@ -70,6 +70,7 @@ export default defineWorkersConfig({
 				test: {
 					name: "integration",
 					include: ["tests/integration/**/*.test.ts"],
+					setupFiles: ["./tests/integration/setup.ts"],
 				},
 			},
 			{

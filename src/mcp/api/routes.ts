@@ -1,5 +1,6 @@
 export const ApiRoutes = {
 	QUERY: "/query",
+	RAG_SEARCH: "/rag-search",
 	RETRIEVE: "/retrieve",
 	DOCUMENTS: "/documents",
 } as const;
