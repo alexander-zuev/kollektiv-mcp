@@ -12,12 +12,6 @@ vi.mock("@/mcp/api/client", () => ({
 	},
 }));
 const USER_ID = "test-user-id";
-const AUTH_CONTEXT = { userId: USER_ID };
-
-// things to check
-// - we send user id
-// - we catch errors
-// - response is stringified
 
 const mockUserDocuments: UserFile[] = [
 	{
@@ -42,19 +36,19 @@ afterEach(() => {
 
 describe("Testing listDocumentsTool", () => {
 	it("should return a list of user documents if successful", async () => {
-		const mockSuccessResponse = mockUserDocuments;
-		vi.mocked(api.get).mockResolvedValue(mockSuccessResponse);
+		vi.mocked(api.get).mockResolvedValue(mockUserDocuments);
 		// @ts-ignore
 		const result = await listDocumentsTool.handler(
 			{}, // empty params
-			{} as any, // extra
-			AUTH_CONTEXT,
+			{
+				auth: {
+					userId: USER_ID,
+				},
+			} as any, // extra
 		);
-		expect(api.get).toHaveBeenCalledWith(
-			ApiRoutes.DOCUMENTS,
-			// {query: "test query"}, // no params here
-			{ headers: { "x-user-id": "test-user-id" } },
-		);
+		expect(api.get).toHaveBeenCalledWith(ApiRoutes.DOCUMENTS, {
+			headers: { "x-user-id": "test-user-id" },
+		});
 		expect(result).toEqual(createSuccessTextResponse(JSON.stringify(mockUserDocuments, null, 2)));
 	});
 
@@ -65,14 +59,15 @@ describe("Testing listDocumentsTool", () => {
 		vi.mocked(api.get).mockRejectedValue(new Error(errMsg));
 
 		// Even though the API call will throw an error, we can still verify that it was called with the correct parameters
-		// @ts-ignore
-		const result = await listDocumentsTool.handler({}, {} as any, AUTH_CONTEXT);
+		const result = await listDocumentsTool.handler({}, {
+			auth: {
+				userId: USER_ID,
+			},
+		} as any);
 
-		expect(api.get).toHaveBeenCalledWith(
-			ApiRoutes.DOCUMENTS,
-			// {query: "error query"},
-			{ headers: { "x-user-id": "test-user-id" } },
-		);
+		expect(api.get).toHaveBeenCalledWith(ApiRoutes.DOCUMENTS, {
+			headers: { "x-user-id": "test-user-id" },
+		});
 		expect(result).toEqual(createErrorResponse(errMsg));
 	});
 });

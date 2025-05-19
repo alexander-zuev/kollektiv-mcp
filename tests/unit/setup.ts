@@ -43,6 +43,19 @@ vi.mock("@/web/middleware/supabase", () => {
 	};
 });
 
+vi.mock("agents/mcp", () => ({
+	// A minimal base class KollektivMCP can extend
+	McpAgent: class {},
+}));
+
+const mockMcpServer = vi.fn().mockImplementation((_opts) => ({
+	tool: vi.fn(),
+}));
+
+vi.mock("@modelcontextprotocol/sdk/server/mcp.js", () => ({
+	McpServer: mockMcpServer,
+}));
+
 beforeEach(async (ctx) => {
 	// Prepare fresh hono context before ach test
 	ctx.c = createMockContext();

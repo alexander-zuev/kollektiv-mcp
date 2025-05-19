@@ -1,6 +1,8 @@
-import type { ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ZodRawShape } from "zod";
 import { z } from "zod";
+
+import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
+import type { ServerNotification, ServerRequest } from "@modelcontextprotocol/sdk/types.js";
 
 export interface AuthContext {
 	userId: string;
@@ -8,6 +10,10 @@ export interface AuthContext {
 
 	[key: string]: unknown; // ← this is required!
 }
+
+export type ExtraWithAuth = RequestHandlerExtra<ServerRequest, ServerNotification> & {
+	auth: AuthContext;
+};
 
 /**
  * Standard MCP tool response format as per SDK spec
@@ -72,9 +78,12 @@ export function createSuccessTextResponse(text: string): CallToolResult {
 /**
  * Define structure for a complete tool
  */
-export interface ToolDefinitionSchema<S extends ZodRawShape = ZodRawShape> {
-	/** The name of the tool */
-	name: string; // snake case
+export interface ToolDefinitionSchema<
+	S extends ZodRawShape = ZodRawShape,
+	E = RequestHandlerExtra<ServerRequest, ServerNotification>,
+> {
+	/** The name of the tool in snake case */
+	name: string;
 
 	/** A short description of the tool for documentation purposes*/
 	description: string;
@@ -82,6 +91,12 @@ export interface ToolDefinitionSchema<S extends ZodRawShape = ZodRawShape> {
 	/** Zod schema for the tool input */
 	paramsSchema: S;
 
+	/** Tool annotations */
+	toolAnnotations?: {
+		// Optional human-readable title
+		title?: string;
+	};
+
 	/** Async function that executes the tool's logic*/
-	handler: ToolCallback<S>;
+	handler: (params: z.infer<z.ZodObject<S>>, extra: E) => Promise<CallToolResult>;
 }
