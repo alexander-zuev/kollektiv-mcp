@@ -81,6 +81,11 @@ export const postAuthorizeHandler = async (c: Context) => {
 
     try {
         validatedFormData = await parseFormData(c, ConsentFormSchema);
+        const cookieCsrf = cookieData.csrfToken;
+        if (validatedFormData.csrf !== cookieCsrf) {
+            clearAuthCookie(c, tx);
+            return c.text("Forbidden", 403);
+        }
         console.log(
             "[POST /authorize] Validated form data:",
             JSON.stringify(validatedFormData, null, 2),
