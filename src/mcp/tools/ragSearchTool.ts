@@ -1,18 +1,19 @@
-import {api} from "@/mcp/api/client";
-import {ApiRoutes} from "@/mcp/api/routes";
-import type {RagSearchRequest, RagSearchResponse} from "@/mcp/api/types/ragTasks"; // Adjust path as needed
+import {api} from "@/api/client";
+import {ApiRoutes} from "@/api/routes";
+import type {RagSearchRequest, RagSearchResponse} from "@/api/types/ragTasks"; // Adjust path as needed
 import {
-	type AuthContext,
-	type CallToolResult,
-	createErrorResponse,
-	createSuccessResponse,
-	type ExtraWithAuth,
-	type ToolDefinitionSchema,
+    type AuthContext,
+    type CallToolResult,
+    createErrorResponse,
+    createSuccessResponse,
+    type ExtraWithAuth,
+    type ToolDefinitionSchema,
 } from "@/mcp/tools/types";
 import type {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
 import type {RequestHandlerExtra} from "@modelcontextprotocol/sdk/shared/protocol.js";
 import type {ServerNotification, ServerRequest} from "@modelcontextprotocol/sdk/types.js";
 import {z, type ZodTypeAny} from "zod";
+import {getAuthHeader} from "@/features/auth";
 
 // Define tool parameters schema
 const ragQueryToolParamSchema = z.object({
@@ -83,6 +84,7 @@ export function createRagSearchToolResult(resp: RagSearchResponse): CallToolResu
 const ragToolHandler = async ({rag_query, context}: RagQueryToolInput, extra: ExtraWithAuth) => {
     const userId = extra.auth.userId;
 
+
     console.log(`[ragSearchTool] User ${userId} querying with: "${rag_query}"`);
 
     try {
@@ -91,7 +93,7 @@ const ragToolHandler = async ({rag_query, context}: RagQueryToolInput, extra: Ex
             context: context,
         };
         const response = await api.post<RagSearchResponse>(ApiRoutes.RAG_SEARCH, payload, {
-            headers: {"x-user-id": userId},
+            headers: {...getAuthHeader(extra.auth.accessToken)}
         });
         console.log(`[ragSearchTool] Received response from backend for user ${userId}`);
         return createRagSearchToolResult(response);

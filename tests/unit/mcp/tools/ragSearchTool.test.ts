@@ -1,13 +1,14 @@
-import {api} from "@/mcp/api/client"; // Adjust import path
-import {ApiRoutes} from "@/mcp/api/routes"; // Adjust import path
-import type {RagSearchResponse} from "@/mcp/api/types/ragTasks";
+import {api} from "@/api/client"; // Adjust import path
+import {ApiRoutes} from "@/api/routes"; // Adjust import path
+import type {RagSearchResponse} from "@/api/types/ragTasks";
 import {createRagSearchToolResult, ragSearchTool} from "@/mcp/tools/ragSearchTool";
 import {createErrorResponse} from "@/mcp/tools/types"; // Adjust import path
-import {chunkFactory} from "@tests/unit/factories";
+import {chunkFactory} from "@tests/factories/factories";
 import {describe, expect, it, vi} from "vitest";
+import {getAuthHeader} from "@/features/auth";
 
 // Mock the api client
-vi.mock("@/mcp/api/client", () => ({
+vi.mock("@/api/client", () => ({
     api: {
         post: vi.fn(),
     },
@@ -42,7 +43,7 @@ describe("ragSearchTool", () => {
                 context: "No context provided",
             },
             {
-                auth: {userId: "test-user-id"},
+                auth: {userId: "test-user-id", accessToken: "test-token"},
             } as any,
         );
 
@@ -52,7 +53,7 @@ describe("ragSearchTool", () => {
                 ragQuery: "test query",
                 context: "No context provided",
             },
-            {headers: {"x-user-id": "test-user-id"}},
+            {headers: {...getAuthHeader("test-token")}},
         );
         expect(result).toEqual(createRagSearchToolResult(mockSuccessResponse));
     });
@@ -70,7 +71,7 @@ describe("ragSearchTool", () => {
                 context: "No context provided",
             },
             {
-                auth: {userId: "test-user-id"},
+                auth: {userId: "test-user-id", accessToken: "test-token"},
             } as any,
         );
 
@@ -80,7 +81,7 @@ describe("ragSearchTool", () => {
                 ragQuery: expectedQuery,
                 context: "No context provided",
             },
-            {headers: {"x-user-id": "test-user-id"}},
+            {headers: {...getAuthHeader("test-token")}},
         );
         expect(result).toEqual(
             createErrorResponse("There was a server error making this tool call, please try again."),
@@ -97,7 +98,7 @@ describe("ragSearchTool", () => {
                 context: "No context provided",
             },
             {
-                auth: {userId: "test-user-id"},
+                auth: {userId: "test-user-id", accessToken: "test-token"},
             } as any,
         );
 
@@ -107,7 +108,7 @@ describe("ragSearchTool", () => {
                 ragQuery: "error query",
                 context: "No context provided",
             },
-            {headers: {"x-user-id": "test-user-id"}},
+            {headers: {...getAuthHeader("test-token")}},
         );
         expect(result).toEqual(
             createErrorResponse("There was a server error making this tool call, please try again."),
