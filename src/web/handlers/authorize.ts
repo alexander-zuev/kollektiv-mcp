@@ -5,9 +5,9 @@ import {renderLoginScreen} from "@/web/templates/login";
 import {type AuthFlowContext, AuthFlowError, getValidAuthContext} from "@/web/utils/authContext";
 import {clearAuthCookie, loadAuthCookie} from "@/web/utils/cookies";
 import {FormValidationError, parseFormData} from "@/web/utils/form";
-import {getCurrentUser} from "@/web/utils/user";
+import {getCurrentUser, getUserSession} from "@/features/auth/utils";
 import type {AuthRequest} from "@cloudflare/workers-oauth-provider";
-import type {User} from "@supabase/supabase-js";
+import type {Session, User} from "@supabase/supabase-js";
 import type {Context} from "hono";
 
 export const getAuthorizeHandler = async (c: Context) => {
@@ -118,6 +118,19 @@ export const postAuthorizeHandler = async (c: Context) => {
         return c.redirect(finalRedirectUrl, 302);
     }
 
+    // At this time user should be authenticated and we have a valid session
+    let session: Session | null;
+    try {
+        session = await getUserSession(c);
+    } catch (error) {
+        console.error("[POST /authorize] Failed to retrieve user session:", error);
+        return c.text("Internal Server Error: Failed to retrieve user session.", 500);
+    }
+    if (!session) {
+        console.error("[POST /authorize] Failed to retrieve user session.");
+        return c.text("Internal Server Error: Failed to retrieve user session.", 500);
+    }
+
     try {
         console.log(`[POST /authorize] Completing authorization for user ${user.id}.`);
         const {redirectTo} = await c.env.OAUTH_PROVIDER.completeAuthorization({
@@ -125,7 +138,7 @@ export const postAuthorizeHandler = async (c: Context) => {
             userId: user.id,
             metadata: {email: user.email},
             scope: oauthReq.scope, // Pass the parsed scope array
-            props: {userId: user.id, email: user.email},
+            props: {userId: user.id, email: user.email, accessToken: session.access_token},
         });
 
         console.log(`[POST /authorize] Redirecting approval to: ${redirectTo}`);
