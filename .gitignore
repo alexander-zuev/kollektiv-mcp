@@ -194,3 +194,9 @@ pids/
 # Local docs
 
 *storybook.log
+
+# Test markdown conversion files
+test-markdown/inputs/*
+test-markdown/outputs/*
+!test-markdown/inputs/.gitkeep
+!test-markdown/outputs/.gitkeep

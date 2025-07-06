@@ -22,6 +22,9 @@ export default defineWorkersConfig({
                         "camelcase-keys",
                         "ajv",
                     ],
+                    exclude: [
+                        'chai', // Exclude chai from SSR optimization
+                    ],
                 },
             },
         },

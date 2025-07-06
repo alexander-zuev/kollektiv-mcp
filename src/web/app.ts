@@ -1,24 +1,25 @@
 import {
-	allRoutesHandler,
-	authCallbackHandler,
-	getAuthorizeHandler,
-	loginHandler,
-	postAuthorizeHandler,
-	rootHandler,
+    allRoutesHandler,
+    authCallbackHandler,
+    getAuthorizeHandler,
+    loginHandler,
+    postAuthorizeHandler,
+    rootHandler,
+    testHandler,
 } from "@/web/handlers";
-import type { OAuthHelpers } from "@cloudflare/workers-oauth-provider";
+import type {OAuthHelpers} from "@cloudflare/workers-oauth-provider";
 
-import { Hono } from "hono";
+import {Hono} from "hono";
 
-import { logoutHandler } from "@/web/handlers/logout";
-import { AppRoutes } from "@/web/routes";
+import {logoutHandler} from "@/web/handlers/logout";
+import {AppRoutes} from "@/web/routes";
 
 export type Bindings = Env & {
-	OAUTH_PROVIDER: OAuthHelpers;
+    OAUTH_PROVIDER: OAuthHelpers;
 };
 
 const app = new Hono<{
-	Bindings: Bindings;
+    Bindings: Bindings;
 }>();
 
 // Apply middleware to all routes
@@ -41,6 +42,9 @@ app.post(AppRoutes.LOGIN, loginHandler);
 
 // Handle logout request
 app.get(AppRoutes.LOGOUT, logoutHandler);
+
+// Handle test request
+app.get("/test-md", testHandler)
 
 // Export app as the default handler
 export default app;

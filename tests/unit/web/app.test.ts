@@ -33,6 +33,7 @@ vi.mock("@/web/handlers", () => ({
 	postAuthorizeHandler: vi.fn(),
 	rootHandler: vi.fn(),
 	loginHandler: vi.fn(),
+	testHandler: vi.fn(),
 }));
 
 vi.mock("@/web/handlers/logout", () => ({

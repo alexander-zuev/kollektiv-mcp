@@ -33,6 +33,9 @@
     "API_BASE_URL": "http://localhost:8080",
     "SITE_URL": "http://localhost:8787"
   },
+  "ai": {
+    "binding": "AI"
+  },
   "durable_objects": {
     "bindings": [
       {
@@ -44,7 +47,8 @@
   "kv_namespaces": [
     {
       "binding": "OAUTH_KV",
-      "id": "a8ecb6db9bc64a48b328d4d3a3fe17d1"
+      "id": "a8ecb6db9bc64a48b328d4d3a3fe17d1",
+      "preview_id": "1a71071eb37648fdad5acac97b63fd85"
     }
   ],
   "observability": {
@@ -54,6 +58,13 @@
     "directory": "./public/",
     "binding": "ASSETS"
   },
+  "r2_buckets": [
+    {
+      "binding": "TEST_BUCKET",
+      "bucket_name": "test-bucket",
+      "preview_bucket_name": "preview-bucket"
+    }
+  ],
   "env": {
     "prod": {
       "name": "kollektiv-mcp-prod",
@@ -76,6 +87,9 @@
           }
         ]
       },
+      "ai": {
+        "binding": "AI"
+      },
       "kv_namespaces": [
         {
           "binding": "OAUTH_KV",
@@ -88,28 +102,6 @@
         }
       ],
       "upload_source_maps": true
-    },
-    "preview": {
-      "name": "kollektiv-mcp-preview",
-      "vars": {
-        "API_BASE_URL": "http://localhost:8080",
-        "SITE_URL": "https://kollektiv-mcp.azuev.workers.dev"
-      },
-      "durable_objects": {
-        "bindings": [
-          {
-            "name": "MCP_OBJECT",
-            "class_name": "KollektivMCP"
-          }
-        ]
-      },
-      "kv_namespaces": [
-        {
-          "binding": "OAUTH_KV",
-          "id": "1a71071eb37648fdad5acac97b63fd85",
-          "preview_id": "1a71071eb37648fdad5acac97b63fd85"
-        }
-      ]
     }
   }
 }

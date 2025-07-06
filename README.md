@@ -14,6 +14,12 @@ favorite editor / client. No more infrastructure setup, chunking, syncing - just
 data and start chatting. Supports all major MCP clients out of the box - Cursor, Windsurf,
 Claude Desktop, etc.
 
+> **Roadmap Items:** There are a few changes I want to bring to Kollektiv in near-term:
+> - refactor and transition to AutoRAG pipeline to improve ingestion speed, decrease
+    > search latency and reduce costs
+> - consolidate 3 services in 2 (or 3) on the same worker with Hono API + React SPA. Hono API
+    > will serve both MCP + Backend endpoints, while React SPA will serve landing + ingesting UI
+
 > 🧪 Kollektiv is in early beta. If you
 > experience any issues connecting to the MCP client, try
 > going over [these steps](#connection-troubleshooting) first. If still unsuccessful please raise an
@@ -59,7 +65,6 @@ VSCode, PyCharm) support this `json` format
     - `https://mcp.thekollektiv.ai/mcp` - is the endpoint you are connecting to
 
 Check out a short demo below or read client-specific instructions on how to connect.
-
 
 ![Connection Demo](https://github.com/user-attachments/assets/91f7fdf0-9957-4f4f-a5f6-d33d60d9ed4b)
 
