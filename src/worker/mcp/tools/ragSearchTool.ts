@@ -1,6 +1,12 @@
-import {api} from "@/api/client";
-import {ApiRoutes} from "@/api/routes";
-import type {RagSearchRequest, RagSearchResponse} from "@/api/types/ragTasks"; // Adjust path as needed
+import type {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
+import type {RequestHandlerExtra} from "@modelcontextprotocol/sdk/shared/protocol.js";
+import type {ServerNotification, ServerRequest} from "@modelcontextprotocol/sdk/types.js";
+// as needed
+import {getAuthHeader} from "@shared/api/utils/auth-header";
+import type {RagSearchRequest, RagSearchResponse} from "@shared/types/ragTasks.ts"; // Adjust path
+import {type ZodTypeAny, z} from "zod";
+import {api} from "@/worker/api-client/client";
+import {ApiRoutes} from "@/worker/api-client/routes";
 import {
     type AuthContext,
     type CallToolResult,
@@ -8,12 +14,7 @@ import {
     createSuccessResponse,
     type ExtraWithAuth,
     type ToolDefinitionSchema,
-} from "@/mcp/tools/types";
-import type {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
-import type {RequestHandlerExtra} from "@modelcontextprotocol/sdk/shared/protocol.js";
-import type {ServerNotification, ServerRequest} from "@modelcontextprotocol/sdk/types.js";
-import {z, type ZodTypeAny} from "zod";
-import {getAuthHeader} from "@/features/auth";
+} from "@/worker/mcp/tools/types";
 
 // Define tool parameters schema
 const ragQueryToolParamSchema = z.object({
@@ -59,7 +60,7 @@ If no context is available, pass the string "No context provided".
 });
 export type RagQueryToolInput = z.infer<typeof ragQueryToolParamSchema>;
 
-// TODO: this might need to be moved to a shared module
+// TODO: this might need to be moved to a common module
 export function createRagSearchToolResult(resp: RagSearchResponse): CallToolResult {
     const chunks = resp.response;
 

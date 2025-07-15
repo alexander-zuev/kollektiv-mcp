@@ -1,0 +1,12 @@
+export * from "./404";
+export * from "./base";
+export {logo} from './components/logo';
+export * from "./consent";
+export * from "./error";
+export {createLayout} from './layout';
+export * from "./login";
+export * from "./magic-link";
+export {oauthErrorPage, oauthSuccessPage} from './pages/oauth';
+export {privacyPage} from './pages/privacy';
+export {supportPage} from './pages/support';
+export * from "./root";

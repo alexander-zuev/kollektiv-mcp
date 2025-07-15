@@ -1,5 +1,5 @@
 import { FunctionComponent } from 'react';
-import { logger } from 'src/shared/lib';
+import { logger } from '@/shared/lib';
 import { Button } from '@/components/ui/atoms/buttons/button';
 
 export interface ErrorPageProps {

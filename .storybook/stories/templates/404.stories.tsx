@@ -1,8 +1,8 @@
-import { base, renderNotFound } from "@/web/templates";
-import type { Meta, StoryObj } from "@storybook/html";
+import {base, renderNotFound} from "@/api/templates";
+import type {Meta, StoryObj} from "@storybook/html";
 
 const meta: Meta = {
-	title: "Templates/Not Found",
+    title: "Templates/Not Found",
 };
 
 export default meta;
@@ -10,7 +10,7 @@ export default meta;
 /* ----------------------- story ----------------------- */
 
 export const Default: StoryObj = {
-	render: () => {
-		return base(renderNotFound(), "Not Found").toString(); // unwrap
-	},
+    render: () => {
+        return base(renderNotFound(), "Not Found").toString(); // unwrap
+    },
 };

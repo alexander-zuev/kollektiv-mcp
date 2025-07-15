@@ -8,8 +8,7 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createRootRoute } from '@tanstack/react-router'
-
+import { Route as rootRouteImport } from './routes/__root'
 import { Route as ConfirmOtpRouteImport } from './routes/confirm-otp'
 import { Route as AuthCallbackRouteImport } from './routes/auth-callback'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
@@ -19,8 +18,6 @@ import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
 import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
 import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard.index'
 import { Route as AuthDashboardBillingRouteImport } from './routes/_auth/dashboard.billing'
-
-const rootRouteImport = createRootRoute()
 
 const ConfirmOtpRoute = ConfirmOtpRouteImport.update({
   id: '/confirm-otp',

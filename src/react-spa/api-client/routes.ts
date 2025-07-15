@@ -9,9 +9,9 @@
  * - Path parameters
  * - Query parameters
  */
-import { HttpMethod } from '@/api-client/types';
-import type { ListDocsResponse, UserFile } from './types/documents';
-import { UserStatsResponse } from '@/api-client/types/stats.ts';
+import {HttpMethod} from '@/api-client/types';
+import {UserStatsResponse} from '@/api-client/types/stats.ts';
+import type {ListDocsResponse, UserFile} from './types/documents';
 
 /**
  * API Endpoint Configuration
@@ -24,15 +24,15 @@ import { UserStatsResponse } from '@/api-client/types/stats.ts';
  * - queryParams: The query parameters for the endpoint (if any)
  */
 export interface ApiEndpointConfig<
-  TResponse = any,
-  TPathParams extends Record<string, string | number> = {},
-  TQueryParams extends Record<string, string | number | boolean | undefined> = {},
+    TResponse = any,
+    TPathParams extends Record<string, string | number> = {},
+    TQueryParams extends Record<string, string | number | boolean | undefined> = {},
 > {
-  path: string;
-  method: HttpMethod;
-  response: TResponse;
-  pathParams?: TPathParams;
-  queryParams?: TQueryParams;
+    path: string;
+    method: HttpMethod;
+    response: TResponse;
+    pathParams?: TPathParams;
+    queryParams?: TQueryParams;
 }
 
 /**
@@ -42,29 +42,29 @@ export interface ApiEndpointConfig<
  * Each endpoint is defined with its path, method, response type, and parameters.
  */
 export const ApiEndpoints = {
-  // Document endpoints
-  LIST_DOCUMENTS: {
-    path: '/documents',
-    method: 'GET',
-    response: {} as ListDocsResponse,
-  },
-  GET_DOCUMENT: {
-    path: '/documents/:documentId',
-    method: 'GET',
-    response: {} as UserFile,
-    pathParams: {} as { documentId: string },
-  },
-  DELETE_DOCUMENT: {
-    path: '/documents/:documentId',
-    method: 'DELETE',
-    response: undefined as void,
-    pathParams: {} as { documentId: string },
-  },
-  USER_STATS: {
-    path: '/stats',
-    method: 'GET',
-    response: {} as UserStatsResponse,
-  },
+    // Document endpoints
+    LIST_DOCUMENTS: {
+        path: '/documents',
+        method: 'GET',
+        response: {} as ListDocsResponse,
+    },
+    GET_DOCUMENT: {
+        path: '/documents/:documentId',
+        method: 'GET',
+        response: {} as UserFile,
+        pathParams: {} as { documentId: string },
+    },
+    DELETE_DOCUMENT: {
+        path: '/documents/:documentId',
+        method: 'DELETE',
+        response: undefined as void,
+        pathParams: {} as { documentId: string },
+    },
+    USER_STATS: {
+        path: '/stats',
+        method: 'GET',
+        response: {} as UserStatsResponse,
+    },
 } as const;
 
 /**
@@ -74,9 +74,9 @@ export const ApiEndpoints = {
  * New code should use ApiEndpoints instead.
  */
 export const ApiRoutes = {
-  DOCUMENTS: ApiEndpoints.LIST_DOCUMENTS.path,
-  DOCUMENT: ApiEndpoints.GET_DOCUMENT.path,
-  USER_STATS: ApiEndpoints.USER_STATS.path,
+    DOCUMENTS: ApiEndpoints.LIST_DOCUMENTS.path,
+    DOCUMENT: ApiEndpoints.GET_DOCUMENT.path,
+    USER_STATS: ApiEndpoints.USER_STATS.path,
 } as const;
 
 /**
@@ -103,8 +103,8 @@ export type ApiEndpoint = keyof typeof ApiEndpoints;
  *
  * @example
  * const endpoint = getApiEndpoint('LIST_DOCUMENTS');
- * api.get<typeof endpoint.response>(endpoint.path);
+ * api-client.get<typeof endpoint.response>(endpoint.path);
  */
 export function getApiEndpoint<T extends ApiEndpoint>(endpoint: T): (typeof ApiEndpoints)[T] {
-  return ApiEndpoints[endpoint];
+    return ApiEndpoints[endpoint];
 }

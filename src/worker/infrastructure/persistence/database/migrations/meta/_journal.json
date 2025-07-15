@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1751725862921,
+      "tag": "0000_motionless_old_lace",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1751797818837,
+      "tag": "0001_strange_riptide",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1752005900515,
+      "tag": "0002_purple_pete_wisdom",
+      "breakpoints": true
+    }
+  ]
+}

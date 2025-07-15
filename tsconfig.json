@@ -17,7 +17,7 @@
       "@/worker/*": [
         "./src/worker/*"
       ],
-      "@/shared/*": [
+      "@shared/*": [
         "./src/shared/*"
       ],
       "@/tests/*": [

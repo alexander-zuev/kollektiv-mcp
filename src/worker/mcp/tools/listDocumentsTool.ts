@@ -1,18 +1,18 @@
-import {api} from "@/api/client";
-import {ApiRoutes} from "@/api/routes";
-import type {ListDocsResponse} from "@/api/types/documents";
+import type {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
+import type {RequestHandlerExtra} from "@modelcontextprotocol/sdk/shared/protocol.js";
+import type {ServerNotification, ServerRequest} from "@modelcontextprotocol/sdk/types.js";
+import {getAuthHeader} from "@shared/api/utils/auth-header";
+import {type ZodTypeAny, z} from "zod";
+import {api} from "@/api-client/client";
+import {ApiRoutes} from "@/api-client/routes";
+import type {ListDocsResponse} from "@/api-client/types/documents";
 import {
     type AuthContext,
     createErrorResponse,
     createSuccessTextResponse,
     type ExtraWithAuth,
     type ToolDefinitionSchema,
-} from "@/mcp/tools/types";
-import type {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
-import type {RequestHandlerExtra} from "@modelcontextprotocol/sdk/shared/protocol.js";
-import type {ServerNotification, ServerRequest} from "@modelcontextprotocol/sdk/types.js";
-import {z, type ZodTypeAny} from "zod";
-import {getAuthHeader} from "@/features/auth";
+} from "@/worker/mcp/tools/types";
 
 // Define tool parameters schema
 const listDocumentsToolSchema = z.object({

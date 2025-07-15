@@ -1,14 +1,14 @@
 @import 'tailwindcss';
 @import 'tailwindcss/theme';
 @import 'tailwindcss/utilities';
-@import './styles/typography.css';
-@import './styles/colors.css';
-@import './styles/cursors.css';
-@import './styles/shadows.css';
-@import './styles/radius.css';
-@import './styles/borders.css';
-@import './styles/utilities.css';
-@import './styles/animations.css';
+@import './typography.css';
+@import './colors.css';
+@import './cursors.css';
+@import './shadows.css';
+@import './radius.css';
+@import './borders.css';
+@import './utilities.css';
+@import './animations.css';
 
 @plugin 'tailwindcss-animate';
 

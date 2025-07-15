@@ -1,35 +1,49 @@
 {
-	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-	"organizeImports": {
-		"enabled": true
-	},
-	"files": {
-		"ignore": ["worker-configuration.d.ts", "dist/**", "node_modules/**", "public/**"]
-	},
-	"vcs": {
-		"enabled": true,
-		"clientKind": "git",
-		"useIgnoreFile": true
-	},
-	"linter": {
-		"enabled": true,
-		"rules": {
-			"recommended": true,
-			"suspicious": {
-				"noExplicitAny": "off",
-				"noDebugger": "off",
-				"noConsoleLog": "off",
-				"noConfusingVoidType": "off"
-			},
-			"style": {
-				"noNonNullAssertion": "off"
-			}
-		}
-	},
-	"formatter": {
-		"enabled": true,
-		"indentWidth": 2,
-		"lineWidth": 100,
-		"lineEnding": "lf"
-	}
+  "$schema": "https://biomejs.dev/schemas/2.1.1/schema.json",
+  "files": {
+    "includes": [
+      "src/**/*",
+      "tests/**/*",
+      "*.json",
+      "*.js",
+      "*.ts",
+      "*.tsx",
+      "*.css",
+      "!dist/**",
+      "!build/**",
+      "!node_modules/**",
+      "!.wrangler/**",
+      "!worker-configuration.d.ts",
+      "!src/react-spa/routeTree.gen.ts",
+      "!coverage/**",
+      "!**/*.min.js",
+      "!**/*.min.css"
+    ]
+  },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "suspicious": {
+        "noExplicitAny": "off",
+        "noDebugger": "off",
+        "noConsole": "off",
+        "noConfusingVoidType": "off"
+      },
+      "style": {
+        "noNonNullAssertion": "off"
+      }
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "indentWidth": 2,
+    "lineWidth": 100,
+    "lineEnding": "lf"
+  }
 }

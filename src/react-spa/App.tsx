@@ -1,17 +1,15 @@
-import {ErrorBoundary} from '@/shared/monitoring/sentry.ts';
-import {AppRouter} from '@/routing/AppRouter';
-import {QueryClientProvider} from '@tanstack/react-query';
-import ErrorPage from './pages/common/ErrorPage';
-import {supabase} from 'src/shared/services';
-// import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import {queryClient} from '@/shared/services/queryClient.ts';
-import {usePosthogUser} from 'src/shared/services';
-import {Toaster} from '@/components/ui/feedback/toasts/sonner';
-import {PostHogProvider} from 'posthog-js/react';
-import {config} from '@/config';
-import {ReactNode} from 'react';
 import {useNetworkStatus} from '@/shared/hooks/useNetworkStatus';
+import {QueryClientProvider} from '@tanstack/react-query';
+import {PostHogProvider} from 'posthog-js/react';
+import type {ReactNode} from 'react';
+import {Toaster} from '@/components/ui/feedback/toasts/sonner';
+import {config} from '@/config';
+import {AppRouter} from '@/routing/AppRouter';
+import {ErrorBoundary} from '@/shared/monitoring/sentry.ts';
+import {supabase, usePosthogUser} from '@/shared/services';
+import {queryClient} from '@/shared/services/queryClient.ts';
 import {useAuthInitializer} from './features/auth';
+import ErrorPage from './pages/common/ErrorPage';
 
 const PosthogWrapper = ({children}: { children: ReactNode }) => {
     if (config.isDevelopment) {

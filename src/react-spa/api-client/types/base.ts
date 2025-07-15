@@ -1,4 +1,4 @@
-import { logger } from 'src/shared/lib';
+import { logger } from '@/shared/lib';
 
 // HTTP verb/type restriction
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';

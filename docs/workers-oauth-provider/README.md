@@ -25,179 +25,179 @@ change.
 A Worker that uses the library might look like this:
 
 ```ts
-import { OAuthProvider } from "my-oauth";
-import type { ExportedHandler } from "@cloudflare/workers-types";
-import { WorkerEntrypoint } from "cloudflare:workers";
+import {OAuthProvider} from "my-oauth";
+import type {ExportedHandler} from "@cloudflare/workers-types";
+import {WorkerEntrypoint} from "cloudflare:workers";
 
 // We export the OAuthProvider instance as the entrypoint to our Worker. This means it
 // implements the `fetch()` handler, receiving all HTTP requests.
 export default new OAuthProvider({
-  // Configure API routes. Any requests whose URL starts with any of these prefixes will be
-  // considered API requests. The OAuth provider will check the access token on these requests,
-  // and then, if the token is valid, send the request to the API handler.
-  // You can provide:
-  // - A single route (string) or multiple routes (array)
-  // - Full URLs (which will match the hostname) or just paths (which will match any hostname)
-  apiRoute: [
-    "/api/", // Path only - will match any hostname
-    "https://api.example.com/" // Full URL - will check hostname
-  ],
+    // Configure API routes. Any requests whose URL starts with any of these prefixes will be
+    // considered API requests. The OAuth provider will check the access token on these requests,
+    // and then, if the token is valid, send the request to the API handler.
+    // You can provide:
+    // - A single route (string) or multiple routes (array)
+    // - Full URLs (which will match the hostname) or just paths (which will match any hostname)
+    apiRoute: [
+        "/api-client/", // Path only - will match any hostname
+        "https://api.example.com/" // Full URL - will check hostname
+    ],
 
-  // When the OAuth system receives an API request with a valid access token, it passes the request
-  // to this handler object's fetch method.
-  // You can provide either an object with a fetch method (ExportedHandler)
-  // or a class extending WorkerEntrypoint.
-  apiHandler: ApiHandler, // Using a WorkerEntrypoint class
-  
-  // For multi-handler setups, you can use apiHandlers instead of apiRoute+apiHandler.
-  // This allows you to use different handlers for different API routes.
-  // Note: You must use either apiRoute+apiHandler (single-handler) OR apiHandlers (multi-handler), not both.
-  // Example:
-  // apiHandlers: {
-  //   "/api/users/": UsersApiHandler,
-  //   "/api/documents/": DocumentsApiHandler,
-  //   "https://api.example.com/": ExternalApiHandler,
-  // },
+    // When the OAuth system receives an API request with a valid access token, it passes the request
+    // to this handler object's fetch method.
+    // You can provide either an object with a fetch method (ExportedHandler)
+    // or a class extending WorkerEntrypoint.
+    apiHandler: ApiHandler, // Using a WorkerEntrypoint class
 
-  // Any requests which aren't API request will be passed to the default handler instead.
-  // Again, this can be either an object or a WorkerEntrypoint.
-  defaultHandler: defaultHandler, // Using an object with a fetch method
+    // For multi-handler setups, you can use apiHandlers instead of apiRoute+apiHandler.
+    // This allows you to use different handlers for different API routes.
+    // Note: You must use either apiRoute+apiHandler (single-handler) OR apiHandlers (multi-handler), not both.
+    // Example:
+    // apiHandlers: {
+    //   "/api-client/users/": UsersApiHandler,
+    //   "/api-client/documents/": DocumentsApiHandler,
+    //   "https://api.example.com/": ExternalApiHandler,
+    // },
 
-  // This specifies the URL of the OAuth authorization flow UI. This UI is NOT implemented by
-  // the OAuthProvider. It is up to the application to implement a UI here. The only reason why
-  // this URL is given to the OAuthProvider is so that it can implement the RFC-8414 metadata
-  // discovery endpoint, i.e. `.well-known/oauth-authorization-server`.
-  // Can also be specified as just a path (e.g., "/authorize").
-  authorizeEndpoint: "https://example.com/authorize",
+    // Any requests which aren't API request will be passed to the default handler instead.
+    // Again, this can be either an object or a WorkerEntrypoint.
+    defaultHandler: defaultHandler, // Using an object with a fetch method
 
-  // This specifies the OAuth 2 token exchange endpoint. The OAuthProvider will implement this
-  // endpoint (by directly responding to requests with a matching URL).
-  // Can also be specified as just a path (e.g., "/oauth/token").
-  tokenEndpoint: "https://example.com/oauth/token",
+    // This specifies the URL of the OAuth authorization flow UI. This UI is NOT implemented by
+    // the OAuthProvider. It is up to the application to implement a UI here. The only reason why
+    // this URL is given to the OAuthProvider is so that it can implement the RFC-8414 metadata
+    // discovery endpoint, i.e. `.well-known/oauth-authorization-server`.
+    // Can also be specified as just a path (e.g., "/authorize").
+    authorizeEndpoint: "https://example.com/authorize",
 
-  // This specifies the RFC-7591 dynamic client registration endpoint. This setting is optional,
-  // but if provided, the OAuthProvider will implement this endpoint to allow dynamic client
-  // registration.
-  // Can also be specified as just a path (e.g., "/oauth/register").
-  clientRegistrationEndpoint: "https://example.com/oauth/register",
+    // This specifies the OAuth 2 token exchange endpoint. The OAuthProvider will implement this
+    // endpoint (by directly responding to requests with a matching URL).
+    // Can also be specified as just a path (e.g., "/oauth/token").
+    tokenEndpoint: "https://example.com/oauth/token",
 
-  // Optional list of scopes supported by this OAuth provider.
-  // If provided, this will be included in the RFC 8414 metadata as 'scopes_supported'.
-  // If not provided, the 'scopes_supported' field will be omitted from the metadata.
-  scopesSupported: ["document.read", "document.write", "profile"],
+    // This specifies the RFC-7591 dynamic client registration endpoint. This setting is optional,
+    // but if provided, the OAuthProvider will implement this endpoint to allow dynamic client
+    // registration.
+    // Can also be specified as just a path (e.g., "/oauth/register").
+    clientRegistrationEndpoint: "https://example.com/oauth/register",
 
-  // Optional: Controls whether the OAuth implicit flow is allowed.
-  // The implicit flow is discouraged in OAuth 2.1 but may be needed for some clients.
-  // Defaults to false.
-  allowImplicitFlow: false,
+    // Optional list of scopes supported by this OAuth provider.
+    // If provided, this will be included in the RFC 8414 metadata as 'scopes_supported'.
+    // If not provided, the 'scopes_supported' field will be omitted from the metadata.
+    scopesSupported: ["document.read", "document.write", "profile"],
 
-  // Optional: Controls whether public clients (clients without a secret, like SPAs)
-  // can register via the dynamic client registration endpoint.
-  // When true, only confidential clients can register.
-  // Note: Creating public clients via the OAuthHelpers.createClient() method
-  // is always allowed regardless of this setting.
-  // Defaults to false.
-  disallowPublicClientRegistration: false
+    // Optional: Controls whether the OAuth implicit flow is allowed.
+    // The implicit flow is discouraged in OAuth 2.1 but may be needed for some clients.
+    // Defaults to false.
+    allowImplicitFlow: false,
+
+    // Optional: Controls whether public clients (clients without a secret, like SPAs)
+    // can register via the dynamic client registration endpoint.
+    // When true, only confidential clients can register.
+    // Note: Creating public clients via the OAuthHelpers.createClient() method
+    // is always allowed regardless of this setting.
+    // Defaults to false.
+    disallowPublicClientRegistration: false
 });
 
 // The default handler object - the OAuthProvider will pass through HTTP requests to this object's fetch method
 // if they aren't API requests or do not have a valid access token
 const defaultHandler = {
-  // This fetch method works just like a standard Cloudflare Workers fetch handler
-  //
-  // The `request`, `env`, and `ctx` parameters are the same as for a normal Cloudflare Workers fetch
-  // handler, and are exactly the objects that the `OAuthProvider` itself received from the Workers
-  // runtime.
-  //
-  // The `env.OAUTH_PROVIDER` provides an API by which the application can call back to the
-  // OAuthProvider.
-  async fetch(request: Request, env, ctx) {
-    let url = new URL(request.url);
+    // This fetch method works just like a standard Cloudflare Workers fetch handler
+    //
+    // The `request`, `env`, and `ctx` parameters are the same as for a normal Cloudflare Workers fetch
+    // handler, and are exactly the objects that the `OAuthProvider` itself received from the Workers
+    // runtime.
+    //
+    // The `env.OAUTH_PROVIDER` provides an API by which the application can call back to the
+    // OAuthProvider.
+    async fetch(request: Request, env, ctx) {
+        let url = new URL(request.url);
 
-    if (url.pathname == "/authorize") {
-      // This is a request for our OAuth authorization flow UI. It is up to the application to
-      // implement this. However, the OAuthProvider library provides some helpers to assist.
+        if (url.pathname == "/authorize") {
+            // This is a request for our OAuth authorization flow UI. It is up to the application to
+            // implement this. However, the OAuthProvider library provides some helpers to assist.
 
-      // `env.OAUTH_PROVIDER.parseAuthRequest()` parses the OAuth authorization request to extract the parameters
-      // required by the OAuth 2 standard, namely response_type, client_id, redirect_uri, scope, and
-      // state. It returns an object containing all these (using idiomatic camelCase naming).
-      let oauthReqInfo = await env.OAUTH_PROVIDER.parseAuthRequest(request);
+            // `env.OAUTH_PROVIDER.parseAuthRequest()` parses the OAuth authorization request to extract the parameters
+            // required by the OAuth 2 standard, namely response_type, client_id, redirect_uri, scope, and
+            // state. It returns an object containing all these (using idiomatic camelCase naming).
+            let oauthReqInfo = await env.OAUTH_PROVIDER.parseAuthRequest(request);
 
-      // `env.OAUTH_PROVIDER.lookupClient()` looks up metadata about the client, as definetd by RFC-7591. This
-      // includes things like redirect_uris, client_name, logo_uri, etc.
-      let clientInfo = await env.OAUTH_PROVIDER.lookupClient(oauthReqInfo.clientId);
+            // `env.OAUTH_PROVIDER.lookupClient()` looks up metadata about the client, as definetd by RFC-7591. This
+            // includes things like redirect_uris, client_name, logo_uri, etc.
+            let clientInfo = await env.OAUTH_PROVIDER.lookupClient(oauthReqInfo.clientId);
 
-      // At this point, the application should use `oauthReqInfo` and `clientInfo` to render an
-      // authorization consent UI to the user. The details of this are up to the app so are not
-      // shown here.
+            // At this point, the application should use `oauthReqInfo` and `clientInfo` to render an
+            // authorization consent UI to the user. The details of this are up to the app so are not
+            // shown here.
 
-      // After the user has granted consent, the application calls `env.OAUTH_PROVIDER.completeAuthorization()` to
-      // grant the authorization.
-      let {redirectTo} = await env.OAUTH_PROVIDER.completeAuthorization({
-        // The application passes back the original OAuth request info that was returned by
-        // `parseAuthRequest()` earlier.
-        request: oauthReqInfo,
+            // After the user has granted consent, the application calls `env.OAUTH_PROVIDER.completeAuthorization()` to
+            // grant the authorization.
+            let {redirectTo} = await env.OAUTH_PROVIDER.completeAuthorization({
+                // The application passes back the original OAuth request info that was returned by
+                // `parseAuthRequest()` earlier.
+                request: oauthReqInfo,
 
-        // The application must specify the user's ID, which is some sort of string. This is needed
-        // so that the application can later query the OAuthProvider to enumerate all grants
-        // belonging to a particular user, e.g. to implement an audit and revocation UI.
-        userId: "1234",
+                // The application must specify the user's ID, which is some sort of string. This is needed
+                // so that the application can later query the OAuthProvider to enumerate all grants
+                // belonging to a particular user, e.g. to implement an audit and revocation UI.
+                userId: "1234",
 
-        // The application can specify some arbitary metadata which describes this grant. The
-        // metadata can contain any JSON-serializable content. This metadata is not used by the
-        // OAuthProvider, but the application can read back the metadata attached to specific
-        // grants when enumerating them later, again e.g. to implement an udit and revocation UI.
-        metadata: {label: "foo"},
+                // The application can specify some arbitary metadata which describes this grant. The
+                // metadata can contain any JSON-serializable content. This metadata is not used by the
+                // OAuthProvider, but the application can read back the metadata attached to specific
+                // grants when enumerating them later, again e.g. to implement an udit and revocation UI.
+                metadata: {label: "foo"},
 
-        // The application specifies the list of OAuth scope identifiers that were granted. This
-        // may or may not be the same as was requested in `oauthReqInfo.scope`.
-        scope: ["document.read", "document.write"],
+                // The application specifies the list of OAuth scope identifiers that were granted. This
+                // may or may not be the same as was requested in `oauthReqInfo.scope`.
+                scope: ["document.read", "document.write"],
 
-        // `props` is an arbitrary JSON-serializable object which will be passed back to the API
-        // handler for every request authorized by this grant.
-        props: {
-          userId: 1234,
-          username: "Bob"
+                // `props` is an arbitrary JSON-serializable object which will be passed back to the API
+                // handler for every request authorized by this grant.
+                props: {
+                    userId: 1234,
+                    username: "Bob"
+                }
+            });
+
+            // `completeAuthorization()` will have returned the URL to which the user should be redirected
+            // in order to complete the authorization flow. This is the requesting client's OAuth
+            // redirect_uri with the appropriate query parameters added to complete the flow and obtain
+            // tokens.
+            return Response.redirect(redirectTo, 302);
         }
-      });
 
-      // `completeAuthorization()` will have returned the URL to which the user should be redirected
-      // in order to complete the authorization flow. This is the requesting client's OAuth
-      // redirect_uri with the appropriate query parameters added to complete the flow and obtain
-      // tokens.
-      return Response.redirect(redirectTo, 302);
+        // ... the application can implement other non-API HTTP endpoints here ...
+
+        return new Response("Not found", {status: 404});
     }
-
-    // ... the application can implement other non-API HTTP endpoints here ...
-
-    return new Response("Not found", {status: 404});
-  }
 };
 
 // The API handler object - the OAuthProivder will pass authorized API requests to this object's fetch method
 // (because we provided it as the `apiHandler` setting, above). This is ONLY called for API requests
 // that had a valid access token.
 class ApiHandler extends WorkerEntrypoint {
-  // This fetch method works just like any other WorkerEntrypoint fetch method. The `request` is
-  // passed as a parameter, while `env` and `ctx` are available as `this.env` and `this.ctx`.
-  //
-  // The `this.env.OAUTH_PROVIDER` is available just like in the default handler.
-  //
-  // The `this.ctx.props` property contains the `props` value that was passed to
-  // `env.OAUTH_PROVIDER.completeAuthorization()` during the authorization flow that authorized this client.
-  fetch(request: Request) {
-    // The application can implement its API endpoints like normal. This app implements a single
-    // endpoint, `/api/whoami`, which returns the user's authenticated identity.
+    // This fetch method works just like any other WorkerEntrypoint fetch method. The `request` is
+    // passed as a parameter, while `env` and `ctx` are available as `this.env` and `this.ctx`.
+    //
+    // The `this.env.OAUTH_PROVIDER` is available just like in the default handler.
+    //
+    // The `this.ctx.props` property contains the `props` value that was passed to
+    // `env.OAUTH_PROVIDER.completeAuthorization()` during the authorization flow that authorized this client.
+    fetch(request: Request) {
+        // The application can implement its API endpoints like normal. This app implements a single
+        // endpoint, `/api-client/whoami`, which returns the user's authenticated identity.
 
-    let url = new URL(request.url);
-    if (url.pathname == "/api/whoami") {
-      // Since the username is embedded in `ctx.props`, which came from the access token that the
-      // OAuthProivder already verified, we don't need to do any other authentication steps.
-      return new Response(`You are authenticated as: ${this.ctx.props.username}`);
+        let url = new URL(request.url);
+        if (url.pathname == "/api-client/whoami") {
+            // Since the username is embedded in `ctx.props`, which came from the access token that the
+            // OAuthProivder already verified, we don't need to do any other authentication steps.
+            return new Response(`You are authenticated as: ${this.ctx.props.username}`);
+        }
+
+        return new Response("Not found", {status: 404});
     }
-
-    return new Response("Not found", {status: 404});
-  }
 };
 ```
 

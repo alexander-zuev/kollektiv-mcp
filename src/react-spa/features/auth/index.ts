@@ -1,13 +1,12 @@
 // Main components
-export { AuthGuard } from './AuthGuard';
-export { useAuthInitializer } from './useAuthInitializer';
-export { authService } from './services/authService';
+
 
 // Re-export from subdirectories
 export * from './components';
-
+export {authService} from './services/authService';
 // Store exports
 export * from './store';
+export {useAuthInitializer} from './useAuthInitializer';
 
 // Utility exports
 export * from './utils';

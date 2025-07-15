@@ -10,14 +10,15 @@
  */
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "kollektiv-mcp-prod",
+  "name": "kollektiv",
   "main": "src/worker/index.ts",
   "compatibility_date": "2025-06-17",
   "compatibility_flags": [
     "nodejs_compat"
   ],
   "vars": {
-    "PNPM_VERSION": "10.12.4"
+    "PNPM_VERSION": "10.12.4",
+    "SITE_URL": "https://thekollektiv.ai"
   },
   "tail_consumers": [
     {
@@ -50,6 +51,15 @@
       "preview_id": "c9479f88248943e591e4932db05d034f"
     }
   ],
+  "d1_databases": [
+    {
+      "binding": "D1",
+      "database_name": "kollektiv-prod",
+      "database_id": "7867ca1a-e6bc-4b14-83ed-76049a98bbae",
+      "preview_database_id": "c7f175a4-7423-4f9b-8348-bc26752c16fb",
+      "migrations_dir": "src/worker/infrastructure/database/migrations"
+    }
+  ],
   "observability": {
     "enabled": true
   },
@@ -66,7 +76,7 @@
   ],
   "routes": [
     {
-      "pattern": "mcp.thekollektiv.ai",
+      "pattern": "thekollektiv.ai",
       "custom_domain": true
     }
   ],

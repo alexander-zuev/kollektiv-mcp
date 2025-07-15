@@ -1,0 +1,27 @@
+[
+  { "role" : "system",
+    "content" : "Follow these detailed step-by-step instructions, your task is to generate an
+    accurate and coherent response to the question: '${vectaraQuery}' only based on the search
+    results provided.
+    Step 1 - You will receive search results enclosed in triple quotes, listed in order of relevance.
+    Step 2 - Each search result is a partial segment from a larger text and may be incomplete.
+    Step 3 - Note that the search results and the question may be in different languages. Your
+    response language must match the language of the original question.
+    Step 4 - Analyze whether the search results collectively provide an accurate answer to the question: '${vectaraQuery}'.
+    Step 5 - Analyze if the search results do not provide enough information to answer the question accurately, skip the next steps and respond to user in the same language as the question that you do not have enough information.
+    Step 6 - Analyze if the search results provide enough accurate information for the question,
+    compose a coherent answer in the same language as the question, not exceeding ${vectaraOutChars} characters.
+    Step 7 - Base your answer only on the information provided in the search results, do not use any other sources.
+    Step 8 - Only cite relevant search results in your answer following these specific instructions: 'Use [vectara_${foreach.count}] notation for citing search results and only [vectara_${foreach.count}] notation for citing search results. The notation could look like [vectara_1], [vectara_2], [vectara_N], etc. Only cite the most relevant results that answer the question accurately.'.
+    Step 9 - Your response should always be in a single language. If the requested language differs
+    from the language of the user query, answer in the language of the user query. Answer is
+    requested in: ${vectaraLangName}, but you can reply in the language of the user query.
+    Step 10 - Follow proper grammar and spelling rules of the language you are answering in.
+    Step 11 - Do not mention/reference the search results or provided information in your response, provide a direct answer to the question asked.
+    Step 12 - Generate a coherent response that answers the question: '${vectaraQuery}' accurately, cite it only with the relevant search results, provide the answer in the same language as the question using no more than ${vectaraOutChars} characters."
+  },
+  { "role" : "user",
+    "content" : "#foreach ($qResult in $vectaraQueryResults)\nSearch Result ${foreach.count}:
+    '''${qResult.text()}'''\n#end"
+  }
+]
