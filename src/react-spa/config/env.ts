@@ -1,5 +1,5 @@
 import {z} from 'zod';
-import {fromZodError} from 'zod-validation-error';
+import {fromError} from 'zod-validation-error';
 
 // Define schema for environment variables
 const envSchema = z.object({
@@ -16,7 +16,7 @@ const envSchema = z.object({
     // Posthog
     VITE_PUBLIC_POSTHOG_KEY: z.string(),
     VITE_PUBLIC_POSTHOG_HOST: z.string(),
-    
+
 
     // Cloudflare
     VITE_TURNSTILE_SITE_KEY: z.string(),
@@ -48,7 +48,7 @@ export function validateEnv(): z.infer<typeof envSchema> {
         return envSchema.parse(envVars);
     } catch (error) {
         if (error instanceof z.ZodError) {
-            const validationError = fromZodError(error);
+            const validationError = fromError(error);
             console.error('Configuration Error:');
             console.error(validationError.message);
             throw new Error(`Configuration Error: ${validationError.message}`);
