@@ -1,1 +1,1 @@
-export * from './api-base.types.ts';
+export * from './base-api.types';

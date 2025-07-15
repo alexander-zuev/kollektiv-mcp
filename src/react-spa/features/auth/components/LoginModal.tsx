@@ -5,10 +5,9 @@ import {toast} from 'sonner';
 import {Dialog, DialogContent, DialogDescription, DialogTitle} from '@/components/ui'; // shadcn alias
 import {config} from '@/config/config';
 import {SignInCard} from '@/features/auth/components/SignInCard';
-import {EmailFormValues, SignInForm} from '@/features/auth/components/SignInForm';
+import {type EmailFormValues, SignInForm} from '@/features/auth/components/SignInForm';
 import {authService} from '@/features/auth/services/authService';
 import {getAuthErrorMsg} from '@/features/auth/utils/authErrorHelper';
-import {ROUTES} from '@/routing/config';
 import {logger} from '@/shared/lib/logger';
 import {cn} from '@/shared/utils';
 
@@ -37,7 +36,7 @@ export const LoginModal = ({
             try {
                 const result = await signInWithOtp(
                     data.email,
-                    `${config.site.url}${ROUTES.HOME}`,
+                    `${config.site.url}/`,
                     turnstileToken
                 );
                 if (result.success) {
@@ -60,7 +59,7 @@ export const LoginModal = ({
         setIsLoading(true);
         try {
             logger.info('GitHub sign in');
-            signInWithOAuth('github', `${config.site.url}${ROUTES.HOME}`);
+            signInWithOAuth('github', `${config.site.url}/`);
         } catch (error) {
             const errorMessage = getAuthErrorMsg(error, 'github_sign_in');
             logger.error('GitHub sign in failed:', error);
@@ -74,7 +73,7 @@ export const LoginModal = ({
         setIsLoading(true);
         try {
             logger.info('Google sign in');
-            signInWithOAuth('google', `${config.site.url}${ROUTES.HOME}`);
+            signInWithOAuth('google', `${config.site.url}/`);
         } catch (error) {
             const errorMessage = getAuthErrorMsg(error, 'google_sign_in');
             logger.error('Google sign in failed:', error);

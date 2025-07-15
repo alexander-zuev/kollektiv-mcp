@@ -1,8 +1,8 @@
+import {getApiRoute} from '@shared/api/app-routes';
+import {ApiError} from '@shared/api/http-client/types';
+import type {UserFile} from '@shared/api/schemas/files.schemas';
 import {useCallback, useState} from 'react';
-import {api} from '@/api-client/client';
-import {ApiError} from '@/api-client/types';
-import {UserFile} from '@/api-client/types/documents.ts';
-import {getAuthHeader} from '@/api-client/utils/authHeader.ts';
+import {api} from '@/api-client/http-client';
 import {
     ALLOWED_FILE_TYPES,
     MAX_FILE_SIZE_BYTES,
@@ -109,8 +109,7 @@ export const useFileUpload = ({
                     setInFlight(c => c + 1);
 
                     try {
-                        const res = await api.post<UserFile>('/documents', formData, {
-                            headers: {...getAuthHeader()},
+                        const res = await api.post<UserFile>(getApiRoute('files'), formData, {
                             timeoutMs: UPLOAD_TIMEOUT_MS,
                         });
                         successful.push(res);

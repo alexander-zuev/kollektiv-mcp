@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Your Kollektiv Sign-in Link</title>
+
+    <!-- Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet"/>
+
+    <style>
+        /* (same styles as before, OTP-specific ones removed) */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #111113;
+            background-color: #eeeef0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #b2b3bd;
+        }
+
+        .logo {
+            width: 120px;
+            height: auto;
+        }
+
+        h1 {
+            font-weight: 700;
+            font-size: 24px;
+            color: #00ff9d;
+            margin-top: 24px;
+        }
+
+        .button {
+            display: inline-block;
+            background: #007f4c;
+            color: #fff !important;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 12px 24px;
+            border-radius: 6px;
+            margin: 16px 0;
+            text-align: center;
+        }
+
+        .button:hover {
+            background: #0c6b40;
+        }
+
+        .footer {
+            padding: 20px 0;
+            text-align: center;
+            font-size: 12px;
+            color: #6c6e79;
+            border-top: 1px solid #b2b3bd;
+        }
+
+        .security-notice {
+            background: #eeeef0;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-size: 13px;
+            color: #5f606a;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                width: 100%;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <!-- Header / Logo -->
+    <div class="header">
+        <img src="{{ .SiteURL }}/logo.svg" alt="Kollektiv Logo" class="logo"/>
+    </div>
+
+    <!-- Main content -->
+    <h1>Your Sign-in Link is Ready</h1>
+    <p>
+        You requested to sign in to <strong>Kollektiv</strong>. Click the button below to securely
+        log in to your account. This link will expire in 24&nbsp;hours.
+    </p>
+
+    <p style="text-align:center">
+        <!-- Supabase confirmation URL -->
+        <a href="{{ .ConfirmationURL }}" class="button">
+            Sign in to Kollektiv
+        </a>
+    </p>
+
+    <!-- Fallback plain link -->
+    <p style="font-size:14px">
+        If the button doesn't work, copy and paste this link into your browser:<br/>
+        <a href="{{ .ConfirmationURL }}">
+            {{ .ConfirmationURL }}
+        </a>
+    </p>
+
+    <!-- Security notice -->
+    <div class="security-notice">
+        <strong>Security tip:</strong> This link will only work once. If you didn’t request this
+        email, you can safely ignore it.
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>&copy; 2025 Kollektiv.</p>
+        <p>Kollektiv&nbsp;LLC. All rights reserved.</p>
+        <p>701 Tillery Street Unit&nbsp;12, #2874, Austin, TX&nbsp;78702</p>
+        <p>This is an automated message, please do not reply.</p>
+        <p>
+            <a href="{{ .SiteURL }}/privacy">Privacy Policy</a> •
+            <a href="{{ .SiteURL }}/terms">Terms of Service</a>
+        </p>
+    </div>
+</div>
+</body>
+</html>

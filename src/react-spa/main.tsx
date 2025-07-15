@@ -1,42 +1,91 @@
-import App from '@/App';
-import {config} from '@/config'; // 1. Import and validate configuration first
-// import {configureLogger, logger} from '@/'; // 3. Import and configure
-// logger with config values
-import '@/shared/monitoring/sentry.ts'; // 2. Initialize error tracking early
 import {StrictMode} from 'react';
-import {createRoot} from 'react-dom/client'; // 5. Other imports
-import {generateErrorPageHTML} from '@/pages/common/ErrorPage'; // 4. Import error page template generator
+import {config} from '@/config/config.ts';
+import {ErrorBoundary, initSentry, Sentry} from '@/shared/lib/sentry.ts';
 import '@/styles/styles.css';
-import * as Sentry from '@sentry/react';
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
+import {createRouter, RouterProvider} from '@tanstack/react-router';
+import {PostHogProvider} from "posthog-js/react";
+import ReactDOM from 'react-dom/client';
+import {Toaster} from '@/components/ui/feedback/toasts';
+import {useAuthInitializer, waitForAuth} from "@/features/auth";
+import {ErrorFallback} from '@/features/common/components/ErrorFallback';
+import {useNetworkStatus} from "@/shared/hooks";
+import {ThemeProvider} from '@/shared/hooks/use-theme.tsx';
+import {routeTree} from './routeTree.gen.ts';
 
-console.log('React is starting...');
 
-// configureLogger(config.logging.level);
-// logger.info('Application starting');
+const queryClient = new QueryClient();
 
-const rootElement = document.getElementById('root');
 
-if (!rootElement) {
-    throw new Error('Root element not found');
+// Create a new router instance
+const router = createRouter({
+    routeTree,
+    defaultPreload: 'intent',
+    scrollRestoration: true,
+    context: {
+        queryClient,
+        waitForAuth,
+    },
+});
+
+
+// Initialize Sentry with router integration
+initSentry(router);
+
+// Register the router instance for type safety
+declare module '@tanstack/react-router' {
+    interface Register {
+        router: typeof router;
+    }
 }
 
-try {
-    createRoot(rootElement, {
-        // React 19 error hooks:
+const PosthogWrapper = ({children}: { children: React.ReactNode }) => {
+    if (config.isDevelopment) {
+        return children;
+    }
+    return (
+        <PostHogProvider
+            apiKey={config.posthog.apiKey}
+            options={{
+                api_host: config.posthog.apiHost,
+                // debug: import.meta.env.MODE === 'development',
+            }}
+        >
+            {children}
+        </PostHogProvider>
+    );
+};
+
+function AppWithAuth() {
+    useNetworkStatus();
+    useAuthInitializer();
+
+    return <RouterProvider router={router} context={{queryClient}}/>;
+}
+
+
+// Render the app
+const rootElement = document.getElementById('root')!;
+if (!rootElement.innerHTML) {
+    const root = ReactDOM.createRoot(rootElement, {
         onUncaughtError: Sentry.reactErrorHandler((error, errorInfo) => {
             console.error('Uncaught error', error, errorInfo.componentStack);
         }),
         onCaughtError: Sentry.reactErrorHandler(),
         onRecoverableError: Sentry.reactErrorHandler(),
-    }).render(
+    });
+    root.render(
         <StrictMode>
-            <App/>
+            <ErrorBoundary fallback={ErrorFallback}>
+                <PosthogWrapper>
+                    <QueryClientProvider client={queryClient}>
+                        <ThemeProvider defaultTheme={'dark'} storageKey={'vite-ui-theme'}>
+                            <Toaster/>
+                            <AppWithAuth/>
+                        </ThemeProvider>
+                    </QueryClientProvider>
+                </PosthogWrapper>
+            </ErrorBoundary>
         </StrictMode>
-    );
-    console.info('Application started successfully');
-} catch (error) {
-    console.error('Fatal application error', error);
-    rootElement.innerHTML = generateErrorPageHTML(
-        error instanceof Error ? error : new Error(String(error))
     );
 }

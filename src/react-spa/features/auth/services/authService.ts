@@ -1,9 +1,7 @@
 import { logger } from '@/shared/lib/logger';
-import { supabase } from '@/shared/services/supabaseClient';
+import { supabase } from '@/shared/services/supabaseClient.ts';
 import { Provider } from '@supabase/supabase-js';
 import { getAuthErrorMsg } from '@/features/auth';
-
-// TODO: why the fuck does this NOT raise? We are inventing our own control flow
 
 /**
  * Service provides authentication methods

@@ -11,13 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ConfirmOtpRouteImport } from './routes/confirm-otp'
 import { Route as AuthCallbackRouteImport } from './routes/auth-callback'
-import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
+import { Route as LegalRefundRouteImport } from './routes/legal/refund'
 import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
-import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
-import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard.index'
-import { Route as AuthDashboardBillingRouteImport } from './routes/_auth/dashboard.billing'
 
 const ConfirmOtpRoute = ConfirmOtpRouteImport.update({
   id: '/confirm-otp',
@@ -27,10 +24,6 @@ const ConfirmOtpRoute = ConfirmOtpRouteImport.update({
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth-callback',
   path: '/auth-callback',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRouteRoute = AuthRouteRouteImport.update({
-  id: '/_auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -43,57 +36,41 @@ const LegalTermsRoute = LegalTermsRouteImport.update({
   path: '/legal/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LegalRefundRoute = LegalRefundRouteImport.update({
+  id: '/legal/refund',
+  path: '/legal/refund',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
   id: '/legal/privacy',
   path: '/legal/privacy',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AuthDashboardRoute = AuthDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthRouteRoute,
-} as any)
-const AuthDashboardIndexRoute = AuthDashboardIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthDashboardRoute,
-} as any)
-const AuthDashboardBillingRoute = AuthDashboardBillingRouteImport.update({
-  id: '/billing',
-  path: '/billing',
-  getParentRoute: () => AuthDashboardRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth-callback': typeof AuthCallbackRoute
   '/confirm-otp': typeof ConfirmOtpRoute
-  '/dashboard': typeof AuthDashboardRouteWithChildren
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/refund': typeof LegalRefundRoute
   '/legal/terms': typeof LegalTermsRoute
-  '/dashboard/billing': typeof AuthDashboardBillingRoute
-  '/dashboard/': typeof AuthDashboardIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth-callback': typeof AuthCallbackRoute
   '/confirm-otp': typeof ConfirmOtpRoute
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/refund': typeof LegalRefundRoute
   '/legal/terms': typeof LegalTermsRoute
-  '/dashboard/billing': typeof AuthDashboardBillingRoute
-  '/dashboard': typeof AuthDashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_auth': typeof AuthRouteRouteWithChildren
   '/auth-callback': typeof AuthCallbackRoute
   '/confirm-otp': typeof ConfirmOtpRoute
-  '/_auth/dashboard': typeof AuthDashboardRouteWithChildren
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/refund': typeof LegalRefundRoute
   '/legal/terms': typeof LegalTermsRoute
-  '/_auth/dashboard/billing': typeof AuthDashboardBillingRoute
-  '/_auth/dashboard/': typeof AuthDashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,39 +78,33 @@ export interface FileRouteTypes {
     | '/'
     | '/auth-callback'
     | '/confirm-otp'
-    | '/dashboard'
     | '/legal/privacy'
+    | '/legal/refund'
     | '/legal/terms'
-    | '/dashboard/billing'
-    | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth-callback'
     | '/confirm-otp'
     | '/legal/privacy'
+    | '/legal/refund'
     | '/legal/terms'
-    | '/dashboard/billing'
-    | '/dashboard'
   id:
     | '__root__'
     | '/'
-    | '/_auth'
     | '/auth-callback'
     | '/confirm-otp'
-    | '/_auth/dashboard'
     | '/legal/privacy'
+    | '/legal/refund'
     | '/legal/terms'
-    | '/_auth/dashboard/billing'
-    | '/_auth/dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthRouteRoute: typeof AuthRouteRouteWithChildren
   AuthCallbackRoute: typeof AuthCallbackRoute
   ConfirmOtpRoute: typeof ConfirmOtpRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
+  LegalRefundRoute: typeof LegalRefundRoute
   LegalTermsRoute: typeof LegalTermsRoute
 }
 
@@ -153,13 +124,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_auth': {
-      id: '/_auth'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof AuthRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -174,6 +138,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalTermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/legal/refund': {
+      id: '/legal/refund'
+      path: '/legal/refund'
+      fullPath: '/legal/refund'
+      preLoaderRoute: typeof LegalRefundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/legal/privacy': {
       id: '/legal/privacy'
       path: '/legal/privacy'
@@ -181,62 +152,15 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalPrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_auth/dashboard': {
-      id: '/_auth/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthDashboardRouteImport
-      parentRoute: typeof AuthRouteRoute
-    }
-    '/_auth/dashboard/': {
-      id: '/_auth/dashboard/'
-      path: '/'
-      fullPath: '/dashboard/'
-      preLoaderRoute: typeof AuthDashboardIndexRouteImport
-      parentRoute: typeof AuthDashboardRoute
-    }
-    '/_auth/dashboard/billing': {
-      id: '/_auth/dashboard/billing'
-      path: '/billing'
-      fullPath: '/dashboard/billing'
-      preLoaderRoute: typeof AuthDashboardBillingRouteImport
-      parentRoute: typeof AuthDashboardRoute
-    }
   }
 }
 
-interface AuthDashboardRouteChildren {
-  AuthDashboardBillingRoute: typeof AuthDashboardBillingRoute
-  AuthDashboardIndexRoute: typeof AuthDashboardIndexRoute
-}
-
-const AuthDashboardRouteChildren: AuthDashboardRouteChildren = {
-  AuthDashboardBillingRoute: AuthDashboardBillingRoute,
-  AuthDashboardIndexRoute: AuthDashboardIndexRoute,
-}
-
-const AuthDashboardRouteWithChildren = AuthDashboardRoute._addFileChildren(
-  AuthDashboardRouteChildren,
-)
-
-interface AuthRouteRouteChildren {
-  AuthDashboardRoute: typeof AuthDashboardRouteWithChildren
-}
-
-const AuthRouteRouteChildren: AuthRouteRouteChildren = {
-  AuthDashboardRoute: AuthDashboardRouteWithChildren,
-}
-
-const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
-  AuthRouteRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthRouteRoute: AuthRouteRouteWithChildren,
   AuthCallbackRoute: AuthCallbackRoute,
   ConfirmOtpRoute: ConfirmOtpRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
+  LegalRefundRoute: LegalRefundRoute,
   LegalTermsRoute: LegalTermsRoute,
 }
 export const routeTree = rootRouteImport

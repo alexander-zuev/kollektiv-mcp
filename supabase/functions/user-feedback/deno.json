@@ -1,0 +1,10 @@
+{
+  "tasks": {
+    "dev": "supabase functions serve"
+  },
+  "imports": {
+    "resend": "npm:resend@4.4.1",
+    "shared/": "../_shared/",
+    "@types/supabase-edge": "jsr:@supabase/functions-js/edge-runtime.d.ts"
+  }
+}
