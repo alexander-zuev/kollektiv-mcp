@@ -1,0 +1,35 @@
+/**
+ * CURSOR VARIABLES
+ * Defines cursor styles for different interactive elements
+ */
+:root {
+  --cursor-button: default;
+  --cursor-checkbox: default;
+  --cursor-disabled: not-allowed;
+  --cursor-link: pointer;
+  --cursor-menu-item: default;
+  --cursor-radio: default;
+  --cursor-slider-thumb: default;
+  --cursor-slider-thumb-active: default;
+  --cursor-switch: default;
+}
+
+/**
+ * TAILWIND MAPPING
+ * This maps our cursor variables to Tailwind CSS utility classes
+ */
+@theme inline {
+  /* Cursor mappings */
+  --cursor-default: var(--cursor-button);
+  --cursor-pointer: var(--cursor-link);
+  --cursor-not-allowed: var(--cursor-disabled);
+  
+  /* Component-specific cursors */
+  --cursor-button: var(--cursor-button);
+  --cursor-checkbox: var(--cursor-checkbox);
+  --cursor-radio: var(--cursor-radio);
+  --cursor-switch: var(--cursor-switch);
+  --cursor-menu-item: var(--cursor-menu-item);
+  --cursor-slider-thumb: var(--cursor-slider-thumb);
+  --cursor-slider-thumb-active: var(--cursor-slider-thumb-active);
+}

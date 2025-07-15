@@ -1,25 +1,28 @@
 /**
  * Wrangler config for kollektiv-mcp
  *
- * - Default-level keys define shared configuration for local development.
- * - The "prod" environment is used for production deployment on the custom domain.
- * - The "preview" environment is used for remote dev previews (wrangler dev --env preview --remote).
- *
- * Each environment can override specific keys (like vars or kv_namespaces),
- * while inheriting all other settings from the default config.
+ * Single environment configuration for Cloudflare deployment.
+ * All settings are at the default level for both development and production.
  *
  * Usage:
- * - Local dev:            wrangler dev
- * - Remote preview dev:   wrangler dev --env preview --remote
- * - Production publish:   wrangler publish --env prod
+ * - Local dev:       wrangler dev
+ * - Production:      wrangler deploy
  */
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "kollektiv-mcp",
-  "main": "src/index.ts",
-  "compatibility_date": "2025-03-10",
+  "name": "kollektiv-mcp-prod",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2025-06-17",
   "compatibility_flags": [
     "nodejs_compat"
+  ],
+  "vars": {
+    "PNPM_VERSION": "10.12.4"
+  },
+  "tail_consumers": [
+    {
+      "service": "kollektiv-mcp-sentry-tail"
+    }
   ],
   "migrations": [
     {
@@ -29,10 +32,6 @@
       "tag": "v1"
     }
   ],
-  "vars": {
-    "API_BASE_URL": "http://localhost:8080",
-    "SITE_URL": "http://localhost:8787"
-  },
   "ai": {
     "binding": "AI"
   },
@@ -46,62 +45,30 @@
   },
   "kv_namespaces": [
     {
-      "binding": "OAUTH_KV",
-      "id": "a8ecb6db9bc64a48b328d4d3a3fe17d1",
-      "preview_id": "1a71071eb37648fdad5acac97b63fd85"
+      "binding": "kollektiv_oauth",
+      "id": "c682a909f1b34cbd83afe60161022af9",
+      "preview_id": "c9479f88248943e591e4932db05d034f"
     }
   ],
   "observability": {
     "enabled": true
   },
   "assets": {
-    "directory": "./public/",
-    "binding": "ASSETS"
+    "directory": "./dist/client",
+    "not_found_handling": "single-page-application"
   },
   "r2_buckets": [
     {
-      "binding": "TEST_BUCKET",
-      "bucket_name": "test-bucket",
-      "preview_bucket_name": "preview-bucket"
+      "bucket_name": "kollektiv-rag",
+      "preview_bucket_name": "kollektiv-rag-preview",
+      "binding": "kollektiv_rag"
     }
   ],
-  "env": {
-    "prod": {
-      "name": "kollektiv-mcp-prod",
-      "vars": {
-        "API_BASE_URL": "https://api.thekollektiv.ai",
-        "SITE_URL": "https://mcp.thekollektiv.ai",
-        "PNPM_VERSION": "10.11.0"
-      },
-      "routes": [
-        {
-          "pattern": "mcp.thekollektiv.ai",
-          "custom_domain": true
-        }
-      ],
-      "durable_objects": {
-        "bindings": [
-          {
-            "name": "MCP_OBJECT",
-            "class_name": "KollektivMCP"
-          }
-        ]
-      },
-      "ai": {
-        "binding": "AI"
-      },
-      "kv_namespaces": [
-        {
-          "binding": "OAUTH_KV",
-          "id": "890edb0bb6754240b92708c4e8e7ff6d"
-        }
-      ],
-      "tail_consumers": [
-        {
-          "service": "kollektiv-mcp-sentry-tail"
-        }
-      ],
-      "upload_source_maps": true
+  "routes": [
+    {
+      "pattern": "mcp.thekollektiv.ai",
+      "custom_domain": true
     }
-  }
+  ],
+  "upload_source_maps": true
 }

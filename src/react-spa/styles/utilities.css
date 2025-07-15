@@ -1,0 +1,519 @@
+/**
+ * Common Utility Classes
+ * 
+ * This file contains frequently used utility class combinations to reduce repetition
+ * in your components and improve consistency across the application.
+ */
+
+/**
+ * flex-center
+ * 
+ * Creates a flex container with centered items both horizontally and vertically.
+ * 
+ * @example
+ * <div class="flex-center">
+ *   <p>This content is centered</p>
+ * </div>
+ * 
+ * @what-it-does Applies display: flex, justify-content: center, and align-items: center
+ */
+@utility flex-center {
+  @apply flex justify-center items-center;
+}
+
+/**
+ * flex-center-col
+ * 
+ * Creates a column flex container with centered items.
+ * 
+ * @example
+ * <div class="flex-center-col">
+ *   <p>This content is stacked vertically</p>
+ *   <p>And centered</p>
+ * </div>
+ * 
+ * @what-it-does Applies display: flex, flex-direction: column, justify-content: center, and align-items: center
+ */
+@utility flex-center-col {
+  @apply flex flex-col justify-center items-center;
+}
+
+/**
+ * content-container
+ * 
+ * Standard container with consistent horizontal padding. 
+ * ! - uses built-in max-width defined by Tailwind. 
+ * Can be used on any layout element that needs standard spacing
+ */
+@utility content-container {
+  @apply container mx-auto px-4;
+}
+
+/**
+ * content-container-full-width
+ * 
+ * Full-width container with consistent horizontal padding.
+ * ! - overrides the built-in max-width defined by Tailwind. 
+ * Can be used on any layout element that needs standard spacing
+ */
+@utility content-container-full-width {
+  @apply mx-auto px-4 w-full;
+}
+
+/**
+ * content-fixed
+ * 
+ * Simple fixed-width container with consistent padding.
+ * - Always uses max-w-6xl regardless of screen size
+ * - Provides consistent horizontal padding
+ * - Centers content with mx-auto
+ * - No responsive breakpoints or container behavior
+ */
+@utility content-container-fixed-width {
+  @apply w-full max-w-6xl mx-auto px-4;
+}
+
+/* ==========================================================================
+   Component Width Utilities
+   ========================================================================== */
+
+/**
+ * component-width-card
+ *
+ * Standard width for small cards (dashboards, overviews).
+ *
+ * @what-it-does Applies max-width: 28rem (~448px)
+ */
+@utility component-width-card {
+  @apply max-w-md; /* Corresponds to 28rem */
+}
+
+/**
+ * component-width-card-lg
+ *
+ * Width for larger cards (bigger dashboard sections).
+ *
+ * @what-it-does Applies max-width: 32rem (~512px)
+ */
+@utility component-width-card-lg {
+  @apply max-w-lg; /* Corresponds to 32rem */
+}
+
+/**
+ * component-width-dialog
+ *
+ * Standard width for modals and dialog popups.
+ *
+ * @what-it-does Applies max-width: 32rem (~512px)
+ */
+@utility component-width-dialog {
+  @apply max-w-lg; /* Corresponds to 32rem */
+}
+
+/**
+ * component-width-dialog-lg
+ *
+ * Width for large dialogs (complex forms, heavy content).
+ *
+ * @what-it-does Applies max-width: 42rem (~672px)
+ */
+@utility component-width-dialog-lg {
+  @apply max-w-2xl; /* Corresponds to 42rem */
+}
+
+/**
+ * component-layout-modal-fullscreen
+ *
+ * Layout utility for rare full-screen modals (onboarding, editors).
+ * Note: This affects height as well.
+ *
+ * @what-it-does Applies width: 100% and height: 100%
+ */
+@utility component-layout-modal-fullscreen {
+  @apply w-full h-full;
+}
+
+/* Top spacing after header */
+@utility page-header {
+  @apply pt-4 pb-4;
+}
+
+/* Bottom spacing before footer */
+@utility page-footer {
+  @apply pb-4 md:pb-8;
+}
+
+/**
+ * flex-between
+ * 
+ * Creates a flex container with items spaced between and vertically centered.
+ * Commonly used for navigation bars and card headers.
+ * 
+ * @example
+ * <div class="flex-between">
+ *   <h3>Card Title</h3>
+ *   <button>Action</button>
+ * </div>
+ * 
+ * @what-it-does Applies display: flex, justify-content: space-between, and align-items: center
+ */
+@utility flex-between {
+  @apply flex justify-between items-center;
+}
+
+/**
+ * flex-start
+ * 
+ * Creates a flex container with items aligned to the start and vertically centered.
+ * 
+ * @example
+ * <div class="flex-start">
+ *   <span>Label:</span>
+ *   <p>Content that follows the label</p>
+ * </div>
+ * 
+ * @what-it-does Applies display: flex, justify-content: flex-start, and align-items: center
+ */
+@utility flex-start {
+  @apply flex justify-start items-center;
+}
+
+/**
+ * flex-end
+ * 
+ * Creates a flex container with items aligned to the end and vertically centered.
+ * 
+ * @example
+ * <div class="flex-end">
+ *   <button>Cancel</button>
+ *   <button>Submit</button>
+ * </div>
+ * 
+ * @what-it-does Applies display: flex, justify-content: flex-end, and align-items: center
+ */
+@utility flex-end {
+  @apply flex justify-end items-center;
+}
+
+/**
+ * grid-center
+ * 
+ * Creates a grid container with items perfectly centered.
+ * Useful for centering a single item or creating a grid of centered items.
+ * 
+ * @example
+ * <div class="grid-center">
+ *   <div>This is centered</div>
+ * </div>
+ * 
+ * @what-it-does Applies display: grid and place-items: center
+ */
+@utility grid-center {
+  @apply grid place-items-center;
+}
+
+/**
+ * absolute-center
+ * 
+ * Positions an element absolutely in the center of its relative parent.
+ * 
+ * @example
+ * <div style="position: relative; height: 200px;">
+ *   <div class="absolute-center">Centered overlay</div>
+ * </div>
+ * 
+ * @what-it-does Applies position: absolute, top: 50%, left: 50%, and transform: translate(-50%, -50%)
+ * @note Parent element must have position: relative, absolute, or fixed
+ */
+@utility absolute-center {
+  @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
+}
+
+/**
+ * absolute-fill
+ * 
+ * Makes an element fill its relative parent completely.
+ * 
+ * @example
+ * <div style="position: relative; height: 200px;">
+ *   <div class="absolute-fill">Full overlay</div>
+ * </div>
+ * 
+ * @what-it-does Applies position: absolute and sets top, right, bottom, left to 0
+ * @note Parent element must have position: relative, absolute, or fixed
+ */
+@utility absolute-fill {
+  @apply absolute inset-0;
+}
+
+/**
+ * truncate-text
+ * 
+ * Truncates text with an ellipsis when it overflows its container.
+ * 
+ * @example
+ * <div style="width: 100px;">
+ *   <p class="truncate-text">This text will be truncated if it's too long</p>
+ * </div>
+ * 
+ * @what-it-does Applies overflow: hidden, text-overflow: ellipsis, and white-space: nowrap
+ */
+@utility truncate-text {
+  @apply truncate;
+}
+
+/**
+ * icon-color
+ * 
+ * Makes an icon inherit the current text color.
+ * 
+ * @example
+ * <div class="text-primary">
+ *   <svg class="icon-color">...</svg>
+ * </div>
+ * 
+ * @what-it-does Sets both color and fill to currentColor
+ */
+@utility icon-color {
+  color: currentColor;
+  fill: currentColor;
+}
+
+/**
+ * icon-primary
+ * 
+ * Colors an icon with the primary theme color.
+ * 
+ * @example
+ * <svg class="icon-primary">...</svg>
+ * 
+ * @what-it-does Sets both color and fill to the primary color variable
+ */
+@utility icon-primary {
+  @apply text-primary;
+  fill: var(--color-primary);
+}
+
+/**
+ * icon-secondary
+ * 
+ * Colors an icon with the secondary theme color.
+ * 
+ * @example
+ * <svg class="icon-secondary">...</svg>
+ * 
+ * @what-it-does Sets both color and fill to the secondary color variable
+ */
+@utility icon-secondary {
+  @apply text-secondary;
+  fill: var(--color-secondary);
+}
+
+/**
+ * icon-muted
+ * 
+ * Colors an icon with the muted theme color.
+ * 
+ * @example
+ * <svg class="icon-muted">...</svg>
+ * 
+ * @what-it-does Sets both color and fill to the muted color variable
+ */
+@utility icon-muted {
+  @apply text-muted;
+  fill: var(--color-muted);
+}
+
+/**
+ * icon-error
+ * 
+ * Colors an icon with the error theme color.
+ * 
+ * @example
+ * <svg class="icon-error">...</svg>
+ * 
+ * @what-it-does Sets both color and fill to the error color variable
+ */
+@utility icon-error {
+  @apply text-destructive;
+  fill: var(--color-destructive);
+}
+
+/**
+ * icon-success
+ * 
+ * Colors an icon with the success theme color.
+ * 
+ * @example
+ * <svg class="icon-success">...</svg>
+ * 
+ * @what-it-does Sets both color and fill to the success color variable
+ */
+@utility icon-success {
+  @apply text-success;
+  fill: var(--color-success);
+}
+
+/**
+ * icon-warning
+ * 
+ * Colors an icon with the warning theme color.
+ * 
+ * @example
+ * <svg class="icon-warning">...</svg>
+ * 
+ * @what-it-does Sets both color and fill to the warning color variable
+ */
+@utility icon-warning {
+  @apply text-warning;
+  fill: var(--color-warning);
+}
+
+/**
+ * icon-info
+ * 
+ * Colors an icon with the info theme color.
+ * 
+ * @example
+ * <svg class="icon-info">...</svg>
+ * 
+ * @what-it-does Sets both color and fill to the info color variable
+ */
+@utility icon-info {
+  @apply text-info;
+  fill: var(--color-info);
+}
+
+/**
+ * shadow-glow
+ * 
+ * Creates a glowing shadow effect for primary buttons and important UI elements.
+ * 
+ * @example
+ * <button class="shadow-glow">
+ *   Get Started
+ * </button>
+ * 
+ * @what-it-does Applies a box-shadow with the primary color glow effect
+ */
+@utility shadow-glow {
+  @apply shadow-[0_0_15px_rgba(0,255,157,0.5)];
+}
+
+/* For layout containers that change properties at breakpoints */
+@utility transition-dimensions {
+  transition-property: margin, padding, width, height, max-width, max-height;
+  transition-duration: 300ms;
+  transition-timing-function: ease-out;
+}
+
+/* For elements that change position/alignment */
+@utility transition-position {
+  transition-property: justify-content, align-items, align-self, flex-direction, gap;
+  transition-duration: 300ms;
+  transition-timing-function: ease-out;
+}
+
+/* Create simple utility classes */
+@utility animate-fade-in {
+  animation: fade-in 1s ease-out forwards;
+  opacity: 0; /* Start invisible */
+}
+
+/* Create fade-in animation without translation for mobile elements */
+@utility animate-fade-in-only {
+  animation: fade-in-only 1s ease-out forwards;
+  opacity: 0; /* Start invisible */
+}
+
+@utility animate-delay-100 {
+  animation-delay: 100ms;
+}
+
+@utility animate-delay-200 {
+  animation-delay: 200ms;
+}
+
+@utility animate-delay-300 {
+  animation-delay: 300ms;
+}
+
+@utility animate-icon-wiggle {
+  animation: icon-subtle-wiggle 0.5s ease-in-out;
+}
+
+/* Accordion animation*/
+@utility animate-accordion-down {
+  animation: accordion-down 0.3s ease-out;
+}
+
+@utility animate-accordion-up {
+  animation: accordion-up 0.175s ease-in;
+}
+
+@utility animate-pulse-in {
+  animation: pulse-in 0.4s ease-in-out forwards;
+}
+
+/* Custom utilities */
+@utility focus-ring {
+  outline: none;
+  box-shadow: 0 0 0 var(--border-fine) hsl(var(--color-primary));
+}
+
+@utility focus-ring-within {
+  outline: none;
+  box-shadow: 0 0 0 var(--border-fine) hsl(var(--color-primary));
+}
+
+@utility shadow {
+  box-shadow: var(--shadow);
+}
+
+@utility z-negative {
+  z-index: var(--z-negative);
+}
+
+@utility z-base {
+  z-index: var(--z-base);
+}
+
+@utility z-content {
+  z-index: var(--z-content);
+}
+
+@utility z-dropdown {
+  z-index: var(--z-dropdown);
+}
+
+@utility z-sticky {
+  z-index: var(--z-sticky);
+}
+
+@utility z-fixed {
+  z-index: var(--z-fixed);
+}
+
+@utility z-overlay {
+  z-index: var(--z-overlay);
+}
+
+@utility z-modal {
+  z-index: var(--z-modal);
+}
+
+@utility z-popover {
+  z-index: var(--z-popover);
+}
+
+@utility z-toast {
+  z-index: var(--z-toast);
+}
+
+@utility z-spotlight {
+  z-index: var(--z-spotlight);
+}
+
+@utility z-max {
+  z-index: var(--z-max);
+}

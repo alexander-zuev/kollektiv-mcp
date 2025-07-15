@@ -1,24 +1,37 @@
 {
-	"compilerOptions": {
-		"target": "es2022",
-		"lib": ["es2022"],
-		"jsx": "react-jsx",
-		"module": "es2022",
-		"moduleResolution": "Bundler",
-		"resolveJsonModule": true,
-		"allowJs": true,
-		"checkJs": false,
-		"noEmit": true,
-		"isolatedModules": true,
-		"allowSyntheticDefaultImports": true,
-		"forceConsistentCasingInFileNames": true,
-		"strict": true,
-		"skipLibCheck": true,
-		"baseUrl": ".",
-		"paths": {
-			"@/*": ["./src/*"],
-			"@tests/*": ["./tests/*"]
-		}
-	},
-	"include": ["worker-configuration.d.ts", "src/**/*.ts", "tests/**/*.ts"]
+  "compilerOptions": {
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "module": "ESNext",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "skipLibCheck": true,
+    /* Path aliases */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/react-spa/*"
+      ],
+      "@/worker/*": [
+        "./src/worker/*"
+      ],
+      "@/shared/*": [
+        "./src/shared/*"
+      ],
+      "@/tests/*": [
+        "./tests/*"
+      ]
+    }
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.react.json"
+    },
+    {
+      "path": "./tsconfig.worker.json"
+    }
+  ]
 }

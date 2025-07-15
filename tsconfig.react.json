@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.react.tsbuildinfo",
+    "target": "ES2024",
+    "useDefineForClassFields": true,
+    "lib": [
+      "ES2024",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "module": "ESNext",
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "src/react-spa",
+    "src/shared",
+    "vite.config.ts"
+  ],
+  "exclude": [
+    "**/stories.tsx"
+  ]
+}

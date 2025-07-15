@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.worker.tsbuildinfo",
+    "target": "ES2023",
+    "lib": [
+      "ES2023"
+    ],
+    "module": "ESNext"
+    // Might not be needed
+    //    "types": [
+    //            "./worker-configuration.d.ts",
+    //      "vite/client"
+    //    ]
+  },
+  "include": [
+    "src/worker",
+    "src/shared",
+    "worker-configuration.d.ts"
+  ]
+}

@@ -1,0 +1,68 @@
+/**
+ * SHADOW VARIABLES
+ * Defines shadow styles for different UI elements
+ /* Inset shadow */
+/* var(--shadow-1); */
+
+/* Shadows for variant="classic" panels, like Card */
+/* var(--shadow-2); */
+/* var(--shadow-3); */
+
+/* Shadows for smaller overlay panels, like Hover Card and Popover */
+/* var(--shadow-4); */
+/* var(--shadow-5); */
+
+/* Shadows for larger overlay panels, like Dialog */
+/* var(--shadow-6); */
+:root {
+  /* Inset shadow */
+  --shadow-1:
+    inset 0 0 0 1px var(--gray-a5), inset 0 1.5px 2px 0 var(--gray-a2),
+    inset 0 1.5px 2px 0 var(--black-a2);
+
+  /* Shadows for variant="classic" panels, like Card */
+  --shadow-2:
+    0 0 0 1px color-mix(in oklab, var(--gray-a3), var(--gray-3) 25%), 0 0 0 0.5px var(--black-a1),
+    0 1px 1px 0 var(--gray-a2), 0 2px 1px -1px var(--black-a1), 0 1px 3px 0 var(--black-a1);
+
+  --shadow-3:
+    0 0 0 1px color-mix(in oklab, var(--gray-a3), var(--gray-3) 25%), 0 2px 3px -2px var(--gray-a3),
+    0 3px 12px -4px var(--black-a2), 0 4px 16px -8px var(--black-a2);
+
+  /* Shadows for smaller overlay panels, like Hover Card and Popover */
+  --shadow-4:
+    0 0 0 1px color-mix(in oklab, var(--gray-a3), var(--gray-3) 25%), 0 8px 40px var(--black-a1),
+    0 12px 32px -16px var(--gray-a3);
+
+  --shadow-5:
+    0 0 0 1px color-mix(in oklab, var(--gray-a3), var(--gray-3) 25%), 0 12px 60px var(--black-a3),
+    0 12px 32px -16px var(--gray-a5);
+
+  /* Shadows for larger overlay panels, like Dialog */
+  --shadow-6:
+    0 0 0 1px color-mix(in oklab, var(--gray-a3), var(--gray-3) 25%), 0 12px 60px var(--black-a3),
+    0 16px 64px var(--gray-a2), 0 16px 36px -20px var(--gray-a7);
+}
+
+/**
+ * TAILWIND MAPPING
+ * This maps our shadow variables to Tailwind CSS utility classes
+ */
+@theme inline {
+  /* Shadow mappings */
+  --shadow-xs: var(--shadow-1); /* inset shadow */
+  --shadow-sm: var(--shadow-1); /* inset shadow */
+  --shadow: var(--shadow-2); /* default shadow */
+  --shadow-md: var(--shadow-3); /* medium shadow */
+  --shadow-lg: var(--shadow-4); /* large shadow for overlays */
+  --shadow-xl: var(--shadow-5); /* extra large shadow */
+  --shadow-2xl: var(--shadow-6); /* maximum shadow */
+
+  /* Component-specific shadows */
+  --shadow-input: var(--shadow-1); /* inset shadow for inputs */
+  --shadow-card: var(--shadow-2); /* shadow for cards */
+  --shadow-dropdown: var(--shadow-3); /* shadow for dropdowns */
+  --shadow-popover: var(--shadow-4); /* shadow for popovers */
+  --shadow-tooltip: var(--shadow-3); /* shadow for tooltips */
+  --shadow-dialog: var(--shadow-5); /* shadow for dialogs */
+}

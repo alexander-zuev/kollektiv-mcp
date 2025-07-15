@@ -1,5 +1,5 @@
 # ---------------------------
-# Dependency and Node Modules
+# Dependencies & Package Managers
 # ---------------------------
 node_modules/
 jspm_packages/
@@ -9,30 +9,19 @@ bower_components/
 .yarn/unplugged
 .pnp.*
 .lock-wscript
-build/Release
 
 # ---------------------------
-# Build Artifacts and Output
+# Build Outputs & Artifacts
 # ---------------------------
-.net
-out
-.next
-.nuxt
-.dist
 dist/
-.vuepress/dist
-.temp
-.cache
-.gatsby-cache/
-.fusebox/
-.dynamodb/
-.target/
-docs/_build/
-site/
-
-# ---------------------------
-# Configuration Files & Caches
-# ---------------------------
+build/
+out/
+.next/
+.nuxt/
+.vuepress/dist/
+.temp/
+.cache/
+.parcel-cache/
 *.tsbuildinfo
 .eslintcache
 .stylelintcache
@@ -40,35 +29,65 @@ site/
 .rts2_cache_cjs/
 .rts2_cache_es/
 .rts2_cache_umd/
-.parcel-cache
-.terraform
-.python-version
 
 # ---------------------------
-# Environment Files
+# Environment & Configuration
 # ---------------------------
+# Environment files with secrets
 .env
-.env.*
-.supabase/.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.local
+.env.*.local
+.env.production
+.env.staging
+.env.development
+.dev.vars
+.dev.vars.*
+
+# KEEP example files (templates)
+!.env.example
+!.env.*.example
+
+# ---------------------------
+# Cloud & Serverless
+# ---------------------------
+.wrangler/
+.serverless/
+.terraform/
+
+# ---------------------------
+# Supabase
+# ---------------------------
+.supabase/.env*
+.supabase/.temp/
+.supabase/.volumes/
+.supabase/docker/
+.supabase/migrations/.shadow/
+.supabase/.branches/
+
+# ---------------------------
+# Frontend & React/Vite Specific
+# ---------------------------
+# TanStack Router cache
+.tanstack/
+
+# Storybook
+storybook-static/
+*storybook.log
 
 # ---------------------------
 # IDEs & Editors
 # ---------------------------
 .vscode/
 .idea/
-.DS_Store
-.Thumbs.db
-.spyderproject
-.spyproject
-.ropeproject
-.vscode-test
 .windsurf/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
 
 # ---------------------------
-# Logs, Reports, and Diagnostics
+# Logs & Diagnostics
 # ---------------------------
 logs/
 *.log
@@ -77,26 +96,31 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
-report.*.json
-.nyc_output
-.coverage
-.coverage.*
-.nox/
-.tox/
 
 # ---------------------------
-# Test Coverage & Reports
+# Testing & Coverage
 # ---------------------------
-htmlcov/
-coverage
+coverage/
+.coverage/
+.nyc_output/
 .pytest_cache/
+htmlcov/
 *.cover
 *.py,cover
 .hypothesis/
 coverage.xml
 
 # ---------------------------
-# Python & Virtual Environments
+# Static Analysis & Type Checking
+# ---------------------------
+.mypy_cache/
+.dmypy.json
+.pyre/
+.pytype/
+.ruff_cache/
+
+# ---------------------------
+# Python (for scripts)
 # ---------------------------
 __pycache__/
 *.py[cod]
@@ -106,16 +130,21 @@ __pycache__/
 venv/
 env/
 ENV/
-.env/
-.env.* 
 .pdm.toml
 .pdm-python
 .pdm-build/
 __pypackages__/
 
 # ---------------------------
-# Application-specific Files
+# Application Specific
 # ---------------------------
+# Test files
+test-markdown/inputs/*
+test-markdown/outputs/*
+!test-markdown/inputs/.gitkeep
+!test-markdown/outputs/.gitkeep
+
+# Application data
 celerybeat-schedule
 celerybeat.pid
 local_settings.py
@@ -126,51 +155,28 @@ instance/
 .scrapy
 
 # ---------------------------
-# Installer & Packaging
+# Security & Secrets
 # ---------------------------
-pip-log.txt
-pip-delete-this-directory.txt
-*.manifest
-*.spec
-*.egg-info/
-MANIFEST
+# Claude MCP configuration
+.mcp.json
+
+# Keys and certificates
+*.key
+*.pem
+*.p12
+*.pfx
+*secret*
+*token*
+!**/test/**/*token*
+!**/tests/**/*token*
 
 # ---------------------------
-# Static Analysis / Type Checking
+# Temporary & System Files
 # ---------------------------
-.mypy_cache/
-.dmypy.json
-.pyre/
-.pytype/
-.ruff_cache/
-
-# ---------------------------
-# Editors & IDEs
-# ---------------------------
-/.vscode
-/.idea
-/.DS_Store
-/Thumbs.db
-
-# ---------------------------
-# Documentation Asset Folders
-# ---------------------------
-.site/
-
-# ---------------------------
-# External Systems & Repos
-# ---------------------------
-/code/
-.supabase/.temp/
-.supabase/.volumes/
-.supabase/.env
-.supabase/docker/
-.supabase/migrations/.shadow/
-
-# ---------------------------
-# Miscellaneous
-# ---------------------------
-.code/*
+.tmp/
+tmp/
+*.tmp
+*.temp
 pids/
 *.pid
 *.seed
@@ -179,24 +185,22 @@ pids/
 *.egg
 
 # ---------------------------
-# Cloud & Serverless
+# Documentation & Misc
 # ---------------------------
-.serverless/
-.dev.vars
-.wrangler/
+.site/
+docs/_build/
+site/
+.code/
+CLAUDE.local.md
 
 # ---------------------------
-# Custom & Application Files
+# Package & Build Related
 # ---------------------------
-*.sage.py
-.Python
-
-# Local docs
-
-*storybook.log
-
-# Test markdown conversion files
-test-markdown/inputs/*
-test-markdown/outputs/*
-!test-markdown/inputs/.gitkeep
-!test-markdown/outputs/.gitkeep
+pip-log.txt
+pip-delete-this-directory.txt
+*.manifest
+*.spec
+*.egg-info/
+MANIFEST
+# Sentry Config File
+.env.sentry-build-plugin
