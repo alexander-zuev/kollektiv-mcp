@@ -1,12 +1,11 @@
 import type {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
 import type {RequestHandlerExtra} from "@modelcontextprotocol/sdk/shared/protocol.js";
 import type {ServerNotification, ServerRequest} from "@modelcontextprotocol/sdk/types.js";
-// as needed
-import {getAuthHeader} from "@shared/api/utils/auth-header";
+import {getApiRoute} from "@shared/api/app-routes";
 import type {RagSearchRequest, RagSearchResponse} from "@shared/types/ragTasks.ts"; // Adjust path
 import {type ZodTypeAny, z} from "zod";
-import {api} from "@/worker/api-client/client";
-import {ApiRoutes} from "@/worker/api-client/routes";
+import {getAuthHeaders} from "@/worker/infrastructure/web/auth-helpers";
+import {apiClient} from "@/worker/infrastructure/web/http-client";
 import {
     type AuthContext,
     type CallToolResult,
@@ -93,8 +92,8 @@ const ragToolHandler = async ({rag_query, context}: RagQueryToolInput, extra: Ex
             ragQuery: rag_query,
             context: context,
         };
-        const response = await api.post<RagSearchResponse>(ApiRoutes.RAG_SEARCH, payload, {
-            headers: {...getAuthHeader(extra.auth.accessToken)}
+        const response = await apiClient.post<RagSearchResponse>(getApiRoute('rag-search'), payload, {
+            headers: {...getAuthHeaders(extra.auth.accessToken)}
         });
         console.log(`[ragSearchTool] Received response from backend for user ${userId}`);
         return createRagSearchToolResult(response);

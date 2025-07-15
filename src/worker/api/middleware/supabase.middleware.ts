@@ -21,7 +21,7 @@ export const withSupabaseClient = (): MiddlewareHandler => {
             throw new Error("SUPABASE_ANON_KEY environment variable is not set!");
         }
 
-        // Create server client
+        // Create server http-client
         const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
             cookies: {
                 getAll() {
@@ -47,7 +47,7 @@ export const withSupabaseClient = (): MiddlewareHandler => {
                 },
             },
         });
-        // Set client instance to the context's 'supabase' we defined earlier
+        // Set http-client instance to the context's 'supabase' we defined earlier
         c.set("supabase", supabase);
         console.log("[Middleware] Supabase client created and set in context.");
 

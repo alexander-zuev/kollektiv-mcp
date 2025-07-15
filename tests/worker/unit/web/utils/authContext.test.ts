@@ -204,7 +204,7 @@ describe("Auth Context Utilities", () => {
             // Mock loadAuthCookie to return null to ensure it's treated as a first request
             (loadAuthCookie as Mock).mockResolvedValue(null);
 
-            // Mock client lookup to throw an AuthFlowError
+            // Mock http-client lookup to throw an AuthFlowError
             mockContext.env.OAUTH_PROVIDER.lookupClient.mockRejectedValue(
                 new AuthFlowError("Client lookup failed"),
             );
@@ -235,7 +235,7 @@ describe("Auth Context Utilities", () => {
                 };
                 (loadAuthCookie as Mock).mockResolvedValue(cookieData);
 
-                // Mock client lookup to fail with an AuthFlowError
+                // Mock http-client lookup to fail with an AuthFlowError
                 mockContext.env.OAUTH_PROVIDER.lookupClient.mockRejectedValue(
                     new AuthFlowError("Client lookup failed"),
                 );
@@ -256,7 +256,7 @@ describe("Auth Context Utilities", () => {
                 };
                 (loadAuthCookie as Mock).mockResolvedValue(cookieData);
 
-                // Mock client lookup to return null
+                // Mock http-client lookup to return null
                 mockContext.env.OAUTH_PROVIDER.lookupClient.mockResolvedValue(null);
 
                 // ─ Act & Assert

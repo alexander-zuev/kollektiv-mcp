@@ -50,3 +50,4 @@ export function getMcpRoute(path: keyof typeof APP_ROUTES.mcp.paths): string {
 export type AuthRoutePath = keyof typeof APP_ROUTES.auth.paths;
 export type ApiRoutePath = keyof typeof APP_ROUTES.api.paths;
 export type McpRoutePath = keyof typeof APP_ROUTES.mcp.paths;
+export type FullApiRoutePath = `${typeof APP_ROUTES.api.prefix}${typeof APP_ROUTES.api.paths[ApiRoutePath]}`;

@@ -103,7 +103,7 @@ export type ApiEndpoint = keyof typeof ApiEndpoints;
  *
  * @example
  * const endpoint = getApiEndpoint('LIST_DOCUMENTS');
- * api-client.get<typeof endpoint.response>(endpoint.path);
+ * api-http-client.get<typeof endpoint.response>(endpoint.path);
  */
 export function getApiEndpoint<T extends ApiEndpoint>(endpoint: T): (typeof ApiEndpoints)[T] {
     return ApiEndpoints[endpoint];

@@ -24,7 +24,7 @@ describe("User Utilities", () => {
         return {} as Context;
     };
 
-    // Create a mock Supabase client
+    // Create a mock Supabase http-client
     const createMockSupabaseClient = () => ({
         auth: {
             getUser: vi.fn(),

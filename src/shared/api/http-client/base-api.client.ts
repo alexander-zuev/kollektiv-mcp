@@ -1,29 +1,50 @@
 /**
  * API Client
- * A clean, type-safe HTTP client for making API requests
+ * A clean, type-safe HTTP http-client for making API requests
  */
 
-import type {ApiClientConfig} from '@/api-client/client/config';
-import type {ApiRoutePath} from '@/api-client/routes';
-import type {ApiRequestOptions, HttpMethod, PathParams, QueryParams} from '@/api-client/types/base';
-import {ApiError, logApiError} from '@/api-client/types/base';
-import {convertToCamelCase, convertToSnakeCase} from '@/api-client/utils/caseConverter';
-
-import {infrastructureLogger as logger} from '@/worker/infrastructure/logger';
+import type {FullApiRoutePath} from "@shared/api/app-routes.ts";
+import type {ApiClientConfig} from '@shared/api/http-client/config.ts';
+import {
+    ApiError,
+    type ApiRequestOptions,
+    type HttpMethod,
+    logApiError,
+    type PathParams,
+    type QueryParams
+} from '@shared/api/http-client/types';
+import {convertToCamelCase, convertToSnakeCase} from '@shared/api/utils/case-converter';
+import {config} from '@/config';
+import {logger} from '@/shared/lib/logger';
 
 /**
- * Creates an API client with the specified configuration
+ * Creates an API http-client with the specified configuration
  * @param options - Configuration options
  * @returns An object with methods for making API requests
  */
 export function createApiClient(options: ApiClientConfig) {
-    const baseUrl = options.baseUrl;
+    const baseUrl = options.baseUrl ?? config.site.url;
     const timeout = options.timeout || 60000; // Default 60s timeout
     const defaultHeaders = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         ...options.headers,
     };
+
+    // Configure case conversion (default to true if not specified)
+    const caseConversion = options.caseConversion ?? true;
+
+    // Determine if we should convert request bodies to snake_case
+    const shouldConvertRequestToSnakeCase =
+        typeof caseConversion === 'boolean'
+            ? caseConversion
+            : (caseConversion.requestToSnakeCase ?? true);
+
+    // Determine if we should convert response bodies to camelCase
+    const shouldConvertResponseToCamelCase =
+        typeof caseConversion === 'boolean'
+            ? caseConversion
+            : (caseConversion.responseToCamelCase ?? true);
 
     /**
      * Builds a full API URL by:
@@ -39,7 +60,7 @@ export function createApiClient(options: ApiClientConfig) {
      * @returns Formatted URL
      */
     function buildApiUrl(
-        path: ApiRoutePath,
+        path: FullApiRoutePath,
         pathParams?: PathParams,
         queryParams?: QueryParams
     ): URL {
@@ -109,11 +130,13 @@ export function createApiClient(options: ApiClientConfig) {
             }
         }
         // Handle Auth Errors first if the onAuthError handler provided
-        if ((status === 401 || status === 403) && options.onAuthError) {
-            const code = (payload as {
-                detail?: { details?: { code?: string } }
-            })?.detail?.details?.code;
-            await options.onAuthError(status, code);
+        if ((status === 401 || status === 403) && options.handleAuthError) {
+            const code = (
+                payload as {
+                    detail?: { details?: { code?: string } };
+                }
+            )?.detail?.details?.code;
+            await options.handleAuthError(status, code);
         }
 
         if (!msg) msg = statusText;
@@ -127,11 +150,8 @@ export function createApiClient(options: ApiClientConfig) {
      *
      * @throws ApiError if no internet connection is detected
      */
-    // NOTE: This function is only meaningful in the browser. In server/worker environments,
-    // navigator.onLine is not available and network connectivity should be determined by catching request errors.
     function checkInternetConnection(url: URL): void {
-        const isOnline = typeof navigator !== "undefined" && "onLine" in navigator ? navigator.onLine : true;
-        if (!isOnline) {
+        if (navigator.onLine === false) {
             logApiError('network', url, 0, 'No network connection');
             throw new ApiError(
                 'No network connection - check your connection and try again.',
@@ -177,6 +197,7 @@ export function createApiClient(options: ApiClientConfig) {
      * Parses and returns a response<T> if response.ok
 
      * @param response
+     * @param url
      * @returns Promise<T>
      * @throws ApiError if response could not be parsed
      */
@@ -189,7 +210,10 @@ export function createApiClient(options: ApiClientConfig) {
         // Handle successful responses with JSON bodies
         try {
             const jsonResponse = await response.json();
-            const processedResponse = convertToCamelCase(jsonResponse);
+            // Apply case conversion only if configured to do so
+            const processedResponse = shouldConvertResponseToCamelCase
+                ? convertToCamelCase(jsonResponse)
+                : jsonResponse;
             return processedResponse as T;
         } catch (e) {
             logApiError('parse', url, response.status, String(e));
@@ -242,16 +266,20 @@ export function createApiClient(options: ApiClientConfig) {
      */
     async function request<T = any>(
         method: HttpMethod,
-        path: ApiRoutePath,
+        path: FullApiRoutePath,
         requestOptions: ApiRequestOptions,
         body?: any
     ): Promise<T> {
         // Build url path with path and query params
         const url = buildApiUrl(path, requestOptions.pathParams, requestOptions.queryParams);
 
-        // Merge default headers with request headers
+        // Get auth headers if authHeader function is provided
+        const authHeaders = options.getAuthHeaders ? options.getAuthHeaders() : {};
+
+        // Merge all headers: default -> auth -> request-specific
         const headers: Record<string, string> = {
             ...defaultHeaders,
+            ...authHeaders,
             ...(requestOptions.headers || {}),
         };
 
@@ -268,14 +296,14 @@ export function createApiClient(options: ApiClientConfig) {
             body: isFormData
                 ? (body as FormData)
                 : body
-                    ? JSON.stringify(convertToSnakeCase(body))
+                    ? JSON.stringify(shouldConvertRequestToSnakeCase ? convertToSnakeCase(body) : body)
                     : undefined,
             // signal: (for abort/timeout, add if needed)
         };
 
         let timeoutId: NodeJS.Timeout | undefined;
         const abortController = new AbortController();
-        // Use request-specific timeout OR the client's default timeout
+        // Use request-specific timeout OR the http-client's default timeout
         const effectiveTimeout = requestOptions.timeoutMs ?? timeout;
 
         // Only set up AbortController if there's a valid timeout value
@@ -301,7 +329,10 @@ export function createApiClient(options: ApiClientConfig) {
      * @param requestOptions - Request options (pathParams, queryParams, headers)
      * @returns Promise with the response wrapped in ApiResponse
      */
-    async function get<T>(path: ApiRoutePath, requestOptions: ApiRequestOptions = {}): Promise<T> {
+    async function get<T>(
+        path: FullApiRoutePath,
+        requestOptions: ApiRequestOptions = {}
+    ): Promise<T> {
         return request<T>('GET', path, requestOptions);
     }
 
@@ -313,7 +344,7 @@ export function createApiClient(options: ApiClientConfig) {
      * @returns Promise with the response wrapped in ApiResponse
      */
     async function post<T>(
-        path: ApiRoutePath,
+        path: FullApiRoutePath,
         body: unknown,
         requestOptions: ApiRequestOptions = {}
     ): Promise<T> {
@@ -328,11 +359,26 @@ export function createApiClient(options: ApiClientConfig) {
      * @returns Promise with the response wrapped in ApiResponse
      */
     async function put<T>(
-        path: ApiRoutePath,
+        path: FullApiRoutePath,
         body: unknown,
         requestOptions: ApiRequestOptions = {}
     ): Promise<T> {
         return request<T>('PUT', path, requestOptions, body);
+    }
+
+    /**
+     * Make a PATCH request
+     * @param path - API path
+     * @param body - Request body
+     * @param requestOptions - Request options (pathParams, queryParams, headers)
+     * @returns Promise with the response wrapped in ApiResponse
+     */
+    async function patch<T>(
+        path: FullApiRoutePath,
+        body: unknown,
+        requestOptions: ApiRequestOptions = {}
+    ): Promise<T> {
+        return request<T>('PATCH', path, requestOptions, body);
     }
 
     /**
@@ -341,7 +387,10 @@ export function createApiClient(options: ApiClientConfig) {
      * @param requestOptions - Request options (pathParams, queryParams, headers)
      * @returns Promise with the response wrapped in ApiResponse
      */
-    async function del<T>(path: ApiRoutePath, requestOptions: ApiRequestOptions = {}): Promise<T> {
+    async function del<T>(
+        path: FullApiRoutePath,
+        requestOptions: ApiRequestOptions = {}
+    ): Promise<T> {
         return request<T>('DELETE', path, requestOptions);
     }
 
@@ -350,6 +399,7 @@ export function createApiClient(options: ApiClientConfig) {
         get,
         post,
         put,
+        patch,
         delete: del, // Renamed to avoid conflict with JavaScript keyword
     };
 }

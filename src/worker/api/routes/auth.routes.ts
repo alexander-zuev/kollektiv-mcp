@@ -69,7 +69,7 @@ https://github.com/alexander-zuev/kollektiv-mcp#connection-troubleshooting
 
     // 4. If user -> render consent screen
     console.log(`[GET /auth/authorize] Session found for user ${user.id}. Rendering consent screen.`);
-    // Check that redirect URI belongs to this client ID? or sooner?
+    // Check that redirect URI belongs to this http-client ID? or sooner?
     return renderConsentScreen(c, ctx.oauthReq, ctx.client, user, ctx.tx, ctx.csrfToken);
 });
 

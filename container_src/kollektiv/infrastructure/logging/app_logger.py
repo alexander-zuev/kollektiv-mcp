@@ -83,7 +83,8 @@ def configure_logging(settings: Settings) -> None:
     logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
     logging.getLogger("httpx").setLevel(logging.ERROR)
     logging.getLogger("httpx._client").setLevel(logging.ERROR)  # Client internals
-    logging.getLogger("httpx._trace").setLevel(logging.ERROR)  # Trace logs like receive_response_body
+    logging.getLogger("httpx._trace").setLevel(
+        logging.ERROR)  # Trace logs like receive_response_body
     logging.getLogger("httpcore").setLevel(logging.WARNING)
     # Suppress multipart and hpack spam
     logging.getLogger("python_multipart.multipart").setLevel(logging.WARNING)
@@ -93,7 +94,7 @@ def configure_logging(settings: Settings) -> None:
         "boto3",  # high-level wrapper
         "aioboto3",  # async wrapper
         "s3transfer",  # internal transfer helper
-        "aiobotocore",  # async low-level client (covers aiobotocore.regions)
+        "aiobotocore",  # async low-level http-client (covers aiobotocore.regions)
         "openai",
     )
 

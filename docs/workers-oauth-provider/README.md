@@ -54,8 +54,8 @@ export default new OAuthProvider({
     // Note: You must use either apiRoute+apiHandler (single-handler) OR apiHandlers (multi-handler), not both.
     // Example:
     // apiHandlers: {
-    //   "/api-client/users/": UsersApiHandler,
-    //   "/api-client/documents/": DocumentsApiHandler,
+    //   "/api-http-client/users/": UsersApiHandler,
+    //   "/api-http-client/documents/": DocumentsApiHandler,
     //   "https://api.example.com/": ExternalApiHandler,
     // },
 
@@ -75,8 +75,8 @@ export default new OAuthProvider({
     // Can also be specified as just a path (e.g., "/oauth/token").
     tokenEndpoint: "https://example.com/oauth/token",
 
-    // This specifies the RFC-7591 dynamic client registration endpoint. This setting is optional,
-    // but if provided, the OAuthProvider will implement this endpoint to allow dynamic client
+    // This specifies the RFC-7591 dynamic http-client registration endpoint. This setting is optional,
+    // but if provided, the OAuthProvider will implement this endpoint to allow dynamic http-client
     // registration.
     // Can also be specified as just a path (e.g., "/oauth/register").
     clientRegistrationEndpoint: "https://example.com/oauth/register",
@@ -92,7 +92,7 @@ export default new OAuthProvider({
     allowImplicitFlow: false,
 
     // Optional: Controls whether public clients (clients without a secret, like SPAs)
-    // can register via the dynamic client registration endpoint.
+    // can register via the dynamic http-client registration endpoint.
     // When true, only confidential clients can register.
     // Note: Creating public clients via the OAuthHelpers.createClient() method
     // is always allowed regardless of this setting.
@@ -123,7 +123,7 @@ const defaultHandler = {
             // state. It returns an object containing all these (using idiomatic camelCase naming).
             let oauthReqInfo = await env.OAUTH_PROVIDER.parseAuthRequest(request);
 
-            // `env.OAUTH_PROVIDER.lookupClient()` looks up metadata about the client, as definetd by RFC-7591. This
+            // `env.OAUTH_PROVIDER.lookupClient()` looks up metadata about the http-client, as definetd by RFC-7591. This
             // includes things like redirect_uris, client_name, logo_uri, etc.
             let clientInfo = await env.OAUTH_PROVIDER.lookupClient(oauthReqInfo.clientId);
 
@@ -162,7 +162,7 @@ const defaultHandler = {
             });
 
             // `completeAuthorization()` will have returned the URL to which the user should be redirected
-            // in order to complete the authorization flow. This is the requesting client's OAuth
+            // in order to complete the authorization flow. This is the requesting http-client's OAuth
             // redirect_uri with the appropriate query parameters added to complete the flow and obtain
             // tokens.
             return Response.redirect(redirectTo, 302);
@@ -184,10 +184,10 @@ class ApiHandler extends WorkerEntrypoint {
     // The `this.env.OAUTH_PROVIDER` is available just like in the default handler.
     //
     // The `this.ctx.props` property contains the `props` value that was passed to
-    // `env.OAUTH_PROVIDER.completeAuthorization()` during the authorization flow that authorized this client.
+    // `env.OAUTH_PROVIDER.completeAuthorization()` during the authorization flow that authorized this http-client.
     fetch(request: Request) {
         // The application can implement its API endpoints like normal. This app implements a single
-        // endpoint, `/api-client/whoami`, which returns the user's authenticated identity.
+        // endpoint, `/api-http-client/whoami`, which returns the user's authenticated identity.
 
         let url = new URL(request.url);
         if (url.pathname == "/api-client/whoami") {
@@ -229,48 +229,48 @@ To use this feature, provide a `tokenExchangeCallback` in your OAuthProvider opt
 
 ```ts
 new OAuthProvider({
-  // ... other options ...
-  tokenExchangeCallback: async (options) => {
-    // options.grantType is either 'authorization_code' or 'refresh_token'
-    // options.props contains the current props
-    // options.clientId, options.userId, and options.scope are also available
+    // ... other options ...
+    tokenExchangeCallback: async (options) => {
+        // options.grantType is either 'authorization_code' or 'refresh_token'
+        // options.props contains the current props
+        // options.clientId, options.userId, and options.scope are also available
 
-    if (options.grantType === 'authorization_code') {
-      // For authorization code exchange, might want to obtain upstream tokens
-      const upstreamTokens = await exchangeUpstreamToken(options.props.someCode);
+        if (options.grantType === 'authorization_code') {
+            // For authorization code exchange, might want to obtain upstream tokens
+            const upstreamTokens = await exchangeUpstreamToken(options.props.someCode);
 
-      return {
-        // Update the props stored in the access token
-        accessTokenProps: {
-          ...options.props,
-          upstreamAccessToken: upstreamTokens.access_token
-        },
-        // Update the props stored in the grant (for future token refreshes)
-        newProps: {
-          ...options.props,
-          upstreamRefreshToken: upstreamTokens.refresh_token
+            return {
+                // Update the props stored in the access token
+                accessTokenProps: {
+                    ...options.props,
+                    upstreamAccessToken: upstreamTokens.access_token
+                },
+                // Update the props stored in the grant (for future token refreshes)
+                newProps: {
+                    ...options.props,
+                    upstreamRefreshToken: upstreamTokens.refresh_token
+                }
+            };
         }
-      };
-    }
 
-    if (options.grantType === 'refresh_token') {
-      // For refresh token exchanges, might want to refresh upstream tokens too
-      const upstreamTokens = await refreshUpstreamToken(options.props.upstreamRefreshToken);
+        if (options.grantType === 'refresh_token') {
+            // For refresh token exchanges, might want to refresh upstream tokens too
+            const upstreamTokens = await refreshUpstreamToken(options.props.upstreamRefreshToken);
 
-      return {
-        accessTokenProps: {
-          ...options.props,
-          upstreamAccessToken: upstreamTokens.access_token
-        },
-        newProps: {
-          ...options.props,
-          upstreamRefreshToken: upstreamTokens.refresh_token || options.props.upstreamRefreshToken
-        },
-        // Optionally override the default access token TTL to match the upstream token
-        accessTokenTTL: upstreamTokens.expires_in
-      };
+            return {
+                accessTokenProps: {
+                    ...options.props,
+                    upstreamAccessToken: upstreamTokens.access_token
+                },
+                newProps: {
+                    ...options.props,
+                    upstreamRefreshToken: upstreamTokens.refresh_token || options.props.upstreamRefreshToken
+                },
+                // Optionally override the default access token TTL to match the upstream token
+                accessTokenTTL: upstreamTokens.expires_in
+            };
+        }
     }
-  }
 });
 ```
 
@@ -296,10 +296,10 @@ response was to be emitted:
 
 ```ts
 new OAuthProvider({
-  // ... other options ...
-  onError({ code, description, status, headers }) {
-    Sentry.captureMessage(/* ... */)
-  }
+    // ... other options ...
+    onError({code, description, status, headers}) {
+        Sentry.captureMessage(/* ... */)
+    }
 })
 ```
 
@@ -307,13 +307,13 @@ By returning a `Response` you can also override what the OAuthProvider returns t
 
 ```ts
 new OAuthProvider({
-  // ... other options ...
-  onError({ code, description, status, headers }) {
-    if (code === 'unsupported_grant_type') {
-      return new Response('...', { status, headers })
+    // ... other options ...
+    onError({code, description, status, headers}) {
+        if (code === 'unsupported_grant_type') {
+            return new Response('...', {status, headers})
+        }
+        // returning undefined (i.e. void) uses the default Response generation
     }
-    // returning undefined (i.e. void) uses the default Response generation
-  }
 })
 ```
 

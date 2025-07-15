@@ -7,7 +7,7 @@ import {getAuthHeader} from "@/features/auth";
 import {createRagSearchToolResult, ragSearchTool} from "@/mcp/tools/ragSearchTool";
 import {createErrorResponse} from "@/mcp/tools/types"; // Adjust import path
 
-// Mock the api-client client
+// Mock the api-http-client http-client
 vi.mock("@/api-client/client", () => ({
     api: {
         post: vi.fn(),

@@ -1,0 +1,1 @@
+export type { JwtPayload } from '@supabase/supabase-js';

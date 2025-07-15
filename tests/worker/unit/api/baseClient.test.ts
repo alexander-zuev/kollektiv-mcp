@@ -68,7 +68,7 @@ const createTimeoutMockFetch = (resolveDelayMs: number) => {
                     signal.addEventListener("abort", handleAbort, {once: true});
                 }
             } else {
-                // If no signal is provided (e.g., client default timeout), we might need this promise to never resolve for timeout tests, or resolve normally otherwise.
+                // If no signal is provided (e.g., http-client default timeout), we might need this promise to never resolve for timeout tests, or resolve normally otherwise.
                 // For this specific test, a signal IS expected because a timeoutMs is provided.
             }
         });
@@ -77,7 +77,7 @@ const createTimeoutMockFetch = (resolveDelayMs: number) => {
 
 // --- Tests ---
 describe("Good ol unit tests of baseClient", () => {
-    // Create a client instance of client for testing
+    // Create a http-client instance of http-client for testing
     const defaultHeaders = {Accept: "application/json", "Content-Type": "application/json"};
     const apiClient = createApiClient({baseUrl: BASE_URL, timeout: DEFAULT_TIMEOUT});
 

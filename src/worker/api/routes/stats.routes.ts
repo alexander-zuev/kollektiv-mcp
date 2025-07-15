@@ -11,7 +11,7 @@ const statsRoutes = new Hono<AppContext>()
 
 statsRoutes.get(APP_ROUTES.api.paths.stats,
     async c => {
-        // get supabase client with a JWT set for the current user from Hyperdrive
+        // get supabase http-client with a JWT set for the current user from Hyperdrive
         // retrieve stats for the user using query_stats_view and user_id filter
         // return UserStatsResponse
         // Try catch DatabaseError and ValidationError?

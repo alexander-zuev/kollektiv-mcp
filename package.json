@@ -1,6 +1,6 @@
 {
   "name": "kollektiv-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Kollektiv MCP - RAG over your private files. Built on top of Cloudflare AutoRAG.",
   "type": "module",
   "private": true,

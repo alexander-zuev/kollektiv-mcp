@@ -31,14 +31,14 @@ describe("authCallbackHandler", () => {
         const mockRedirect = vi.fn();
         const mockText = vi.fn();
 
-        // Create a mock Supabase client
+        // Create a mock Supabase http-client
         const mockSupabaseClient = {
             auth: {
                 exchangeCodeForSession: vi.fn(),
             },
         } as unknown as SupabaseClient;
 
-        // Mock the getSupabase function to return our mock client
+        // Mock the getSupabase function to return our mock http-client
         vi.spyOn(SupabaseModule, "getSupabase").mockReturnValue(mockSupabaseClient);
 
         return {

@@ -30,7 +30,7 @@ export class AuthFlowService {
     }
 
     /**
-     * Retrieves the valid OAuth request and client information, attempting
+     * Retrieves the valid OAuth request and http-client information, attempting
      * request parameters first, then falling back to a temporary cookie.
      * Persists valid parameter data to the cookie for later requests
      * within the flow (e.g., after login).
@@ -63,7 +63,7 @@ export class AuthFlowService {
             // Otherwise we silently fall through to cookie restoration ↓
         }
 
-        // if request is valid -> try to extract client info from request parameters
+        // if request is valid -> try to extract http-client info from request parameters
         if (this.isValidOAuthRequest(oauthReq)) {
             const client = await this.oauthProvider.lookupClient(oauthReq.clientId);
 

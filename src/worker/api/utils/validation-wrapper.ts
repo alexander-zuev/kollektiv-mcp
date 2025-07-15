@@ -9,18 +9,21 @@ export const zValidator = <T extends ZodType, Target extends keyof ValidationTar
 ) =>
     zv(target, schema, (result, c) => {
         if (!result.success) {
+            // Type assertion needed due to complex intersection type
+            const errorResult = result as typeof result & { error: any };
+
             apiLogger.error('Input validation failed', {
                 operation: 'input-validation',
                 target,
                 inputType: typeof result.data,
-                issues: result.error.issues.map(issue => ({
+                issues: errorResult.error.issues.map(issue => ({
                     path: issue.path.join('.'),
                     message: issue.message,
                     code: issue.code,
                 })),
             });
 
-            const issues = result.error.issues.map(issue => ({
+            const issues = errorResult.error.issues.map(issue => ({
                 message: issue.message,
                 code: issue.code,
                 property: issue.path,

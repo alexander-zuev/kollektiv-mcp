@@ -6,7 +6,7 @@ import {getAuthHeader} from "@/features/auth";
 import {listDocumentsTool} from "@/mcp/tools/listDocumentsTool";
 import {createErrorResponse, createSuccessTextResponse} from "@/mcp/tools/types";
 
-// Mock the api-client client
+// Mock the api-http-client http-client
 vi.mock("@/api-client/client", () => ({
     api: {
         get: vi.fn(),

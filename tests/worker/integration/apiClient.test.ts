@@ -76,7 +76,7 @@ describe.skipIf(skipIntegration)("API Client integration tests using HTTPBIN", (
         async (context) => {
             await runTestHandlingHttpbin5xx(async () => {
                 const body = {userId: "testUser", isActive: true, nestedData: {value: 1}};
-                // Client converts body to snake_case, httpbin echoes it, client converts response back to camelCase
+                // Client converts body to snake_case, httpbin echoes it, http-client converts response back to camelCase
                 const response = await apiClient.post<{
                     json: typeof body;
                 }>("/anything" as any, body, {timeoutMs: testTimeoutMs});

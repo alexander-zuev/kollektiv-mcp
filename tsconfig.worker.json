@@ -10,7 +10,7 @@
     // Might not be needed
     //    "types": [
     //            "./worker-configuration.d.ts",
-    //      "vite/client"
+    //      "vite/http-client"
     //    ]
   },
   "include": [

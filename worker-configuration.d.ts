@@ -6827,7 +6827,7 @@ interface IncomingRequestCfPropertiesCloudflareForSaaSEnterprise<HostMetadata> {
 
 interface IncomingRequestCfPropertiesCloudflareAccessOrApiShield {
     /**
-     * Information about the client certificate presented to Cloudflare.
+     * Information about the http-client certificate presented to Cloudflare.
      *
      * This is populated when the incoming request is served over TLS using
      * either Cloudflare Access or API Shield (mTLS)
@@ -6848,7 +6848,7 @@ interface IncomingRequestCfPropertiesCloudflareAccessOrApiShield {
  */
 interface IncomingRequestCfPropertiesExportedAuthenticatorMetadata {
     /**
-     * The client's [`HELLO` message](https://www.rfc-editor.org/rfc/rfc5246#section-7.4.1.2), encoded in hexadecimal
+     * The http-client's [`HELLO` message](https://www.rfc-editor.org/rfc/rfc5246#section-7.4.1.2), encoded in hexadecimal
      *
      * @example "44372ba35fa1270921d318f34c12f155dc87b682cf36a790cfaa3ba8737a1b5d"
      */
@@ -6860,7 +6860,7 @@ interface IncomingRequestCfPropertiesExportedAuthenticatorMetadata {
      */
     serverHandshake: string;
     /**
-     * The client's [`FINISHED` message](https://www.rfc-editor.org/rfc/rfc5246#section-7.4.9), encoded in hexadecimal
+     * The http-client's [`FINISHED` message](https://www.rfc-editor.org/rfc/rfc5246#section-7.4.9), encoded in hexadecimal
      *
      * @example "084ee802fe1348f688220e2a6040a05b2199a761f33cf753abb1b006792d3f8b"
      */
@@ -7497,7 +7497,7 @@ interface ForwardableEmailMessage extends EmailMessage {
     readonly rawSize: number;
 
     /**
-     * Reject this email message by returning a permanent SMTP error back to the connecting client including the given reason.
+     * Reject this email message by returning a permanent SMTP error back to the connecting http-client including the given reason.
      * @param reason The reject reason.
      * @returns void
      */
@@ -7563,17 +7563,17 @@ interface Hyperdrive {
      *
      * Calling this method returns an idential socket to if you call
      * `connect("host:port")` using the `host` and `port` fields from this object.
-     * Pick whichever approach works better with your preferred DB client library.
+     * Pick whichever approach works better with your preferred DB http-client library.
      *
      * Note that this socket is not yet authenticated -- it's expected that your
-     * code (or preferably, the client library of your choice) will authenticate
+     * code (or preferably, the http-client library of your choice) will authenticate
      * using the information in this class's readonly fields.
      */
     connect(): Socket;
 
     /**
      * A valid DB connection string that can be passed straight into the typical
-     * client library/driver/ORM. This will typically be the easiest way to use
+     * http-client library/driver/ORM. This will typically be the easiest way to use
      * Hyperdrive.
      */
     readonly connectionString: string;
@@ -7806,7 +7806,7 @@ declare module "cloudflare:pipelines" {
     }
 }
 // PubSubMessage represents an incoming PubSub message.
-// The message includes metadata about the broker, the client, and the payload
+// The message includes metadata about the broker, the http-client, and the payload
 // itself.
 // https://developers.cloudflare.com/pub-sub/
 interface PubSubMessage {
@@ -7816,16 +7816,16 @@ interface PubSubMessage {
     readonly broker: string;
     // The MQTT topic the message was sent on.
     readonly topic: string;
-    // The client ID of the client that published this message.
+    // The http-client ID of the http-client that published this message.
     readonly clientId: string;
-    // The unique identifier (JWT ID) used by the client to authenticate, if token
+    // The unique identifier (JWT ID) used by the http-client to authenticate, if token
     // auth was used.
     readonly jti?: string;
     // A Unix timestamp (seconds from Jan 1, 1970), set when the Pub/Sub Broker
-    // received the message from the client.
+    // received the message from the http-client.
     readonly receivedAt: number;
     // An (optional) string with the MIME type of the payload, if set by the
-    // client.
+    // http-client.
     readonly contentType: string;
     // Set to 1 when the payload is a UTF-8 string
     // https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901063

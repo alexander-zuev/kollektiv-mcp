@@ -17,7 +17,7 @@ export async function authErrorHandler(statusCode: 401 | 403, errorCode?: string
             const {success} = await refreshSession();
 
             if (success) {
-                // do nothing on success -> this will be handled by the api-client client
+                // do nothing on success -> this will be handled by the api-http-client http-client
             } else {
                 logger.debug('Failed to refresh session, signing out');
                 // sign user out
