@@ -1,4 +1,12 @@
-# Kollektiv MCP
+# ⚠️ DEPRECATED - Kollektiv MCP
+
+> **🚨 IMPORTANT: This experimental MCP server is now DEPRECATED and will be shut down soon.**
+>
+> For updates, visit [kollektiv.sh](https://kollektiv.sh)
+>
+> **Please do not use this server for new projects.**
+
+---
 
 [![TypeScript](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fgithub.com%2Falexander-zuev%2Fkollektiv-mcp%2Fraw%2Fmain%2Fpackage.json&search=%22typescript%22%3A%5Cs*%22%5C%5E%3F(%5B0-9%5D%2B%5C.%5B0-9%5D%2B)&replace=%241&logo=typescript&label=TypeScript)](https://www.typescriptlang.org)
 [![Runtime](https://img.shields.io/badge/Runtime-Cloudflare%20Workers-orange?logo=cloudflare)](https://workers.cloudflare.com/)
@@ -7,32 +15,22 @@
 [![codecov](https://codecov.io/gh/alexander-zuev/kollektiv-mcp/graph/badge.svg)](https://codecov.io/gh/alexander-zuev/kollektiv-mcp)
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue?logo=apache&logoColor=white)](LICENSE)
 
-## 🧠 Your personal LLM knowledgebase
+## ~~🧠 Your personal LLM knowledgebase~~ (DEPRECATED)
 
-Kollektiv MCP enables you to build personal LLM knowledge base in seconds and use it from your
+**[Original Description - No longer maintained]** Kollektiv MCP enables you to build personal LLM knowledge base in seconds and use it from your
 favorite editor / client. No more infrastructure setup, chunking, syncing - just upload your
 data and start chatting. Supports all major MCP clients out of the box - Cursor, Windsurf,
 Claude Desktop, etc.
 
-> **Roadmap Items:** There are a few changes I want to bring to Kollektiv in near-term:
-> - refactor and transition to AutoRAG pipeline to improve ingestion speed, decrease
-    > search latency and reduce costs
-> - consolidate 3 services in 2 (or 3) on the same worker with Hono API + React SPA. Hono API
-    > will serve both MCP + Backend endpoints, while React SPA will serve landing + ingesting UI
+## ⚠️ Deprecation Notice
 
-> 🧪 Kollektiv is in early beta. If you
-> experience any issues connecting to the MCP client, try
-> going over [these steps](#connection-troubleshooting) first. If still unsuccessful please raise an
-> issue
-> [here](https://github.com/alexander-zuev/kollektiv-mcp/issues/new)
+This experimental MCP server is **DEPRECATED** and will be **shut down soon**. The service endpoints may stop working at any time without notice.
 
-## Why Kollektiv?
+**Do not use this for new projects or production use.**
 
-- **No need to re-upload data** between chat sessions
-- **Access from any client** - Cursor, Windsurf, Claude Desktop, VSCode, PyCharm, etc.
-- **No need for infrastructure setup** - just upload your data and start chatting
+---
 
-## 💿 Connection
+## 💿 Connection (DEPRECATED - MAY NOT WORK)
 
 The simplest way to connect to Kollektiv MCP is to copy & paste the following
 configuration into your editor's `mcp.json` file. All clients (Cursor, Windsurf, Claude Desktop,
