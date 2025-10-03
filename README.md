@@ -2,9 +2,9 @@
 
 > **🚨 IMPORTANT: This experimental MCP server is now DEPRECATED and will be shut down soon.**
 >
-> For updates, visit [kollektiv.sh](https://kollektiv.sh)
+> For the latest updates and information, please visit [kollektiv.sh](https://kollektiv.sh)
 >
-> **Please do not use this server for new projects.**
+> **Please do not use this server for any new projects.**
 
 ---
 
